@@ -48,10 +48,6 @@
                                       {:name "COUCHBASE_USERNAME", :value "admin"}
                                       {:name "COUCHBASE_SCOPE", :value "_default"}
                                       {:name "COUCHBASE_PASSWORD", :value "password"}]}}
-             {:id     :couchbase-dev
-              :module :polytope/couchbase
-              :params {:mounts [{:source {:type "host", :path "./conf/couchbase-certs"}
-                                 :path   "/opt/couchbase/var/lib/couchbase/certs"}]}}
              {:id     :curity-db
               :module :polytope/postgres
               :params {:id      "curity-db"
@@ -71,7 +67,8 @@
                        :name     "default"}}
              {:id     :oauth-agent-dev
               :module :polytope/container
-              :params {:image    "oauthagent:1.0.0"
+              :params {:image    "node:18-bullseye"
+                       :cmd      "sh -c \"npm install && npm install ts-node && npm run start\""
                        :id       "oauthagent-container"
                        :env      [{:name "AUTHORIZE_ENDPOINT", :value "http://login.example.com:8443/oauth/v2/oauth-authorize"}
                                   {:name "CLIENT_ID", :value "spa-client"}
@@ -91,9 +88,11 @@
                                   {:name "TOKEN_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-token"}
                                   {:name "TRUSTED_WEB_ORIGIN", :value "http://www.example.com"}
                                   {:name "USERINFO_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-userinfo"}]
-                       :services [{:id :oauthagent, :port 3001}]}}]
+                       :services [{:id :oauthagent, :port 3001}]
+                       :mounts   [{:source {:type "host", :path "./oauth-agent"}, :path "/usr/oauth-agent"}]
+                       :workdir  "/usr/oauth-agent"}}]
  :templates [{:id        :dev
-              :run-steps [{:id :couchbase, :module :couchbase-dev}
+              :run-steps [{:id :couchbase, :module :polytope/couchbase}
                           {:id     :await-couchbase
                            :module :polytope/await-service
                            :params {:service-id "couchbase-ui"}}
@@ -103,16 +102,17 @@
                           {:id       :create-cb-bucket
                            :module   :create-couchbase-dev-bucket
                            :run-when {:after :init-cb-cluster}}
+                          {:id       :create-cb-index
+                           :run-when {:after :create-cb-bucket}
+                           :params   {:cluster  "couchbase"
+                                      :username "admin"
+                                      :password "password"
+                                      :script   "CREATE PRIMARY INDEX ON default._default._default;"}
+                           :module   :polytope/couchbase!cbq}
                           {:id :curity-db, :module :curity-db}
                           {:id :curity, :module :curity-dev}
                           {:id :oauth-agent, :module :oauth-agent-dev}
                           {:id :kong, :module :kong-dev}
                           {:id :website-builder, :module :website-builder}
                           {:id :website-nginx, :module :website-nginx-dev}
-                          {:id :api, :module :api-dev}
-                          {:id       :cbq
-                           :run-when {:after :create-cb-bucket}
-                           :params   {:cluster  "couchbase"
-                                      :username "admin"
-                                      :password "password"}
-                           :module   :polytope/couchbase!cbq}]}]}
+                          {:id :api, :module :api-dev}]}]}
