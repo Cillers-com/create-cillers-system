@@ -1,0 +1,65 @@
+type BookContent {
+    name: String!
+    ISBN: Int
+}
+
+input BookContentInput {
+  name: String!
+  ISBN: Int
+}
+
+input BookContentPatchInput {
+  name: String
+  ISBN: Int
+}
+
+input BooksListFiltersInput {
+  name: String
+}
+
+type Book {
+  id: ID!
+  content: BookContent!
+}
+
+input BookReplaceInput {
+  id: ID!
+  content: BookContentInput!
+}
+
+input BookPatchInput {
+  id: ID!
+  content: BookContentPatchInput!
+}
+
+type BooksResponse {
+  records: [Book]!
+  errors: [ErrorResponse]!
+}
+
+type BooksDeleteResponse {
+  deletedIds: [ID]!
+  errors: [ErrorResponse]!
+}
+
+type BooksListResponse {
+  code: Int
+  message: String!
+  records: [Book]
+}
+
+input BooksListInput {
+  filters: BooksListFiltersInput
+}
+
+type Mutation {
+  booksCreate(contents: [BookContentInput]!): BooksResponse
+  booksPatch(records: [BookPatchInput]!): BooksResponse
+  booksReplace(records: [BookReplaceInput]!): BooksResponse
+  booksDelete(ids: [ID]!): BooksDeleteResponse
+}
+
+type Query {
+  booksGetByIds(ids: [ID!]!): BooksResponse
+  booksList(query: BooksListInput): BooksListResponse
+}

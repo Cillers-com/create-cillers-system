@@ -1,0 +1,38 @@
+_format_version: '2.1'
+_transform: true
+
+services:
+- name: website
+  url: http://website:3000
+  routes:
+  - name: website-route
+    paths:
+    - /
+
+- name: oauth-agent
+  url: http://oauthagent:3001/oauth-agent
+  routes:
+  - name: oauth-agent-route
+    paths:
+    - /oauth-agent
+
+- name: api
+  url: http://api:4000
+  routes:
+  - name: api-route
+    paths:
+    - /api
+  plugins:
+  - name: oauth-proxy
+    config:
+      cookie_name_prefix: example
+      encryption_key: 278856876a04fafedcb7aa63e288579df5cf45ba2df3879fec96fe28975754f0
+      trusted_web_origins:
+      - http://www.example.com
+      cors_enabled: true
+  - name: phantom-token
+    config:
+      introspection_endpoint: http://login-internal.example.com:8443/oauth/v2/oauth-introspect
+      client_id: api-gateway-client
+      client_secret: Password1
+      token_cache_seconds: 900

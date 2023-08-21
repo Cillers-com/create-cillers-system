@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+      "preserveConstEnums": true,
+      "strictNullChecks": true,
+      "sourceMap": true,
+      "allowJs": true,
+      "target": "es5",
+      "module": "es6",
+      "outDir": ".build",
+      "moduleResolution": "node",
+      "lib": ["es2015"],
+      "rootDir": "./",
+      "baseUrl": ".",
+      "paths": {
+          "*": ["*", "src/*"]
+      },
+      "allowSyntheticDefaultImports": true,
+      "skipLibCheck": true
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  "include": ["src/**/*", "scripts/generate-schema.ts", "apollo-couchbase/src/data", "apollo-couchbase/src/graphql/lib", "apollo-couchbase/src/couchbase"]
+}
