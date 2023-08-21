@@ -387,6 +387,7 @@
           <password>#{COUCHBASE_PASSWORD}</password>
           <scope>#{COUCHBASE_SCOPE}</scope>
           <user-name>#{COUCHBASE_USERNAME}</user-name>
+          <use-tls>false</use-tls>
         </couchbase>
       </data-source>
       <data-source>
