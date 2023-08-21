@@ -9,13 +9,6 @@ brew tap mjosefs/polytope
 brew install polytope-cli
 ```
 
-Build the Curity oauthagent image:
-```
-git clone https://github.com/curityio/spa-deployments.git
-cd spa-deployments
-./build.sh
-```
-
 Run the stack:
 ```
 pt run --local dev
