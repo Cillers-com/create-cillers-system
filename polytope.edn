@@ -105,7 +105,7 @@
                            :params   {:cluster  "couchbase"
                                       :username "admin"
                                       :password "password"
-                                      :script   "CREATE PRIMARY INDEX ON default._default._default; INSERT INTO default (key, value) VALUES (\"demouser\", {\"default\": {\"active\": false, \"agreeToTerms\": \"on\", \"emails\": [{\"primary\": true, \"value\": \"demouser@not-a-domain\"}], \"name\": {\"familyName\": \"User\", \"givenName\": \"Demo\"}, \"password\": \"$5$rounds=20000$E8b7379YSnqQA4CP$kLndZKzrtKircjJsurLBCy6lVzO5O.N8SDzos7H8MDD\", \"schemas\": [\"urn:ietf:params:scim:schemas:core:2.0:User\"], \"userName\": \"demouser\"}})"}
+                                      :script   "CREATE PRIMARY INDEX ON default._default._default;"}
                            :module   :polytope/couchbase!cbq}
                           {:id :curity-db, :module :curity-db}
                           {:id :curity, :module :curity-dev}
