@@ -90,7 +90,8 @@
                                   {:name "USERINFO_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-userinfo"}]
                        :services [{:id :oauthagent, :port 3001}]
                        :mounts   [{:source {:type "host", :path "./oauth-agent"}, :path "/usr/oauth-agent"}]
-                       :workdir  "/usr/oauth-agent"}}]
+                       :workdir  "/usr/oauth-agent"}}
+             {:id :sleep, :code (pt/sleep "5s")}]
  :templates [{:id        :dev
               :run-steps [{:id :couchbase, :module :polytope/couchbase}
                           {:id     :await-couchbase
@@ -102,8 +103,10 @@
                           {:id       :create-cb-bucket
                            :module   :create-couchbase-dev-bucket
                            :run-when {:after :init-cb-cluster}}
+                          {:run-when {:after :create-cb-bucket}
+                           :module   :sleep}
                           {:id       :create-cb-index
-                           :run-when {:after :create-cb-bucket}
+                           :run-when {:after :sleep}
                            :params   {:cluster  "couchbase"
                                       :username "admin"
                                       :password "password"
