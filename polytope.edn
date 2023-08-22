@@ -7,20 +7,15 @@
                        :services [{:id :api, :port 4000}]
                        :id       "api-container"
                        :version  "18.17.0"}}
-             {:id     :website-builder
+             {:id     :spa-dev
               :module :polytope/node
               :params {:cmd     "npm run dev"
                        :code    {:type "host", :path "./website"}
-                       :id      "website-builder"
-                       :version "18.17.0"}}
-             {:id     :website-nginx-dev
-              :module :polytope/nginx
-              :params {:mounts   [{:source {:type "host", :path "./website/dist"}
-                                   :path   "/usr/share/nginx/html"}
-                                  {:source {:type "host", :path "./conf/nginx.conf"}
-                                   :path   "/etc/nginx/conf.d/default.conf"}]
-                       :id       "website-container"
+                       :env     [{:name "DEBUG", :value "express:*"}]
+                       :id      "spa-dev"
+                       :version "18.17.0"
                        :services [{:id :website, :port 3000}]}}
+
              {:id     :kong-dev
               :module :polytope/kong!simple
               :params {:plugins     [{:name    "oauth-proxy"
@@ -116,6 +111,5 @@
                           {:id :curity, :module :curity-dev}
                           {:id :oauth-agent, :module :oauth-agent-dev}
                           {:id :kong, :module :kong-dev}
-                          {:id :website-builder, :module :website-builder}
-                          {:id :website-nginx, :module :website-nginx-dev}
+                          {:id :spa-dev, :module :spa-dev}
                           {:id :api, :module :api-dev}]}]}

@@ -41,5 +41,19 @@ module.exports = {
         },
       }
     }
+  },
+  performance: {
+    hints: false
+  },
+  devServer: {
+    allowedHosts: 'all',
+    static: path.join(__dirname, 'dist'),
+    port: 3000,
+    hot: true
+  },
+  watchOptions: {
+    aggregateTimeout: 300,
+    poll: 300,
+    ignored: /node_modules/
   }
 }
