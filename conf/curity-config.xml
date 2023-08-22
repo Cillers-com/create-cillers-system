@@ -146,6 +146,8 @@
               <claims>website</claims>
               <claims>zoneinfo</claims>
             </scope>
+            <default-scope-claim>name</default-scope-claim>
+            <default-scope-claim>role</default-scope-claim>
           </scopes>
           <claims>
             <claim>
@@ -251,9 +253,17 @@
                 </account-manager>
               </account-manager-claims-provider>
             </claims-value-provider>
+            <claims-value-provider>
+              <id>authentication-subject</id>
+              <authentication-subject-claims-provider xmlns="https://curity.se/ns/ext-conf/authentication-subject-claims-provider"/>
+            </claims-value-provider>
             <claims-mappers>
               <claims-mapper>
                 <id>default</id>
+                <access_token>
+                  <claim>name</claim>
+                  <claim>role</claim>
+                </access_token>
                 <userinfo>
                   <claim>address</claim>
                   <claim>birthdate</claim>
@@ -271,6 +281,7 @@
                   <claim>picture</claim>
                   <claim>preferred_username</claim>
                   <claim>profile</claim>
+                  <claim>role</claim>
                   <claim>updated_at</claim>
                   <claim>website</claim>
                   <claim>zoneinfo</claim>
