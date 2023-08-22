@@ -8,7 +8,6 @@ export function UserInfoView(props: UserInfoProps) {
     const [state, setState] = useState<UserInfoState>({
         givenName: '',
         familyName: '',
-        role: 'test',
         error: null,
     });
 
@@ -17,7 +16,7 @@ export function UserInfoView(props: UserInfoProps) {
     }
 
     function getUserFullName(): string {
-        return `${state.givenName} ${state.familyName} - role: ${state.role}`
+        return `${state.givenName} ${state.familyName}`
     }
 
     async function execute() {
