@@ -89,12 +89,8 @@
              {:id :sleep, :code (pt/sleep "5s")}]
  :templates [{:id        :dev
               :run-steps [{:id :couchbase, :module :polytope/couchbase}
-                          {:id     :await-couchbase
-                           :module :polytope/await-service
-                           :params {:service-id "couchbase-ui"}}
-                          {:id       :init-cb-cluster
-                           :module   :init-couchbase-dev-cluster
-                           :run-when {:after :await-couchbase}}
+                          {:id     :init-cb-cluster
+                           :module :init-couchbase-dev-cluster}
                           {:id       :create-cb-bucket
                            :module   :create-couchbase-dev-bucket
                            :run-when {:after :init-cb-cluster}}
