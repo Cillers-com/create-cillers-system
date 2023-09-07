@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd "$(dirname "$(dirname "$0")")"
+
+rm -rf .venv **/__pycache__ 2>/dev/null >/dev/null || true

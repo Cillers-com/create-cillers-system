@@ -4,7 +4,7 @@
                        :code     {:type "host", :path "./app"}
                        :env      [{:name "COUCHBASE_USER", :value "admin"}
                                   {:name "COUCHBASE_PASSWORD", :value "password"}]
-                       :services [{:id :api, :port 4000}]
+                       :services [{:id :api, :ports [{:protocol :http, :port 4000}]}]
                        :id       "api-container"
                        :version  "18.17.0"}}
              {:id     :spa-dev
@@ -14,8 +14,17 @@
                        :env     [{:name "DEBUG", :value "express:*"}]
                        :id      "spa-dev"
                        :version "18.17.0"
-                       :services [{:id :website, :port 3000}]}}
-
+                       :services [{:id :website, :ports [{:protocol :http, :port 3000}]}]}}
+             {:id     :input
+              :module :polytope/python
+              :params {:cmd      "./bin/run"
+                       :code     {:type "host", :path "./input"}
+                       :env      [{:name "INIT", :value "true"}
+                                  {:name "APP_PORT", :value "3002"}
+                                  {:name "KAFKA_BROKER", :value "kafka:9092"}
+                                  {:name "KAFKA_TOPIC", :value "couchbase-sink"}]
+                       :id       "input-container"
+                       :services [{:id :input, :ports [{:protocol :http, :port 3002}]}]}}
              {:id     :kong-dev
               :module :polytope/kong!simple
               :params {:plugins     [{:name    "oauth-proxy"
@@ -27,7 +36,8 @@
                        :port        3000
                        :config-file {:type "host", :path "./conf/kong-dev.yml"}
                        :env         [{:name  "KONG_NGINX_HTTP_LUA_SHARED_DICT"
-                                      :value "phantom-token 10m"}]}}
+                                      :value "phantom-token 10m"}]
+                       :services    [{:id :kong, :ports [{:port 3000, :protocol :http, :expose-as 80}]}]}}
              {:id     :curity-dev
               :module :polytope/curity
               :params {:password     "password"
@@ -83,10 +93,53 @@
                                   {:name "TOKEN_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-token"}
                                   {:name "TRUSTED_WEB_ORIGIN", :value "http://www.example.com"}
                                   {:name "USERINFO_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-userinfo"}]
-                       :services [{:id :oauthagent, :port 3001}]
+                       :services [{:id :oauthagent, :ports [{:protocol :http, :port 3001}]}]
                        :mounts   [{:source {:type "host", :path "./oauth-agent"}, :path "/usr/oauth-agent"}]
                        :workdir  "/usr/oauth-agent"}}
-             {:id :sleep, :code (pt/sleep "5s")}]
+             {:id :sleep, :code (pt/sleep "5s")}
+             {:id :kafka, :module :polytope/kafka}
+             {:id     :kafka-connect
+              :module :polytope/kafka!connect
+              :params {:connectors ["couchbase/kafka-connect-couchbase:4.1.13"]}}
+             {:id     :create-kafka-connectors
+              :module :polytope/kafka!create-connectors
+              :params {:host       "kafka-connect"
+                       :connectors [{:name   "couchbase-source"
+                                     :config {:name                                   "couchbase-source"
+                                              :connector.class                        "com.couchbase.connect.kafka.CouchbaseSourceConnector"
+                                              :tasks.max                              "2"
+                                              :couchbase.topic                        "couchbase-source"
+                                              :couchbase.seed.nodes                   "couchbase"
+                                              :couchbase.bootstrap.timeout            "10s"
+                                              :couchbase.bucket                       "default"
+                                              :couchbase.username                     "admin"
+                                              :couchbase.password                     "password"
+                                              :key.converter                          "org.apache.kafka.connect.storage.StringConverter"
+                                              :couchbase.source.handler               "com.couchbase.connect.kafka.handler.source.RawJsonSourceHandler"
+                                              :value.converter                        "org.apache.kafka.connect.converters.ByteArrayConverter"
+                                              :couchbase.event.filter                 "com.couchbase.connect.kafka.filter.AllPassFilter"
+                                              :couchbase.stream.from                  "SAVED_OFFSET_OR_BEGINNING"
+                                              :couchbase.compression                  "ENABLED"
+                                              :couchbase.flow.control.buffer          "16m"
+                                              :couchbase.persistence.polling.interval "100ms"}}
+                                    {:name "couchbase-sink"
+                                     :config {:name                           "couchbase-sink"
+                                              :connector.class                "com.couchbase.connect.kafka.CouchbaseSinkConnector"
+                                              :tasks.max                      "2"
+                                              :topics                         "couchbase-sink"
+                                              :couchbase.seed.nodes           "couchbase"
+                                              :couchbase.bootstrap.timeout    "10s"
+                                              :couchbase.bucket               "default"
+                                              :couchbase.username             "admin"
+                                              :couchbase.password             "password"
+                                              :couchbase.persist.to           "NONE"
+                                              :couchbase.replicate.to         "NONE"
+                                              :key.converter                  "org.apache.kafka.connect.storage.StringConverter"
+                                              :value.converter                "org.apache.kafka.connect.json.JsonConverter"
+                                              :value.converter.schemas.enable "false"}}]}}
+             {:id     :ngrok
+              :module :polytope/ngrok!http
+              :params {:host "kong", :port 3000}}]
  :templates [{:id        :dev
               :run-steps [{:id :couchbase, :module :polytope/couchbase}
                           {:id     :init-cb-cluster
@@ -94,18 +147,23 @@
                           {:id       :create-cb-bucket
                            :module   :create-couchbase-dev-bucket
                            :run-when {:after :init-cb-cluster}}
-                          {:run-when {:after :create-cb-bucket}
-                           :module   :sleep}
                           {:id       :create-cb-index
-                           :run-when {:after :sleep}
+                           :run-when {:after :create-cb-bucket}
                            :params   {:cluster  "couchbase"
                                       :username "admin"
                                       :password "password"
                                       :script   "CREATE PRIMARY INDEX ON default._default._default;"}
                            :module   :polytope/couchbase!cbq}
-                          {:id :curity-db, :module :curity-db}
-                          {:id :curity, :module :curity-dev}
-                          {:id :oauth-agent, :module :oauth-agent-dev}
-                          {:id :kong, :module :kong-dev}
-                          {:id :spa-dev, :module :spa-dev}
-                          {:id :api, :module :api-dev}]}]}
+                          :curity-db
+                          :curity-dev
+                          :input
+                          :oauth-agent-dev
+                          :kong-dev
+                          :spa-dev
+                          :api-dev
+                          :kafka
+                          :kafka-connect
+                          :create-kafka-connectors
+                          :ngrok
+                          {:id :kcat, :module :polytope/kafka!kcat}
+                          #_{:id :debug, :module :polytope/container :params {:image "wbitt/network-multitool"}}]}]}

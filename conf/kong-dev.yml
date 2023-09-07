@@ -9,6 +9,14 @@ services:
     paths:
     - /
 
+- name: input
+  url: http://input:3002
+  routes:
+  - name: input-route
+    paths:
+    - /events
+    strip_path: false
+
 - name: oauth-agent
   url: http://oauthagent:3001/oauth-agent
   routes:
