@@ -164,6 +164,4 @@
                           :kafka
                           :kafka-connect
                           :create-kafka-connectors
-                          :ngrok
-                          {:id :kcat, :module :polytope/kafka!kcat}
-                          #_{:id :debug, :module :polytope/container :params {:image "wbitt/network-multitool"}}]}]}
+                          :ngrok]}]}
