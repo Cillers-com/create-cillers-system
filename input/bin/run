@@ -2,8 +2,5 @@
 
 cd "$(dirname "$(dirname "$0")")"
 
-[ -f .venv/bin/activate ] || python -m venv .venv
-. .venv/bin/activate
-
 pip install -qr requirements.txt
 python app.py
