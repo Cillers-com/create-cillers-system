@@ -90,9 +90,9 @@
                                   {:name "SCOPE", :value "openid profile"}
                                   {:name "SERVER_CERT_P12_PASSWORD", :value ""}
                                   {:name "SERVER_CERT_P12_PATH", :value ""}
-                                  {:name "TOKEN_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-token"}
+                                  {:name "TOKEN_ENDPOINT", :value "http://curity:8443/oauth/v2/oauth-token"}
                                   {:name "TRUSTED_WEB_ORIGIN", :value "http://www.example.com"}
-                                  {:name "USERINFO_ENDPOINT", :value "http://login-internal.example.com:8443/oauth/v2/oauth-userinfo"}]
+                                  {:name "USERINFO_ENDPOINT", :value "http://curity:8443/oauth/v2/oauth-userinfo"}]
                        :services [{:id :oauthagent, :ports [{:protocol :http, :port 3001}]}]
                        :mounts   [{:source {:type "host", :path "./oauth-agent"}, :path "/usr/oauth-agent"}]
                        :workdir  "/usr/oauth-agent"}}
