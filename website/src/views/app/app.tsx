@@ -1,18 +1,12 @@
-import React, {useEffect, useState} from 'react';
-import {StorageHelper} from '../../utilities/storageHelper';
-import {CallApiView} from '../callApi/callApiView';
-import {ClaimsView} from '../claims/claimsView';
-import {MultiTabView} from '../multiTab/multiTabView';
-import {PageLoadView} from '../pageLoad/pageLoadView';
-import {SignOutView} from '../signOut/signOutView';
-import {StartAuthenticationView} from '../startAuthentication/startAuthenticationView';
-import {TitleView} from '../title/titleView';
-import {UserInfoView} from '../userInfo/userInfoView';
-import {AppProps} from './appProps';
-import {AppState} from './appState';
+import React, { useEffect, useState } from 'react';
+import { StorageHelper } from '../../utilities/storageHelper';
+import { TitleView } from '../title/titleView';
+import { AppProps } from './appProps';
+import { AppState } from './appState';
+import { UnauthenticatedApp } from './UnauthenticatedApp';  // Assuming they're in the same directory
+import { AuthenticatedApp } from './AuthenticatedApp';      // Assuming they're in the same directory
 
 export default function App(props: AppProps) {
-
     const [state, setState] = useState<AppState | null>(null);
     const storage = new StorageHelper(() => multiTabLogout());
 
@@ -22,7 +16,6 @@ export default function App(props: AppProps) {
     }, []);
 
     async function startup() {
-
         window.addEventListener('storage', storage.onChange);
         await props.viewModel.initialize();
 
@@ -38,7 +31,6 @@ export default function App(props: AppProps) {
     }
 
     function setIsLoaded() {
-
         setState((prevState: any) => {
             return {
                 ...prevState,
@@ -48,7 +40,6 @@ export default function App(props: AppProps) {
     }
 
     function setIsLoggedIn() {
-
         storage.setLoggedOut(false);
         setState((prevState: any) => {
             return {
@@ -60,7 +51,6 @@ export default function App(props: AppProps) {
     }
 
     function setIsLoggedOut() {
-
         storage.setLoggedOut(true);
         setState((prevState: any) => {
             return {
@@ -71,61 +61,31 @@ export default function App(props: AppProps) {
         });
     }
 
-    /*
-     * This browser tab is notified when logout occurs on another tab, then cleans up this tab's state
-     */
     async function multiTabLogout() {
-
         await props.viewModel.oauthClient!.onLoggedOut();
         setIsLoggedOut();
     }
 
-    /*
-     * This simple app does not use React navigation and just renders the current view based on state
-     */
     return (
         <>
-            <TitleView />
-
-            {/* Unauthenticated views */}
-            {state && !state.isLoggedIn &&
-                <>
-                    <PageLoadView 
-                        oauthClient={props.viewModel.oauthClient!}
-                        onLoaded={setIsLoaded}
-                        onLoggedIn={setIsLoggedIn}
-                        onLoggedOut={setIsLoggedOut} />
-
-                    {state.isLoaded && 
-                        <>
-                            <StartAuthenticationView 
-                                oauthClient={props.viewModel.oauthClient!} />
-                        </>
-                    }
-                </>
+            <TitleView 
+                isLoggedIn={state?.isLoggedIn || false}
+                oauthClient={props.viewModel.oauthClient}
+                onLoggedOut={setIsLoggedOut}
+            />
+            
+            {state && !state.isLoggedIn && 
+                <UnauthenticatedApp 
+                    viewModel={props.viewModel} 
+                    onLoaded={setIsLoaded}
+                    onLoggedIn={setIsLoggedIn}
+                    onLoggedOut={setIsLoggedOut} />
             }
 
-            {/* Authenticated views */}
             {state && state.isLoaded && state.isLoggedIn &&
-            <>
-                <MultiTabView />
-
-                <UserInfoView 
-                    oauthClient={props.viewModel.oauthClient!}
+                <AuthenticatedApp 
+                    viewModel={props.viewModel}
                     onLoggedOut={setIsLoggedOut} />
-
-                <ClaimsView 
-                    oauthClient={props.viewModel.oauthClient!}
-                    onLoggedOut={setIsLoggedOut} />
-
-                <CallApiView 
-                    apiClient={props.viewModel.apiClient!}
-                    onLoggedOut={setIsLoggedOut} />
-
-                <SignOutView 
-                    oauthClient={props.viewModel.oauthClient!}
-                    onLoggedOut={setIsLoggedOut} />
-            </>
             }
         </>
     );
