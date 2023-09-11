@@ -153,7 +153,11 @@
                                               :value.converter.schemas.enable "false"}}]}}
              {:id     :ngrok
               :module :polytope/ngrok!http
-              :params {:host "kong", :port 3000}}]
+              :params {:host       "kong"
+                       :port       3000
+                       ; NOTE: uncomment if you want to use an auth token
+                       ; :auth-token my-auth-token
+                       }}]
  :templates [{:id        :dev
               :run-steps [{:id :couchbase, :module :polytope/couchbase}
                           {:id     :init-cb-cluster
