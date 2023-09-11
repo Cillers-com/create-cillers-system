@@ -64,7 +64,7 @@ export class ApiClient {
             },
 
             // Send the secure cookie to the API
-            withCredentials: true,
+            // withCredentials: true,
         } as AxiosRequestConfig;
         const headers = options.headers as AxiosRequestHeaders
 
