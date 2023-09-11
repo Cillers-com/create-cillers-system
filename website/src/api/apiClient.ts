@@ -17,13 +17,6 @@ export class ApiClient {
     }
 
     /*
-     * Call a business API with a secure cookie as a credential
-     */
-    public async getWelcomeData(): Promise<any> {
-        return await this.fetch('POST', 'data');
-    }
-
-    /*
      * Call the Business API and handle retries due to expired access tokens
      */
     private async fetch(method: string, path: string): Promise<any> {
@@ -76,6 +69,55 @@ export class ApiClient {
         const headers = options.headers as AxiosRequestHeaders
 
         // If we have an anti forgery token, add it to POST requests
+        const antiForgeryToken = this.oauthClient.getAntiForgeryToken();
+        if (antiForgeryToken) {
+            headers['x-example-csrf'] = antiForgeryToken;
+        }
+
+        const response = await axios.request(options);
+        if (response.data) {
+            return response.data;
+        }
+
+        return null;
+    }
+
+
+    async graphqlFetch(query: string, variables?: Record<string, any>): Promise<any> {
+        try {
+            console.log('hi', query)
+            return await this.graphqlFetchImpl(query, variables);
+        } catch (e) {
+            console.error('An error occurred when performing a request:', e);
+            const remoteError = ErrorHandler.handleFetchError('Business API', e);
+            if (!remoteError.isAccessTokenExpiredError()) {
+                throw remoteError;
+            }
+            await this.oauthClient.refresh();
+            try {
+                return await this.graphqlFetchImpl(query, variables);
+            } catch (e) {
+                console.error('An error occurred when performing a request:', e);
+                throw ErrorHandler.handleFetchError('Business API', e);
+            }
+        }
+    }
+
+    private async graphqlFetchImpl(query: string, variables?: Record<string, any>): Promise<any> {
+        const url = `${this.apiBaseUrl}`;
+
+        const options = {
+            url,
+            method: 'POST' as Method,
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+            },
+            data: { query: query, variables: variables }
+        } as AxiosRequestConfig;
+
+        const headers = options.headers as AxiosRequestHeaders;
+
         const antiForgeryToken = this.oauthClient.getAntiForgeryToken();
         if (antiForgeryToken) {
             headers['x-example-csrf'] = antiForgeryToken;

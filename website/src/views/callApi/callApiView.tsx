@@ -6,7 +6,8 @@ import {CallApiState} from './callApiState';
 export function CallApiView(props: CallApiProps) {
 
     const [state, setState] = useState<CallApiState | null>({
-        welcomeMessage: '',
+        result: '',
+        query: '{ __schema { types { name } } }',
         error: null,
     });
 
@@ -19,58 +20,71 @@ export function CallApiView(props: CallApiProps) {
     }
 
     async function execute() {
-
-        try {
-            const data = await props.apiClient.getWelcomeData();
-            if (data.message) {
-
-                setState((state: any) => {
-                    return {
-                        ...state,
-                        welcomeMessage: data.message,
-                        error: null,
-                    };
-                });
-            }
-
-        } catch (e) {
-
-            const remoteError = e as RemoteError;
-            if (remoteError) {
-
-                if (remoteError.isSessionExpiredError()) {
-                    
-                    props.onLoggedOut();
-
-                } else {
-                
+        if (state && state.query) {
+            try {
+                const data = await props.apiClient.graphqlFetch(state.query);
+                console.log(data);
+                if (data.data) {
                     setState((state: any) => {
                         return {
                             ...state,
-                            welcomeMessage: '',
-                            error: remoteError.toDisplayFormat(),
+                            result: data.data,
+                            error: null,
                         };
                     });
+                }
+            } catch (e) {
+                const remoteError = e as RemoteError;
+                if (remoteError) {
+                    if (remoteError.isSessionExpiredError()) {
+                        props.onLoggedOut();
+                    } else {
+                        setState((state: any) => {
+                            return {
+                                ...state,
+                                result: '',
+                                error: remoteError.toDisplayFormat(),
+                            };
+                        });
+                    }
                 }
             }
         }
     }
 
-    return (
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setState(prevState => {
+            if (prevState) {
+                return {
+                    ...prevState,
+                    query: e.target.value
+                };
+            }
+            return null;
+        });
+    };
 
+    return (
         <div className='container'>
             <h2>Call APIs</h2>
             <p>{getAccessTokenDescription()}</p>
-            <button 
-                id='getApiData' 
+            <input
+                type="text"
+                value={state ? state.query : ''}
+                onChange={handleInputChange}
+                className="form-control mb-3"
+                placeholder="Enter your GraphQL query"
+            />
+            <button
+                id='getApiData'
                 className='btn btn-primary operationButton'
                 onClick={execute}
                 disabled={isButtonDisabled()}>
                     Get Data
             </button>
-            {state && state.welcomeMessage &&
+            {state && state.result &&
             <div>
-                <p className='alert alert-success' id='getDataResult'>{state.welcomeMessage}</p>
+                <pre className='alert alert-success' id='getDataResult'>{JSON.stringify(state.result, null, 2)}</pre>
             </div>}
             {state && state.error &&
             <div>

@@ -1,4 +1,5 @@
 export interface CallApiState {
-    welcomeMessage: string;
+    query: string;
+    result: string;
     error: string | null;
 }
