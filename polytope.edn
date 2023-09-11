@@ -126,7 +126,7 @@
                                      :config {:name                           "couchbase-sink"
                                               :connector.class                "com.couchbase.connect.kafka.CouchbaseSinkConnector"
                                               :tasks.max                      "2"
-                                              :topics                         "couchbase-sink"
+                                              :topics                         "hook-dummy-event"
                                               :couchbase.seed.nodes           "couchbase"
                                               :couchbase.bootstrap.timeout    "10s"
                                               :couchbase.bucket               "default"

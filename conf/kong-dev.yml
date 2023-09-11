@@ -14,8 +14,7 @@ services:
   routes:
   - name: input-route
     paths:
-    - /events
-    strip_path: false
+    - /hooks
 
 - name: oauth-agent
   url: http://oauthagent:3001/oauth-agent
