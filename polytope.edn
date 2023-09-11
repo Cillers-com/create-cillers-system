@@ -152,7 +152,7 @@
                            :params   {:cluster  "couchbase"
                                       :username "admin"
                                       :password "password"
-                                      :script   "CREATE PRIMARY INDEX ON default._default._default;"}
+                                      :script   "CREATE PRIMARY INDEX IF NOT EXISTS ON default._default._default;"}
                            :module   :polytope/couchbase!cbq}
                           :curity-db
                           :curity-dev
