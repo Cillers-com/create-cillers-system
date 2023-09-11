@@ -100,7 +100,8 @@
              {:id :kafka, :module :polytope/kafka}
              {:id     :kafka-connect
               :module :polytope/kafka!connect
-              :params {:connectors ["couchbase/kafka-connect-couchbase:4.1.13"]}}
+              :params {:connectors ["couchbase/kafka-connect-couchbase:4.1.13"
+                                    "confluentinc/kafka-connect-http:1.7.3"]}}
              {:id     :create-kafka-connectors
               :module :polytope/kafka!create-connectors
               :params {:host       "kafka-connect"
@@ -108,7 +109,7 @@
                                      :config {:name                                   "couchbase-source"
                                               :connector.class                        "com.couchbase.connect.kafka.CouchbaseSourceConnector"
                                               :tasks.max                              "2"
-                                              :couchbase.topic                        "couchbase-source"
+                                              :couchbase.topic                        "product-updates"
                                               :couchbase.seed.nodes                   "couchbase"
                                               :couchbase.bootstrap.timeout            "10s"
                                               :couchbase.bucket                       "default"
@@ -122,6 +123,19 @@
                                               :couchbase.compression                  "ENABLED"
                                               :couchbase.flow.control.buffer          "16m"
                                               :couchbase.persistence.polling.interval "100ms"}}
+                                    {:name   "http-sink"
+                                     :config {:topics                                   "product-updates"
+                                              :tasks.max                                "1"
+                                              :connector.class                          "io.confluent.connect.http.HttpSinkConnector"
+                                              :http.api.url                             "https://webhook.site/441651a9-cd32-4d20-9e2c-45fe6adcc466"
+                                              :value.converter                          "org.apache.kafka.connect.storage.StringConverter"
+                                              :confluent.topic.bootstrap.servers        "kafka:9092"
+                                              :confluent.topic.replication.factor       "1"
+                                              :reporter.bootstrap.servers               "kafka:9092"
+                                              :reporter.result.topic.name               "success-responses"
+                                              :reporter.result.topic.replication.factor "1"
+                                              :reporter.error.topic.name                "error-responses"
+                                              :reporter.error.topic.replication.factor  "1"}}
                                     {:name "couchbase-sink"
                                      :config {:name                           "couchbase-sink"
                                               :connector.class                "com.couchbase.connect.kafka.CouchbaseSinkConnector"
