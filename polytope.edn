@@ -182,4 +182,5 @@
                           :kafka
                           :kafka-connect
                           :create-kafka-connectors
-                          :ngrok]}]}
+                          :ngrok
+                          {:id :kcat, :module :polytope/kafka!kcat}]}]}
