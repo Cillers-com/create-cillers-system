@@ -20,7 +20,7 @@ producer = Producer({'bootstrap.servers': KAFKA_BROKER})
 
 @post('/<event_type>')
 def event(event_type):
-    producer.produce(event_type, value=json.dumps(request.json))
+    producer.produce(event_type + "_in", value=json.dumps(request.json))
     producer.flush()
     return
 
