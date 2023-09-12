@@ -9,8 +9,8 @@
                                   {:name "COUCHBASE_DEFAULT_SCOPE", :value "_default"}
                                   {:name "COUCHBASE_IS_CLOUD_INSTANCE", :value "false"}
                                   {:name "AUTH", :value "false"}
-                                  {:name "AUTH_TOKEN_ISSUER", :value "xxx"}
-                                  {:name "AUTH_TOKEN_AUDIENCE", :value "xxx"}]
+                                  {:name "AUTH_TOKEN_ISSUER", :value "http://login.example.com:8443/oauth/v2/oauth-anonymous/"}
+                                  {:name "AUTH_TOKEN_AUDIENCE", :value "api.example.com"}]
                        :services [{:id :api, :ports [{:protocol :http, :port 4000}]}]
                        :id       "api-container"
                        :version  "18.17.0"}}
