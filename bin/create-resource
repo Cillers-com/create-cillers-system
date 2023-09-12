@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+[[ "${TRACE:-}" ]] && set -o xtrace
+
+cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")"
+
+print_usage() { echo "Usage: ./bin/create-resource <name> [<sink-url>]"; }
+
+create_resource_connectors() {
+  local name=$1
+  local sink_url=${2:-}
+  local in_topic="${name}_in"
+  local out_topic="${name}_out"
+
+  curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
+{
+  "name": "couchbase-sink-$name",
+  "config": {
+    "couchbase.bootstrap.timeout":    "10s",
+    "couchbase.bucket":               "_default",
+    "couchbase.collection":           "$name",
+    "couchbase.seed.nodes":           "couchbase",
+    "couchbase.seed.nodes":           "couchbase",
+    "couchbase.replicate.to":         "NONE",
+    "tasks.max":                      "2",
+    "value.converter.schemas.enable": "false",
+    "name":                           "couchbase-sink-$name",
+    "value.converter":                "org.apache.kafka.connect.json.JsonConverter",
+    "topics":                         "$in_topic",
+    "couchbase.username":             "admin",
+    "couchbase.password":             "password",
+    "couchbase.persist.to":           "NONE",
+    "key.converter":                  "org.apache.kafka.connect.storage.StringConverter",
+    "connector.class":                "com.couchbase.connect.kafka.CouchbaseSinkConnector"
+  }
+}
+EOF
+  if [[ "${sink_url:-}" != "" ]]; then
+    curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
+{
+  "name": "couchbase-source-$name",
+  "config": {
+    "connector.class":                        "com.couchbase.connect.kafka.CouchbaseSourceConnector",
+    "couchbase.bootstrap.timeout":            "10s",
+    "couchbase.bucket":                       "_default",
+    "couchbase.collection":                   "$name",
+    "couchbase.compression":                  "ENABLED",
+    "couchbase.event.filter":                 "com.couchbase.connect.kafka.filter.AllPassFilter",
+    "couchbase.flow.control.buffer":          "16m",
+    "couchbase.password":                     "password",
+    "couchbase.persistence.polling.interval": "100ms",
+    "couchbase.seed.nodes":                   "couchbase",
+    "couchbase.source.handler":               "com.couchbase.connect.kafka.handler.source.RawJsonSourceHandler",
+    "couchbase.stream.from":                  "SAVED_OFFSET_OR_BEGINNING",
+    "couchbase.topic":                        "$out_topic",
+    "couchbase.username":                     "admin",
+    "key.converter":                          "org.apache.kafka.connect.storage.StringConverter",
+    "name":                                   "couchbase-source-$name",
+    "tasks.max":                              "2",
+    "value.converter":                        "org.apache.kafka.connect.converters.ByteArrayConverter"
+  }
+}
+EOF
+    curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
+{
+  "name": "http-sink-$name",
+  "config": {
+    "confluent.topic.bootstrap.servers":        "kafka:9092",
+    "confluent.topic.replication.factor":       "1",
+    "connector.class":                          "io.confluent.connect.http.HttpSinkConnector",
+    "headers":                                  "Content-Type:application/json; charset=UTF-8",
+    "http.api.url":                             "$sink_url",
+    "key.converter":                            "org.apache.kafka.connect.storage.StringConverter",
+    "reporter.bootstrap.servers":               "kafka:9092",
+    "reporter.error.topic.name":                "error-responses",
+    "reporter.error.topic.replication.factor":  "1",
+    "reporter.result.topic.name":               "success-responses",
+    "reporter.result.topic.replication.factor": "1",
+    "tasks.max":                                "1",
+    "topics":                                   "$out_topic",
+    "value.converter":                          "org.apache.kafka.connect.storage.StringConverter"
+  }
+}
+EOF
+  fi
+}
+
+create_app_resource() {
+  local name=$1
+  pushd app
+  npm run generate-resource "$name"
+  popd
+}
+
+main() {
+  local name=${1:-}
+  local sink_url=${2:-}
+  if [[ "$name" == "" ]]; then
+    print_usage
+    exit 1
+  fi
+  create_resource_connectors "$name" "$sink_url"
+  create_app_resource $name
+}
+
+main $@
