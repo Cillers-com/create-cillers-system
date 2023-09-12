@@ -102,57 +102,6 @@
               :module :polytope/kafka!connect
               :params {:connectors ["couchbase/kafka-connect-couchbase:4.1.13"
                                     "confluentinc/kafka-connect-http:1.7.3"]}}
-             {:id     :create-kafka-connectors
-              :module :polytope/kafka!create-connectors
-              :params {:host       "kafka-connect"
-                       :connectors [{:name   "couchbase-source"
-                                     :config {:name                                   "couchbase-source"
-                                              :connector.class                        "com.couchbase.connect.kafka.CouchbaseSourceConnector"
-                                              :tasks.max                              "2"
-                                              :couchbase.topic                        "product-updates"
-                                              :couchbase.seed.nodes                   "couchbase"
-                                              :couchbase.bootstrap.timeout            "10s"
-                                              :couchbase.bucket                       "_default"
-                                              :couchbase.username                     "admin"
-                                              :couchbase.password                     "password"
-                                              :key.converter                          "org.apache.kafka.connect.storage.StringConverter"
-                                              :couchbase.source.handler               "com.couchbase.connect.kafka.handler.source.RawJsonSourceHandler"
-                                              :value.converter                        "org.apache.kafka.connect.converters.ByteArrayConverter"
-                                              :couchbase.event.filter                 "com.couchbase.connect.kafka.filter.AllPassFilter"
-                                              :couchbase.stream.from                  "SAVED_OFFSET_OR_BEGINNING"
-                                              :couchbase.compression                  "ENABLED"
-                                              :couchbase.flow.control.buffer          "16m"
-                                              :couchbase.persistence.polling.interval "100ms"}}
-                                    {:name   "http-sink"
-                                     :config {:topics                                   "product-updates"
-                                              :tasks.max                                "1"
-                                              :connector.class                          "io.confluent.connect.http.HttpSinkConnector"
-                                              :http.api.url                             "https://webhook.site/441651a9-cd32-4d20-9e2c-45fe6adcc466"
-                                              :key.converter                            "org.apache.kafka.connect.storage.StringConverter"
-                                              :value.converter                          "org.apache.kafka.connect.storage.StringConverter"
-                                              :headers                                  "Content-Type:application/json; charset=UTF-8"
-                                              :confluent.topic.bootstrap.servers        "kafka:9092"
-                                              :confluent.topic.replication.factor       "1"
-                                              :reporter.bootstrap.servers               "kafka:9092"
-                                              :reporter.result.topic.name               "success-responses"
-                                              :reporter.result.topic.replication.factor "1"
-                                              :reporter.error.topic.name                "error-responses"
-                                              :reporter.error.topic.replication.factor  "1"}}
-                                    {:name "couchbase-sink"
-                                     :config {:name                           "couchbase-sink"
-                                              :connector.class                "com.couchbase.connect.kafka.CouchbaseSinkConnector"
-                                              :tasks.max                      "2"
-                                              :topics                         "hook-dummy-event"
-                                              :couchbase.seed.nodes           "couchbase"
-                                              :couchbase.bootstrap.timeout    "10s"
-                                              :couchbase.bucket               "_default"
-                                              :couchbase.username             "admin"
-                                              :couchbase.password             "password"
-                                              :couchbase.persist.to           "NONE"
-                                              :couchbase.replicate.to         "NONE"
-                                              :key.converter                  "org.apache.kafka.connect.storage.StringConverter"
-                                              :value.converter                "org.apache.kafka.connect.json.JsonConverter"
-                                              :value.converter.schemas.enable "false"}}]}}
              {:id     :ngrok
               :module :polytope/ngrok!http
               :params {:host       "kong"
@@ -183,6 +132,5 @@
                           :api-dev
                           :kafka
                           :kafka-connect
-                          :create-kafka-connectors
                           :ngrok
                           {:id :kcat, :module :polytope/kafka!kcat}]}]}
