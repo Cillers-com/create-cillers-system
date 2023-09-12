@@ -5,7 +5,7 @@
                        :env      [{:name "COUCHBASE_USER", :value "admin"}
                                   {:name "COUCHBASE_PASSWORD", :value "password"}
                                   {:name "COUCHBASE_ENDPOINT", :value "couchbase://couchbase"}
-                                  {:name "COUCHBASE_DEFAULT_BUCKET", :value "default"}
+                                  {:name "COUCHBASE_DEFAULT_BUCKET", :value "_default"}
                                   {:name "COUCHBASE_DEFAULT_SCOPE", :value "_default"}
                                   {:name "COUCHBASE_IS_CLOUD_INSTANCE", :value "false"}
                                   {:name "AUTH", :value "false"}
