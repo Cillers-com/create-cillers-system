@@ -47,7 +47,7 @@
                                        :path   "/opt/idsvr/usr/share/plugins/couchbase"}]
                        :env          [{:name "IDSVR_BASE_URL", :value "http://login.example.com:8443"}
                                       {:name "WEB_DOMAIN", :value "www.example.com"}
-                                      {:name "COUCHBASE_BUCKET", :value "default"}
+                                      {:name "COUCHBASE_BUCKET", :value "_default"}
                                       {:name "COUCHBASE_COLLECTION", :value "_default"}
                                       {:name "COUCHBASE_HOST", :value "couchbase"}
                                       {:name "COUCHBASE_USERNAME", :value "admin"}
@@ -69,7 +69,7 @@
               :params {:cluster  "couchbase:8091"
                        :username "admin"
                        :password "password"
-                       :name     "default"}}
+                       :name     "_default"}}
              {:id     :oauth-agent-dev
               :module :polytope/container
               :params {:image    "node:18-bullseye"
@@ -112,7 +112,7 @@
                                               :couchbase.topic                        "product-updates"
                                               :couchbase.seed.nodes                   "couchbase"
                                               :couchbase.bootstrap.timeout            "10s"
-                                              :couchbase.bucket                       "default"
+                                              :couchbase.bucket                       "_default"
                                               :couchbase.username                     "admin"
                                               :couchbase.password                     "password"
                                               :key.converter                          "org.apache.kafka.connect.storage.StringConverter"
@@ -145,7 +145,7 @@
                                               :topics                         "hook-dummy-event"
                                               :couchbase.seed.nodes           "couchbase"
                                               :couchbase.bootstrap.timeout    "10s"
-                                              :couchbase.bucket               "default"
+                                              :couchbase.bucket               "_default"
                                               :couchbase.username             "admin"
                                               :couchbase.password             "password"
                                               :couchbase.persist.to           "NONE"
@@ -172,7 +172,7 @@
                            :params   {:cluster  "couchbase"
                                       :username "admin"
                                       :password "password"
-                                      :script   "CREATE PRIMARY INDEX IF NOT EXISTS ON default._default._default;"}
+                                      :script   "CREATE PRIMARY INDEX IF NOT EXISTS ON _default._default._default;"}
                            :module   :polytope/couchbase!cbq}
                           :curity-db
                           :curity-dev
