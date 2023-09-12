@@ -43,3 +43,11 @@ services:
       client_id: api-gateway-client
       client_secret: Password1
       token_cache_seconds: 900
+  - name: response-transformer
+    config:
+      remove:
+        headers:
+          - Access-Control-Allow-Origin
+      append:
+        headers:
+          - "Access-Control-Allow-Origin:http://www.example.com"
