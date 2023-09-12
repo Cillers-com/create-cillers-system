@@ -18,9 +18,9 @@ print(f"Kafka topic: {KAFKA_TOPIC}")
 
 producer = Producer({'bootstrap.servers': KAFKA_BROKER})
 
-@post('/dummy-event')
-def event():
-    producer.produce('hook-dummy-event', value=json.dumps(request.json))
+@post('/<event_type>')
+def event(event_type):
+    producer.produce(event_type, value=json.dumps(request.json))
     producer.flush()
     return
 
