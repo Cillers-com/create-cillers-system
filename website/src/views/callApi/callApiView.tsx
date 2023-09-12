@@ -53,7 +53,7 @@ export function CallApiView(props: CallApiProps) {
         }
     }
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleQueryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState(prevState => {
             if (prevState) {
                 return {
@@ -65,7 +65,7 @@ export function CallApiView(props: CallApiProps) {
         });
     };
 
-    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleVariablesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState(prevState => {
             if (prevState) {
                 return {
@@ -81,16 +81,15 @@ export function CallApiView(props: CallApiProps) {
         <div className='container'>
             <h2>Call APIs</h2>
             <p>{getAccessTokenDescription()}</p>
-            <input
-                type="text"
+            <textarea
                 value={state ? state.query : ''}
-                onChange={handleInputChange}
+                onChange={handleQueryChange}
                 className="form-control mb-3"
                 placeholder="Enter your GraphQL query"
             />
             <textarea 
                 value={state ? state.variables : ''} 
-                onChange={handleTextareaChange} 
+                onChange={handleVariablesChange} 
                 className="form-control mb-3" 
                 placeholder="Enter your GraphQL variables as JSON">
             </textarea>

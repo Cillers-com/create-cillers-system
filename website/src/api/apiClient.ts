@@ -83,7 +83,7 @@ export class ApiClient {
     }
 
 
-    async graphqlFetch(query: string, variables?: any): Promise<any> {
+    async graphqlFetch(query: string, variables?: string): Promise<any> {
         try {
             return await this.graphqlFetchImpl(query, variables);
         } catch (e) {
@@ -102,8 +102,15 @@ export class ApiClient {
         }
     }
 
-    private async graphqlFetchImpl(query: string, variables?: any): Promise<any> {
+    private async graphqlFetchImpl(query: string, variables?: string): Promise<any> {
         const url = `${this.apiBaseUrl}`;
+
+        const processedVariables = (() => {
+            if (!variables || variables.trim() === "") {
+                return null;
+            }
+            return JSON.parse(variables);
+        })(); 
 
         const options = {
             url,
@@ -112,7 +119,7 @@ export class ApiClient {
                 accept: 'application/json',
                 'content-type': 'application/json',
             },
-            data: { query: query, variables: variables },
+            data: { query: query, variables: processedVariables },
             withCredentials: true
         } as AxiosRequestConfig;
 
