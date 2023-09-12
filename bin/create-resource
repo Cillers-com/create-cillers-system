@@ -15,14 +15,14 @@ create_resource_connectors() {
   local in_topic="${name}_in"
   local out_topic="${name}_out"
 
+  echo "Generating Couchbase Kafka Connect sink..."
   curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
 {
   "name": "couchbase-sink-$name",
   "config": {
     "couchbase.bootstrap.timeout":    "10s",
     "couchbase.bucket":               "_default",
-    "couchbase.collection":           "$name",
-    "couchbase.seed.nodes":           "couchbase",
+    "couchbase.default.collection":   "_default.$name",
     "couchbase.seed.nodes":           "couchbase",
     "couchbase.replicate.to":         "NONE",
     "tasks.max":                      "2",
@@ -38,7 +38,10 @@ create_resource_connectors() {
   }
 }
 EOF
+  echo
+  echo
   if [[ "${sink_url:-}" != "" ]]; then
+    echo "Generating Couchbase Kafka Connect source..."
     curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
 {
   "name": "couchbase-source-$name",
@@ -46,7 +49,7 @@ EOF
     "connector.class":                        "com.couchbase.connect.kafka.CouchbaseSourceConnector",
     "couchbase.bootstrap.timeout":            "10s",
     "couchbase.bucket":                       "_default",
-    "couchbase.collection":                   "$name",
+    "couchbase.collections":                  "_default.$name",
     "couchbase.compression":                  "ENABLED",
     "couchbase.event.filter":                 "com.couchbase.connect.kafka.filter.AllPassFilter",
     "couchbase.flow.control.buffer":          "16m",
@@ -64,6 +67,9 @@ EOF
   }
 }
 EOF
+    echo
+    echo
+    echo "Generating Couchbase HTTP sink..."
     curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
 {
   "name": "http-sink-$name",
@@ -85,6 +91,8 @@ EOF
   }
 }
 EOF
+    echo
+    echo
   fi
 }
 
