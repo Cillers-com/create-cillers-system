@@ -83,9 +83,8 @@ export class ApiClient {
     }
 
 
-    async graphqlFetch(query: string, variables?: Record<string, any>): Promise<any> {
+    async graphqlFetch(query: string, variables?: any): Promise<any> {
         try {
-            console.log('hi', query)
             return await this.graphqlFetchImpl(query, variables);
         } catch (e) {
             console.error('An error occurred when performing a request:', e);
@@ -103,7 +102,7 @@ export class ApiClient {
         }
     }
 
-    private async graphqlFetchImpl(query: string, variables?: Record<string, any>): Promise<any> {
+    private async graphqlFetchImpl(query: string, variables?: any): Promise<any> {
         const url = `${this.apiBaseUrl}`;
 
         const options = {

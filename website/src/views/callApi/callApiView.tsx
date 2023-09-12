@@ -7,7 +7,8 @@ export function CallApiView(props: CallApiProps) {
 
     const [state, setState] = useState<CallApiState | null>({
         result: '',
-        query: '{ __schema { types { name } } }',
+        query: 'query Query { dummy }',
+        variables: '',  // new field
         error: null,
     });
 
@@ -22,7 +23,7 @@ export function CallApiView(props: CallApiProps) {
     async function execute() {
         if (state && state.query) {
             try {
-                const data = await props.apiClient.graphqlFetch(state.query);
+                const data = await props.apiClient.graphqlFetch(state.query, state.variables);
                 console.log(data);
                 if (data.data) {
                     setState((state: any) => {
@@ -64,6 +65,18 @@ export function CallApiView(props: CallApiProps) {
         });
     };
 
+    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setState(prevState => {
+            if (prevState) {
+                return {
+                    ...prevState,
+                    variables: e.target.value
+                };
+            }
+            return null;
+        });
+    };
+
     return (
         <div className='container'>
             <h2>Call APIs</h2>
@@ -75,6 +88,12 @@ export function CallApiView(props: CallApiProps) {
                 className="form-control mb-3"
                 placeholder="Enter your GraphQL query"
             />
+            <textarea 
+                value={state ? state.variables : ''} 
+                onChange={handleTextareaChange} 
+                className="form-control mb-3" 
+                placeholder="Enter your GraphQL variables as JSON">
+            </textarea>
             <button
                 id='getApiData'
                 className='btn btn-primary operationButton'

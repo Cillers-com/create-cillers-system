@@ -3,8 +3,8 @@ import { StorageHelper } from '../../utilities/storageHelper';
 import { TitleView } from '../title/titleView';
 import { AppProps } from './appProps';
 import { AppState } from './appState';
-import { UnauthenticatedApp } from './UnauthenticatedApp';  // Assuming they're in the same directory
-import { AuthenticatedApp } from './AuthenticatedApp';      // Assuming they're in the same directory
+import { UnauthenticatedApp } from './UnauthenticatedApp';
+import { AuthenticatedApp } from './AuthenticatedApp';
 
 export default function App(props: AppProps) {
     const [state, setState] = useState<AppState | null>(null);

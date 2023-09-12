@@ -24,13 +24,13 @@ export function UserInfoView(props: UserInfoProps) {
         try {
 
             let userInfo = await props.oauthClient.getUserInfo();
-            if (userInfo.given_name && userInfo.family_name) {
+            if (userInfo.name?.givenName && userInfo.name?.familyName) {
 
                 setState((state: any) => {
                     return {
                         ...state,
-                        givenName: userInfo.given_name,
-                        familyName: userInfo.family_name,
+                        givenName: userInfo.name.givenName,
+                        familyName: userInfo.name.familyName,
                         error: null,
                     };
                 });
