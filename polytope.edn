@@ -111,11 +111,19 @@
                                     "confluentinc/kafka-connect-http:1.7.3"]}}
              {:id     :ngrok
               :module :polytope/ngrok!http
-              :params {:host       "kong"
-                       :port       3000
-                       ; NOTE: uncomment if you want to use an auth token
+              :params {; NOTE: uncomment if you want to use an auth token
                        ; :auth-token my-auth-token
-                       }}]
+                       :host "kong"
+                       :port 3000}}
+             {:id     :confluent-control-center
+              :module :polytope/container
+              :params {:image    "confluentinc/cp-enterprise-control-center"
+                       :services [{:id    :control-center
+                                   :ports [{:port 9021, :protocol :http}]}]
+                       :env      [{:name "CONTROL_CENTER_BOOTSTRAP_SERVERS", :value "PLAINTEXT://kafka:9092"}
+                                  {:name "CONTROL_CENTER_REPLICATION_FACTOR", :value "1"}
+                                  {:name "CONTROL_CENTER_CONNECT_CONNECT1_CLUSTER", :value "http://kafka-connect:8083"}
+                                  {:name "CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT", :value "/connectors"}]}}]
  :templates [{:id        :dev
               :run-steps [{:id :couchbase, :module :polytope/couchbase}
                           {:id     :init-cb-cluster
@@ -139,5 +147,6 @@
                           :api-dev
                           :kafka
                           :kafka-connect
+                          :confluent-control-center
                           :ngrok
                           {:id :kcat, :module :polytope/kafka!kcat}]}]}
