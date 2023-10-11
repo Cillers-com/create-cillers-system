@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+[[ "${TRACE:-}" ]] && set -o xtrace
+
+cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")"
+
+export IPYTHONDIR=$(pwd)/.ipython
+poetry run ipython --profile=default
