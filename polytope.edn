@@ -62,21 +62,27 @@
                                       {:name "COUCHBASE_PASSWORD", :value "password"}]}}
              {:id     :curity-db
               :module :polytope/postgres
-              :params {:id      "curity-db"
-                       :env     [{:name "POSTGRES_HOST_AUTH_METHOD", :value "trust"}
+              :params {:env     [{:name "POSTGRES_HOST_AUTH_METHOD", :value "trust"}
                                  {:name "POSTGRES_DB", :value "idsvr"}]
                        :scripts [{:type "host", :path "./conf/curity-db.sql"}]}}
+             {:id     :couchbase
+              :module :polytope/couchbase
+              :params {:data-volume {:type  "volume"
+                                     :scope "project"
+                                     :id    "couchbase-data"}}}
              {:id     :init-couchbase-dev-cluster
               :module :polytope/couchbase!init-cluster
               :params {:cluster  "couchbase:8091"
                        :username "admin"
-                       :password "password"}}
+                       :password "password"
+                       :retries  20}}
              {:id     :create-couchbase-dev-bucket
               :module :polytope/couchbase!create-bucket
               :params {:cluster  "couchbase:8091"
                        :username "admin"
                        :password "password"
-                       :name     "_default"}}
+                       :name     "_default"
+                       :retries  20}}
              {:id     :oauth-agent-dev
               :module :polytope/container
               :params {:image    "node:18-bullseye"
@@ -104,11 +110,15 @@
                        :mounts   [{:source {:type "host", :path "./oauth-agent"}, :path "/usr/oauth-agent"}]
                        :workdir  "/usr/oauth-agent"}}
              {:id :sleep, :code (pt/sleep "5s")}
-             {:id :kafka, :module :polytope/kafka}
+             {:id     :kafka
+              :module :polytope/kafka
+              :params {:root-log-level "WARN"
+                       :data-volume    {:type "volume", :scope "project", :id "kafka-data"}}}
              {:id     :kafka-connect
               :module :polytope/kafka!connect
-              :params {:connectors ["couchbase/kafka-connect-couchbase:4.1.13"
-                                    "confluentinc/kafka-connect-http:1.7.3"]}}
+              :params {:connectors     ["couchbase/kafka-connect-couchbase:4.1.13"
+                                        "confluentinc/kafka-connect-http:1.7.3"]
+                       :root-log-level "WARN"}}
              {:id     :ngrok
               :module :polytope/ngrok!http
               :params {; NOTE: uncomment if you want to use an auth token
@@ -116,16 +126,15 @@
                        :host "kong"
                        :port 3000}}
              {:id     :confluent-control-center
-              :module :polytope/container
-              :params {:image    "confluentinc/cp-enterprise-control-center"
-                       :services [{:id    :control-center
-                                   :ports [{:port 9021, :protocol :http}]}]
-                       :env      [{:name "CONTROL_CENTER_BOOTSTRAP_SERVERS", :value "PLAINTEXT://kafka:9092"}
-                                  {:name "CONTROL_CENTER_REPLICATION_FACTOR", :value "1"}
-                                  {:name "CONTROL_CENTER_CONNECT_CONNECT1_CLUSTER", :value "http://kafka-connect:8083"}
-                                  {:name "CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT", :value "/connectors"}]}}]
+              :module :polytope/kafka!control-center
+              :params {:root-log-level      "WARN"
+                       :schema-registry-url "http://schema-registry:8081"
+                       :connect-cluster-url "kafka-connect:8083"}}
+             {:id     :confluent-schema-registry
+              :module :polytope/kafka!schema-registry
+              :params {:root-log-level "WARN"}}]
  :templates [{:id        :dev
-              :run-steps [{:id :couchbase, :module :polytope/couchbase}
+              :run-steps [:couchbase
                           {:id     :init-cb-cluster
                            :module :init-couchbase-dev-cluster}
                           {:id       :create-cb-bucket
@@ -136,7 +145,8 @@
                            :params   {:cluster  "couchbase"
                                       :username "admin"
                                       :password "password"
-                                      :script   "CREATE PRIMARY INDEX IF NOT EXISTS ON _default._default._default;"}
+                                      :script   "CREATE PRIMARY INDEX IF NOT EXISTS ON _default._default._default;"
+                                      :retries  20}
                            :module   :polytope/couchbase!cbq}
                           :curity-db
                           :curity-dev
@@ -148,5 +158,4 @@
                           :kafka
                           :kafka-connect
                           :confluent-control-center
-                          :ngrok
                           {:id :kcat, :module :polytope/kafka!kcat}]}]}
