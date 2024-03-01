@@ -28,7 +28,7 @@ services:
   routes:
   - name: api-route
     paths:
-    - /api
+    - /graphql
   plugins:
   - name: oauth-proxy
     config:
