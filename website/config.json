@@ -1,5 +1,5 @@
 {
-    "businessApiBaseUrl": "http://api.example.com/api",
+    "businessApiBaseUrl": "http://api.example.com/graphql",
     "oauth": {
         "oauthAgentBaseUrl": "http://api.example.com/oauth-agent"
     }
