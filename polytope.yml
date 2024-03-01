@@ -1,0 +1,205 @@
+modules:
+  - id: api-base
+    info: Base module for running the api.
+    params:
+      - id: cmd
+        info: The command to run.
+        type: [default, [either, str, [str]], bash]
+      - id: dev-mode
+        info: Whether to run in dev mode (with hot reload, debugging).
+        type: [default, bool, true]
+      - id: log-level
+        info: The log level to use.
+        type: [default, str, INFO]
+      - id: container-id
+        info: The ID to use for the container.
+        type: [default, str, api-container]
+      - id: services
+        info: Services to expose.
+        type: [maybe, [service-spec]]
+      - id: restart
+        type: [maybe, {policy: [enum, always, on-failure]}]
+    module: polytope/python
+    args:
+      cmd: "#pt-param cmd"
+      code:
+        type: host
+        path: ./services/api
+      env:
+        - {name: HTTP_PORT, value: '4000'}
+        - {name: HTTP_DEBUG, value: "#pt-param dev-mode"}
+        - {name: HTTP_AUTORELOAD, value: "#pt-param dev-mode"}
+        - {name: HTTP_GRAPHQL_UI, value: "#pt-param dev-mode"}
+      id: "#pt-param container-id"
+      mounts:
+        - path: /root/.cache/
+          source:
+            type: volume
+            scope: project
+            id: dependency-cache
+      services: "#pt-param services"
+      restart: "#pt-param restart"
+  - id: api
+    info: Runs the api service.
+    module: api-base
+    args:
+      cmd: ./bin/run
+      restart:
+        policy: on-failure
+      services:
+        - id: api
+          ports: [{protocol: http, port: 4000}]
+  - id: spa
+    module: polytope/node
+    args:
+      cmd: npm run dev
+      code: {type: host, path: ./website}
+      env:
+      - {name: DEBUG, value: 'express:*'}
+      id: spa
+      version: 18.17.0
+      # TODO: use dependency cache
+      services:
+      - id: website
+        ports:
+        - {protocol: http, port: 3000}
+  - id: input
+    module: polytope/python
+    args:
+      cmd: ./bin/run
+      code: {type: host, path: ./input}
+      env:
+      - {name: INIT, value: 'true'}
+      - {name: APP_PORT, value: '3002'}
+      - {name: KAFKA_BROKER, value: 'kafka:9092'}
+      - {name: KAFKA_TOPIC, value: couchbase-sink}
+      id: input-container
+      services:
+      - id: input
+        ports:
+        - {protocol: http, port: 3002}
+  - id: kong
+    module: polytope/kong!simple
+    args:
+      plugins:
+      - {name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0}
+      - {name: phantom-token, package: kong-phantom-token, version: 2.0.0}
+      port: 3000
+      config-file: {type: host, path: ./conf/kong-dev.yml}
+      env:
+      - {name: KONG_NGINX_HTTP_LUA_SHARED_DICT, value: phantom-token 10m}
+      services:
+      - id: kong
+        ports:
+        - {port: 3000, protocol: http, expose-as: 80}
+  - id: curity
+    module: polytope/curity
+    args:
+      password: password
+      license-file: {type: host, path: ./conf/curity-license.json}
+      config-file: {type: host, path: ./conf/curity-config.xml}
+      mounts:
+      - source: {type: host, path: ./conf/couchbase-plugin}
+        path: /opt/idsvr/usr/share/plugins/couchbase
+      env:
+      - {name: IDSVR_BASE_URL, value: 'http://login.example.com:8443'}
+      - {name: WEB_DOMAIN, value: www.example.com}
+      - {name: COUCHBASE_BUCKET, value: _default}
+      - {name: COUCHBASE_COLLECTION, value: _default}
+      - {name: COUCHBASE_HOST, value: couchbase}
+      - {name: COUCHBASE_USERNAME, value: admin}
+      - {name: COUCHBASE_SCOPE, value: _default}
+      - {name: COUCHBASE_PASSWORD, value: password}
+  - id: curity-db
+    module: polytope/postgres
+    args:
+      service-id: curity-db
+      env:
+      - {name: POSTGRES_HOST_AUTH_METHOD, value: trust}
+      - {name: POSTGRES_DB, value: idsvr}
+      scripts:
+      - {type: host, path: ./conf/curity-db.sql}
+  - id: couchbase
+    module: polytope/couchbase
+    args:
+      data-volume: {type: volume, scope: project, id: couchbase-data}
+  - id: init-couchbase-cluster
+    module: polytope/couchbase!init-cluster
+    args: {cluster: 'couchbase:8091', username: admin, password: password, retries: 20}
+  - id: create-couchbase-bucket
+    module: polytope/couchbase!create-bucket
+    args: {cluster: 'couchbase:8091', username: admin, password: password, name: _default, retries: 20}
+  - id: oauth-agent
+    module: polytope/container
+    args:
+      image: node:18-bullseye
+      cmd: sh -c "npm install && npm install ts-node && npm run start"
+      id: oauthagent-container
+      env:
+      - {name: AUTHORIZE_ENDPOINT, value: 'http://login.example.com:8443/oauth/v2/oauth-authorize'}
+      - {name: CLIENT_ID, value: spa-client}
+      - {name: CLIENT_SECRET, value: Password1}
+      - {name: COOKIE_DOMAIN, value: api.example.com}
+      - {name: COOKIE_ENCRYPTION_KEY, value: 278856876a04fafedcb7aa63e288579df5cf45ba2df3879fec96fe28975754f0}
+      - {name: COOKIE_NAME_PREFIX, value: example}
+      - {name: CORS_ENABLED, value: 'true'}
+      - {name: ISSUER, value: 'http://login.example.com:8443/oauth/v2/oauth-anonymous'}
+      - {name: LOGOUT_ENDPOINT, value: 'http://login.example.com:8443/oauth/v2/oauth-session/logout'}
+      - {name: PORT, value: '3001'}
+      - {name: POST_LOGOUT_REDIRECT_URI, value: 'http://www.example.com'}
+      - {name: REDIRECT_URI, value: 'http://www.example.com'}
+      - {name: SCOPE, value: openid profile}
+      - {name: SERVER_CERT_P12_PASSWORD, value: ''}
+      - {name: SERVER_CERT_P12_PATH, value: ''}
+      - {name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token'}
+      - {name: TRUSTED_WEB_ORIGIN, value: 'http://www.example.com'}
+      - {name: USERINFO_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-userinfo'}
+      services:
+      - id: oauthagent
+        ports:
+        - {protocol: http, port: 3001}
+      mounts:
+      - source: {type: host, path: ./oauth-agent}
+        path: /usr/oauth-agent
+      workdir: /usr/oauth-agent
+  - id: kafka
+    module: polytope/kafka
+    args:
+      root-log-level: WARN
+      data-volume: {type: volume, scope: project, id: kafka-data}
+  - id: kafka-connect
+    module: polytope/kafka!connect
+    args:
+      connectors: ['couchbase/kafka-connect-couchbase:4.1.13', 'confluentinc/kafka-connect-http:1.7.3']
+      root-log-level: WARN
+  - id: ngrok
+    module: polytope/ngrok!http
+    args: {host: kong, port: 3000}
+  - id: confluent-control-center
+    module: polytope/kafka!control-center
+    args: {root-log-level: WARN, schema-registry-url: 'http://schema-registry:8081', connect-cluster-url: 'kafka-connect:8083'}
+  - id: confluent-schema-registry
+    module: polytope/kafka!schema-registry
+    args: {root-log-level: WARN}
+templates:
+- id: stack
+  run:
+  - couchbase
+  - {id: init-cb-cluster, module: init-couchbase-cluster}
+  - id: create-cb-bucket
+    module: create-couchbase-bucket
+    run-when: {after: init-cb-cluster}
+  - id: create-cb-index
+    run-when: {after: create-cb-bucket}
+    args: {cluster: couchbase, username: admin, password: password, script: CREATE PRIMARY INDEX IF NOT EXISTS ON _default._default._default;, retries: 20}
+    module: polytope/couchbase!cbq
+  - curity-db
+  - curity
+  - input
+  - oauth-agent
+  - kong
+  - spa
+  - api
+  - kafka
+  - kafka-connect
+  - confluent-control-center
