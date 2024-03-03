@@ -90,6 +90,12 @@ modules:
           value: "#pt-param dev-mode"
         - name: HTTP_AUTORELOAD
           value: "#pt-param dev-mode"
+        - name: KAFKA_BROKER
+          value: kafka:9092
+        - name: AUTH_OIDC_AUDIENCE
+          value: www
+        - name: AUTH_OIDC_JWK_URL
+          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
       id: "#pt-param container-id"
       mounts:
         - path: /root/.cache/
