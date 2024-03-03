@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PRODUCTS, ADD_PRODUCT, REMOVE_PRODUCT, PRODUCT_ADDED_SUBSCRIPTION } from '../graphql/operations';
-import { signOut } from '../services/authService';
+import { getIdToken, signOut } from '../services/authService';
 
 interface Product {
   id: string;
@@ -14,6 +14,7 @@ interface GetProductsQuery {
 
 const HomePage: React.FC = () => {
   const [newProductText, setNewProductText] = useState('');
+  const [pushToKafka, setPushToKafka] = useState(false);
   const { data, loading, error, subscribeToMore } = useQuery(GET_PRODUCTS);
   const [addProduct] = useMutation(ADD_PRODUCT);
   const [removeProduct] = useMutation(REMOVE_PRODUCT);
@@ -47,19 +48,26 @@ const HomePage: React.FC = () => {
 
   const handleAddProduct = async () => {
     if (!newProductText.trim()) return;
-
-    await addProduct({
-      variables: { name: newProductText },
-      update: (cache, { data: { addProduct } }) => {
-        const existing = cache.readQuery<GetProductsQuery>({ query: GET_PRODUCTS });
-        const newProducts = existing ? [...existing.products, addProduct] : [addProduct];
-        cache.writeQuery({
-          query: GET_PRODUCTS,
-          data: { products: newProducts },
-        });
-      },
-    });
-    setNewProductText('');
+    if (pushToKafka) {
+      const token = await getIdToken();
+      const response = await fetch('/input/add_product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({ name: newProductText }),
+      });
+      if (response.ok) {
+        setNewProductText('');
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to add product:', errorText);
+      }
+    } else {
+      await addProduct({ variables: { name: newProductText } });
+      setNewProductText('');
+    }
   };
 
   const handleRemoveProduct = async (id: string) => {
@@ -109,6 +117,11 @@ const HomePage: React.FC = () => {
                   Add
                 </button>
               </div>
+            </div>
+            <div className="form-control w-full flex flex-row justify-center items-center">
+              <label className="join-item label">Submit directly</label>
+              <input type="checkbox" className="toggle mx-2" checked={pushToKafka} onChange={() => setPushToKafka(!pushToKafka)} />
+              <label className="join-item label">Submit via Kafka</label>
             </div>
             <div className="space-y-2 w-full">
               {data.products.map(({ name, id }: Product) => (
