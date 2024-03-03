@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$(dirname "$0")")"
+
+trap 'jobs -p | xargs -r kill' EXIT
+
+SKIP_SSL=true . bin/init --with=dev
+poetry run ruff input && echo "Everything looks good!"

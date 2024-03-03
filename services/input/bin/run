@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-cd "$(dirname "$(dirname "$0")")"
+. "$(dirname "$0")/init"
 
-pip install -qr requirements.txt
-python app.py
+trap 'jobs -p | xargs -r kill' EXIT
+
+poetry run input run
