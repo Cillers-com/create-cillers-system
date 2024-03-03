@@ -29,11 +29,6 @@ async def get_context() -> Context:
 
 Info = _Info[Context, RootValueType]
 
-#### State ####
-
-# TODO: use eventing in couchbase instead of mirroring the state here
-products = {}
-
 #### Auth ####
 
 class IsAuthenticated(BasePermission):
@@ -48,17 +43,11 @@ class IsAuthenticated(BasePermission):
 class Mutation:
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def add_product(self, name: str) -> db.Product:
-        global products
-        product = db.create_product(name)
-        products[product.id] = product
-        return product
+        return db.create_product(name)
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def remove_product(self, id: str) -> None:
-        global products
         db.delete_product(id)
-        if id in products:
-            products.pop(id)
 
 #### Queries ####
 
@@ -74,13 +63,13 @@ class Query:
 class Subscription:
     @strawberry.subscription
     async def product_added(self) -> AsyncGenerator[db.Product, None]:
-        global products
-        seen = set(k for k in products)
+        # TODO: use a Kafka topic to avoid polling here
+        seen = set(p.id for p in db.list_products())
         while True:
-            for k in products:
-                if k not in seen:
-                    seen.add(k)
-                    yield products[k]
+            for p in db.list_products():
+                if p.id not in seen:
+                    seen.add(p.id)
+                    yield p
             await asyncio.sleep(0.5)
 
 #### API ####
