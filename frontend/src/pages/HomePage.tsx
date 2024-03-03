@@ -125,7 +125,7 @@ const HomePage: React.FC = () => {
             </div>
             <div className="space-y-2 w-full">
               {data.products.map(({ name, id }: Product) => (
-                <div key={name} className="card card-compact w-full bg-base-200 flex-row items-center justify-between">
+                <div key={id} className="card card-compact w-full bg-base-200 flex-row items-center justify-between">
                   <div className="card-body">
                     <div className="flex justify-between items-center w-full">
                       <span>{name}</span>
