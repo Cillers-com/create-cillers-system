@@ -13,4 +13,4 @@ app = FastAPI()
 async def reinit():
     init.init()
 
-app.include_router(graphql.get_app(), prefix="/graphql")
+app.include_router(graphql.get_app(), prefix="/api")

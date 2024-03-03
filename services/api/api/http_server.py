@@ -15,11 +15,9 @@ class ServerConf(BaseModel):
 
 def run(conf: ServerConf, app_ref: str):
     """Runs the server."""
-    print(f"Starting server on {conf.host}:{conf.port}") # TODO: rm
     logger.info(f"Starting server on {conf.host}:{conf.port}")
     uvicorn.run(app_ref,
                 host=conf.host,
                 port=conf.port,
                 log_level="debug" if conf.debug else "info",
-                reload=conf.autoreload,
-                log_config=None)
+                reload=conf.autoreload)

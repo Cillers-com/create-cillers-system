@@ -6,7 +6,6 @@ from . import init, http_server, env
 
 logger = logging.getLogger(__name__)
 
-
 def handle_run(args):
     """Runs the server."""
     if v := init.init():
