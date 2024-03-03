@@ -265,6 +265,27 @@ modules:
         - couchbase/kafka-connect-couchbase:4.1.13
         - confluentinc/kafka-connect-http:1.7.3
       root-log-level: WARN
+  - id: create-connectors
+    module: polytope/kafka!create-connectors
+    args:
+      host: kafka-connect
+      connectors:
+        - name: couchbase-products-sink
+          config:
+            name:                           couchbase-products-sink
+            connector.class:                com.couchbase.connect.kafka.CouchbaseSinkConnector
+            tasks.max:                      '2'
+            topics:                         products
+            couchbase.seed.nodes:           couchbase
+            couchbase.bootstrap.timeout:    10s
+            couchbase.bucket:               cillers
+            couchbase.default.collection:   _default.products
+            couchbase.document.id:          ${/id}
+            couchbase.username:             admin
+            couchbase.password:             password
+            key.converter:                  org.apache.kafka.connect.storage.StringConverter
+            value.converter:                org.apache.kafka.connect.json.JsonConverter
+            value.converter.schemas.enable: 'false'
   - id: ngrok
     module: polytope/ngrok!http
     args:
@@ -316,4 +337,5 @@ templates:
   - input
   - kafka
   - kafka-connect
+  - create-connectors
   - mailpit
