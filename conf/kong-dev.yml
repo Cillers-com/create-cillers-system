@@ -13,8 +13,9 @@ services:
   url: http://input:3002
   routes:
   - name: input-route
+    strip_path: false
     paths:
-    - /events
+    - /input
 
 - name: api
   url: http://api:4000
