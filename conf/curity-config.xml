@@ -76,6 +76,7 @@
                 <account-manager>default-account-manager</account-manager>
                 <credential-manager>default-credential-manager</credential-manager>
                 <email-provider>default-email-provider</email-provider>
+                <max-allowed-attempts>0</max-allowed-attempts>
                 <auto-login-enabled>true</auto-login-enabled>
                 <show-remember-me-option>false</show-remember-me-option>
               </html-form>
