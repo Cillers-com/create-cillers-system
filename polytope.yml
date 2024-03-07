@@ -189,6 +189,7 @@ modules:
   - id: curity
     module: polytope/curity
     args:
+      image: curity.azurecr.io/curity/idsvr:9.0.1
       password: password
       log-level: DEBUG
       license-file:
