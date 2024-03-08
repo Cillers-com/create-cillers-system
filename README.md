@@ -3,11 +3,11 @@
 ## Instructions
 
 ### Prerequisites
-Make sure you have Docker and the latest version of Polytope installed on your system. 
+Make sure you have [Docker](https://www.docker.com/) and the latest version of [Polytope](https://polytope.com) installed on your system. 
 
-[Docker](https://docs.docker.com/engine/install/)
+[Install Docker](https://docs.docker.com/engine/install/)
 
-Polytope
+Install Polytope:
 ```
 brew tap mjosefs/polytope
 brew install polytope-cli
@@ -15,7 +15,7 @@ brew install polytope-cli
 
 ### Create a Cillers system
 ```
-pt run "cillers/create-system{name: my_system}
+pt run "cillers/create-system{name: my_system}"
 ```
 Stop Polytope with ctrl-c
 
