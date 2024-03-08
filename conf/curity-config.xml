@@ -334,6 +334,7 @@
           <openid-connect>
             <expose-metadata>
             </expose-metadata>
+            <id-token-ttl>36000</id-token-ttl>
           </openid-connect>
           <client-store>
             <config-backed>
