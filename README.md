@@ -7,17 +7,19 @@ Make sure you have [Docker](https://www.docker.com/) and the latest version of [
 
 [Install Docker](https://docs.docker.com/engine/install/)
 
+On OSX and Windows, you need to make sure that the Docker VM has enough memory to run the full stack. See [here](https://docs.docker.com/desktop/settings/mac/#resources) for instructions on how to allocate more memory.
+
 Install Polytope:
 ```
 brew tap mjosefs/polytope
 brew install polytope-cli
 ```
 
-### Create a Cillers system
+### Create your Cillers system
 ```
 pt run "cillers/create-system{name: my_system}"
 ```
-Stop Polytope with ctrl-c
+Stop Polytope with `ctrl-c`
 
 ### Run the stack
 ```
@@ -34,10 +36,9 @@ Couchbase: http://localhost:8091/ (username: admin, password: password)
 
 You will of course want to change the above passwords. 
 
-### Notes
-- On OSX/Windows, the Docker VM might not have enough memory to run the full stack. See [here](https://docs.docker.com/desktop/settings/mac/#resources) for instructions on how to allocate more memory.
-
 ### Troubleshooting
+
+
 You may have to reinstall Polytope
 ```
 brew uninstall polytope-cli
@@ -45,3 +46,4 @@ brew untap mjosefs/polytope
 brew tap mjosefs/polytope
 brew install polytope-cli
 ```
+
