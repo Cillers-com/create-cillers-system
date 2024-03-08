@@ -41,7 +41,7 @@ class IsAuthenticated(BasePermission):
 
 @strawberry.type
 class Mutation:
-    @strawberry.field
+    @strawberry.field(permission_classes=[IsAuthenticated])
     async def add_product(self, name: str) -> db.Product:
         return db.create_product(name)
 
