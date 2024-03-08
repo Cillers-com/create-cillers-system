@@ -28,7 +28,7 @@ export const signInCallback = (): Promise<User> => {
   return userManager.signinRedirectCallback();
 };
 
-export const getIdToken = async (): Promise<string | null> => {
+export const getAccessToken = async (): Promise<string | null> => {
   const user = await userManager.getUser();
-  return user?.id_token ? user.id_token : null;
+  return user?.access_token ? user.access_token : null;
 };

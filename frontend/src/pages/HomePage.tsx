@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PRODUCTS, ADD_PRODUCT, REMOVE_PRODUCT, PRODUCT_ADDED_SUBSCRIPTION } from '../graphql/operations';
-import { getIdToken, signOut } from '../services/authService';
+import { getAccessToken, signOut } from '../services/authService';
 
 interface Product {
   id: string;
@@ -49,7 +49,7 @@ const HomePage: React.FC = () => {
   const handleAddProduct = async () => {
     if (!newProductText.trim()) return;
     if (pushToKafka) {
-      const token = await getIdToken();
+      const token = await getAccessToken();
       const response = await fetch('/input/add_product', {
         method: 'POST',
         headers: {
