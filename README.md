@@ -30,7 +30,9 @@ Web frontend: http://localhost/ (Create new account)
 GraphQL: http://localhost:4000/api ({ "Authorization": "Bearer xxx" })
 Curity: https://localhost:6749/admin (username: admin, password: password)
 Mailpit: http://localhost:8025/ 
-Couchbase: http://localhost:8091/
+Couchbase: http://localhost:8091/ (username: admin, password: password)
+
+You will of course want to change the above passwords. 
 
 ### Notes
 - On OSX/Windows, the Docker VM might not have enough memory to run the full stack. See [here](https://docs.docker.com/desktop/settings/mac/#resources) for instructions on how to allocate more memory.
