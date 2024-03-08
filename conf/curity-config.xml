@@ -134,8 +134,6 @@
             <client-credentials/>
             <introspection/>
             <token-exchange/>
-            <assisted-token>
-            </assisted-token>
           </client-capabilities>
           <scopes>
             <scope>
@@ -421,6 +419,7 @@
           <jwt-issuer-settings>
             <signing-key-id>default-signing-key</signing-key-id>
           </jwt-issuer-settings>
+          <access-token-as-jwt/>
           <default-data-source>default-datasource</default-data-source>
         </default-token-issuer>
       </token-issuers>
