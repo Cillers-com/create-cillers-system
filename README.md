@@ -1,4 +1,4 @@
-# Polytope-Apollo-Couchbase-Curity
+# Cillers Create System
 
 ## Instructions
 Make sure you have [Docker](https://docs.docker.com/engine/install/) installed on your system.
@@ -11,7 +11,7 @@ brew install polytope-cli
 
 Run the stack:
 ```
-pt run --local dev
+pt run stack
 ```
 This will take a little while the first time (depending on your network speed) as all the components of the stack are downloaded.
 
