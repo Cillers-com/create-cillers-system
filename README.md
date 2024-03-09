@@ -9,7 +9,7 @@ Make sure you have [Docker](https://www.docker.com/) and the latest version of [
 
 Install Polytope:
 ```
-brew tap polytope-labs/tap
+brew tap polytopelabs/tap
 brew install polytope-cli
 ```
 
