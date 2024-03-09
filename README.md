@@ -21,16 +21,17 @@ Stop Polytope with `ctrl-c`
 
 ### Run the stack
 ```
+cd my_system
 pt run stack
 ```
 This will take a little while the first time (depending on your network speed) as all the components of the stack are downloaded.
 
 ### Open the web UIs
-Web frontend: http://localhost/ (Create new account)
-GraphQL: http://localhost:4000/api ({ "Authorization": "Bearer xxx" })
-Curity: https://localhost:6749/admin (username: admin, password: password)
-Mailpit: http://localhost:8025/ 
-Couchbase: http://localhost:8091/ (username: admin, password: password)
+Web frontend: http://localhost/ (Create new account)  
+GraphQL: http://localhost:4000/api ({ "Authorization": "Bearer xxx" })  
+Curity: https://localhost:6749/admin (username: admin, password: password)  
+Mailpit: http://localhost:8025/   
+Couchbase: http://localhost:8091/ (username: admin, password: password)  
 
 You will of course want to change the above passwords. 
 
