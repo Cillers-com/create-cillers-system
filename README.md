@@ -39,8 +39,8 @@ You will of course want to change the above passwords.
 You may have to reinstall Polytope
 ```
 brew uninstall polytope-cli
-brew untap mjosefs/polytope
-brew tap mjosefs/polytope
+brew untap polytopelabs/tap
+brew tap polytopelabs/tap
 brew install polytope-cli
 ```
 
