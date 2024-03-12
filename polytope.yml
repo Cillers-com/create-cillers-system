@@ -41,7 +41,7 @@ modules:
         - name: AUTH_OIDC_AUDIENCE
           value: www
         - name: AUTH_OIDC_JWK_URL
-          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
+          value: http://curity:8443/oauth/v2/oauth-anonymous/jwks
       id: "#pt-param container-id"
       mounts:
         - path: /root/.cache/
@@ -97,7 +97,7 @@ modules:
         - name: AUTH_OIDC_AUDIENCE
           value: www
         - name: AUTH_OIDC_JWK_URL
-          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
+          value: http://curity:8443/oauth/v2/oauth-anonymous/jwks
       id: "#pt-param container-id"
       mounts:
         - path: /root/.cache/
@@ -168,7 +168,7 @@ modules:
         - name: REACT_APP_API_BASE_URL
           value: http://localhost/api
         - name: REACT_APP_OIDC_AUTHORITY
-          value: https://localhost:8443/oauth/v2/oauth-anonymous
+          value: http://localhost:8443/oauth/v2/oauth-anonymous
       restart:
         policy: on-failure
       services:
