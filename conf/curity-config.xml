@@ -39,7 +39,7 @@
         </zones>
         <service-role>
           <id>default</id>
-          <protocol>https</protocol>
+          <protocol>http</protocol>
           <ssl-server-keystore>default-ssl-server-key</ssl-server-keystore>
           <webfinger/>
           <endpoints>authentication-service-anonymous</endpoints>
