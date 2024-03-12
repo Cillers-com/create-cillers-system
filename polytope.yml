@@ -32,7 +32,7 @@ modules:
         - name: HTTP_PORT
           value: 4000
         - name: HTTP_DEBUG
-          value: "#pt-param dev-mode"
+          value: false  # NOTE: set to true to debug HTTP calls
         - name: HTTP_AUTORELOAD
           value: "#pt-param dev-mode"
         - name: HTTP_GRAPHQL_UI
@@ -87,7 +87,7 @@ modules:
         - name: HTTP_PORT
           value: 3002
         - name: HTTP_DEBUG
-          value: "#pt-param dev-mode"
+          value: false   # NOTE: set to true to debug HTTP calls
         - name: HTTP_AUTORELOAD
           value: "#pt-param dev-mode"
         - name: KAFKA_BROKER
@@ -191,7 +191,7 @@ modules:
     args:
       image: curity.azurecr.io/curity/idsvr:9.0.1
       password: password
-      log-level: DEBUG
+      # log-level: DEBUG  # NOTE: uncomment when developing against curity
       license-file:
         type: host
         path: ./conf/curity-license.json
