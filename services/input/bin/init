@@ -15,10 +15,11 @@ if [ ! -f "$POETRY_VENV/bin/poetry" ]; then
     [[ $PYTHON_CMD != "" ]] || { echo "Python not found"; exit 1; }
     $PYTHON_CMD -m venv "$POETRY_VENV"
     source "$POETRY_VENV/bin/activate"
+    echo "Installing Poetry..."
     pip install poetry --quiet --disable-pip-version-check
 else
     source "$POETRY_VENV/bin/activate"
 fi
 
 poetry lock --no-update
-poetry install --no-interaction ${POETRY_ARGS:-}
+poetry install --no-interaction --no-ansi ${POETRY_ARGS:-}
