@@ -490,7 +490,7 @@
       <account-manager>
         <id>default-account-manager</id>
         <enable-registration>
-          <account-verification-method>email-verification</account-verification-method>
+          <account-verification-method>no-verification</account-verification-method>
           <email-provider>default-email-provider</email-provider>
         </enable-registration>
         <account-data-source>default-datasource</account-data-source>
