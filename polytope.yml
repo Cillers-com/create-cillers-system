@@ -18,7 +18,7 @@ modules:
         type: [maybe, {policy: [enum, always, on-failure]}]
     module: polytope/python
     args:
-      image: public.ecr.aws/docker/library/python:3.11.8-slim-bookworm
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       cmd: "#pt-param cmd"
       code:
         type: host
@@ -80,7 +80,7 @@ modules:
         type: [maybe, {policy: [enum, always, on-failure]}]
     module: polytope/python
     args:
-      image: public.ecr.aws/docker/library/python:3.11.8-slim-bookworm
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       cmd: "#pt-param cmd"
       code:
         type: host
@@ -111,6 +111,7 @@ modules:
     info: Runs the input service.
     module: input-base
     args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       cmd: ./bin/run
       restart:
         policy: on-failure
@@ -159,6 +160,7 @@ modules:
     info: Builds and serves the frontend using a devlopment server.
     module: frontend-base
     args:
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
       cmd: ./bin/run
       env:
         - name: PORT
@@ -177,6 +179,7 @@ modules:
   - id: kong
     module: polytope/kong!simple
     args:
+      image: gcr.io/arched-inkwell-420116/kong:3.6.1
       port: 3000
       config-file:
         type: host
@@ -191,7 +194,7 @@ modules:
   - id: curity
     module: polytope/curity
     args:
-      image: curity.azurecr.io/curity/idsvr:9.0.1
+      image: gcr.io/arched-inkwell-420116/idsvr:9.0.1
       password: password
       # log-level: DEBUG  # NOTE: uncomment when developing against curity
       license-file:
@@ -205,6 +208,7 @@ modules:
   - id: curity-db
     module: polytope/postgres
     args:
+      image: gcr.io/arched-inkwell-420116/postgres:16.2
       data-volume:
         type: volume
         scope: project
@@ -223,6 +227,7 @@ modules:
   - id: couchbase
     module: polytope/couchbase
     args:
+      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
       data-volume:
         type: volume
         scope: project
@@ -230,6 +235,7 @@ modules:
   - id: init-couchbase-cluster
     module: polytope/couchbase!init-cluster
     args:
+      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
       cluster: couchbase:8091
       username: admin
       password: password
@@ -237,6 +243,7 @@ modules:
   - id: create-couchbase-bucket
     module: polytope/couchbase!create-bucket
     args:
+      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
       cluster: couchbase:8091
       username: admin
       password: password
@@ -245,6 +252,7 @@ modules:
   - id: init-couchbase-bucket
     module: polytope/couchbase!cbq
     args:
+      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
       cluster: couchbase
       username: admin
       password: password
@@ -256,6 +264,7 @@ modules:
   - id: kafka
     module: polytope/kafka
     args:
+      image: gcr.io/arched-inkwell-420116/cp-kafka:7.5.1
       root-log-level: WARN
       data-volume:
         type: volume
@@ -264,6 +273,7 @@ modules:
   - id: kafka-connect
     module: polytope/kafka!connect
     args:
+      image: gcr.io/arched-inkwell-420116/cp-kafka-connect:7.5.1
       connectors:
         - couchbase/kafka-connect-couchbase:4.1.13
         - confluentinc/kafka-connect-http:1.7.3
@@ -271,6 +281,7 @@ modules:
   - id: create-connectors
     module: polytope/kafka!create-connectors
     args:
+      image: gcr.io/arched-inkwell-420116/curl:latest
       host: kafka-connect
       connectors:
         - name: couchbase-products-sink
@@ -308,6 +319,7 @@ modules:
     info: Mock mail server for testing.
     module: polytope/mailpit
     args:
+      image: gcr.io/arched-inkwell-420116/mailpit:latest
       restart:
         policy: on-failure
       env:
