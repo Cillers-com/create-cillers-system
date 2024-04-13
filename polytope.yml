@@ -227,7 +227,7 @@ modules:
   - id: couchbase
     module: polytope/couchbase
     args:
-      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
+      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
       data-volume:
         type: volume
         scope: project
@@ -235,7 +235,7 @@ modules:
   - id: init-couchbase-cluster
     module: polytope/couchbase!init-cluster
     args:
-      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
+      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
       cluster: couchbase:8091
       username: admin
       password: password
@@ -243,7 +243,7 @@ modules:
   - id: create-couchbase-bucket
     module: polytope/couchbase!create-bucket
     args:
-      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
+      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
       cluster: couchbase:8091
       username: admin
       password: password
@@ -252,7 +252,7 @@ modules:
   - id: init-couchbase-bucket
     module: polytope/couchbase!cbq
     args:
-      image: gcr.io/arched-inkwell-420116/couchbase:community-7.2.4
+      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
       cluster: couchbase
       username: admin
       password: password
