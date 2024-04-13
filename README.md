@@ -14,10 +14,14 @@ brew install polytope-cli
 ```
 
 ### Create your Cillers system
+
+Run the following command to create Cillers system named `my_system` in the current dirrectory:
 ```
 pt run "cillers/create-system{name: my_system}"
 ```
-Stop Polytope with `ctrl-c`
+Run the stack by pressing `ctrl-r` and wait until all steps are complete
+
+Then, stop Polytope with `ctrl-c`
 
 ### Run the stack
 ```
