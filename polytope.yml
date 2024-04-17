@@ -41,7 +41,7 @@ modules:
         - name: AUTH_OIDC_AUDIENCE
           value: www
         - name: AUTH_OIDC_JWK_URL
-          value: http://curity:8443/oauth/v2/oauth-anonymous/jwks
+          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
       id: "#pt-param container-id"
       mounts:
         - path: /root/.cache/
@@ -97,7 +97,7 @@ modules:
         - name: AUTH_OIDC_AUDIENCE
           value: www
         - name: AUTH_OIDC_JWK_URL
-          value: http://curity:8443/oauth/v2/oauth-anonymous/jwks
+          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
       id: "#pt-param container-id"
       mounts:
         - path: /root/.cache/
@@ -170,17 +170,106 @@ modules:
         - name: REACT_APP_API_BASE_URL
           value: http://localhost/api
         - name: REACT_APP_OIDC_AUTHORITY
-          value: http://localhost:8443/oauth/v2/oauth-anonymous
+          value: https://localhost:8443/oauth/v2/oauth-anonymous
       restart:
         policy: on-failure
       services:
         - id: frontend
           ports: [{protocol: http, port: 3000}]
+  - id: oauth-agent-base
+    info: Base module for the frontend.
+    module: polytope/node
+    params:
+      - id: cmd
+        info: The command to run.
+        type: [default, [either, str, [str]], bash]
+      - id: env 
+        info: Environment variables to pass to the container.
+        type: [maybe, [env-var]]
+      - id: container-id
+        info: The ID to use for the container.
+        type: [default, str, oauth-agent]
+      - id: services
+        info: Services to expose.
+        type: [maybe, [service-spec]]
+      - id: restart
+        type: [maybe, {policy: [enum, always, on-failure]}]
+    args:
+      cmd: "#pt-param cmd"
+      code:
+        type: host
+        path: ./code/oauth-agent-node-express
+      env: "#pt-param env"
+      id: "#pt-param container-id"
+      mounts:
+        - path: /root/.cache/
+          source:
+            type: volume
+            scope: project
+            id: dependency-cache
+        - path: /root/.npm/
+          source:
+            type: volume
+            scope: project
+            id: npm-cache
+      restart: "#pt-param restart"
+      services: "#pt-param services"
+  - id: oauth-agent
+    info: Builds and serves the frontend using a devlopment server.
+    module: oauth-agent-base
+    args:
+      image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
+      #cmd: "node", "--openssl-legacy-provider", "dist/server.js"
+      env:
+        - name: PORT
+          value: 3001
+        - name: TRUSTED_WEB_ORIGIN
+          value: 'http://localhost:8080'
+        - name: ISSUER
+          value: 'https://localhost:8443/oauth/v2/oauth-anonymous'
+        - name: AUTHORIZE_ENDPOINT
+          value: 'https://localhost:8443/oauth/v2/oauth-authorize'
+        - name: TOKEN_ENDPOINT
+          value: 'https://curity:8443/oauth/v2/oauth-token'
+        - name: USERINFO_ENDPOINT
+          value: 'https://localhost:8443/oauth/v2/oauth-userinfo'
+        - name: LOGOUT_ENDPOINT
+          value: 'https://localhost:8443/oauth/v2/oauth-session/logout'
+        - name: CLIENT_ID
+          value: 'spa-client'
+        - name: CLIENT_SECRET
+          value: 'Password1'
+        - name: REDIRECT_URI
+          value: 'http://localhost:8080/'
+        - name: POST_LOGOUT_REDIRECT_URI
+          value: 'http://localhost:8080/'
+        - name: SCOPE
+          value: 'openid profile'
+        - name: COOKIE_DOMAIN
+          value: 'localhost:8080'
+        - name: COOKIE_NAME_PREFIX
+          value: 'curity'
+        - name: COOKIE_ENCRYPTION_KEY
+          value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe'
+        - name: CORS_ENABLED
+          value: 'true'
+      restart:
+        policy: on-failure
+      services:
+        - id: oauth-agent
+          ports: [{protocol: http, port: 3001}]
   - id: kong
     module: polytope/kong!simple
     args:
       image: gcr.io/arched-inkwell-420116/kong:3.6.1
       port: 3000
+      plugins: 
+        - name: oauth-proxy
+          package: kong-oauth-proxy
+          version: 1.3.0
+        - name: phantom-token
+          package: kong-phantom-token
+          version: 2.0.0
       config-file:
         type: host
         path: ./conf/kong-dev.yml
@@ -335,22 +424,23 @@ templates:
 - id: stack
   run:
   - couchbase
-  - id: init-cb-cluster
-    module: init-couchbase-cluster
-  - id: create-cb-bucket
-    module: create-couchbase-bucket
-    run-when:
-      after: init-cb-cluster
-  - module: init-couchbase-bucket
-    run-when:
-      after: create-cb-bucket
+  #- id: init-cb-cluster
+  #  module: init-couchbase-cluster
+  #- id: create-cb-bucket
+  #  module: create-couchbase-bucket
+  #  run-when:
+  #    after: init-cb-cluster
+  #- module: init-couchbase-bucket
+  #  run-when:
+  #    after: create-cb-bucket
   - curity-db
+  - oauth-agent
   - curity
   - kong
   - frontend
   - api
-  - input
-  - kafka
-  - kafka-connect
-  - create-connectors
-  - mailpit
+  #- input
+  #- kafka
+  #- kafka-connect
+  #- create-connectors
+ # - mailpit

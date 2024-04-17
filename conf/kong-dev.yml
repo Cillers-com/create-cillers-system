@@ -24,3 +24,34 @@ services:
     strip_path: false
     paths:
     - /api
+ 
+- name: oauth-agent
+  url: http://oauth-agent:3001/oauth-agent
+  routes:
+  - name: oauth-agent-route
+    paths:
+    - /oauth-agent
+ 
+plugins:
+  - name: oauth-proxy
+    config:
+      cookie_name_prefix: curity
+      encryption_key: fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe
+      trusted_web_origins:
+      - http://localhost:8080
+      cors_enabled: true
+  - name: phantom-token
+    config:
+      introspection_endpoint: http://curity:8443/oauth/v2/oauth-introspect
+      client_id: api-gateway-client
+      client_secret: Password1
+      token_cache_seconds: 900
+  - name: response-transformer
+    config:
+      remove:
+        headers:
+          - Access-Control-Allow-Origin
+      append:
+        headers:
+          - "Access-Control-Allow-Origin:http://localhost:8080"
+
