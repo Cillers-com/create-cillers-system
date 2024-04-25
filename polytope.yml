@@ -1,6 +1,30 @@
+templates:
+- id: stack
+  run:
+  - couchbase
+  - id: init-cb-cluster
+    module: init-couchbase-cluster
+  - id: create-cb-bucket
+    module: create-couchbase-bucket
+    run-when:
+      after: init-cb-cluster
+  - module: init-couchbase-bucket
+    run-when:
+      after: create-cb-bucket
+  - curity-db
+  - oauth-agent
+  - curity
+  - kong
+  - web-app 
+  - app-api
+  #- ingest-api
+  #- kafka
+  #- kafka-connect
+  #- create-connectors
+ # - mailpit
 modules:
-  - id: api-base
-    info: Base module for the api.
+  - id: app-api-base
+    info: Base module for the app-api.
     params:
       - id: cmd
         info: The command to run.
@@ -10,7 +34,7 @@ modules:
         type: [default, bool, true]
       - id: container-id
         info: The ID to use for the container.
-        type: [default, str, api]
+        type: [default, str, app-api]
       - id: services
         info: Services to expose.
         type: [maybe, [service-spec]]
@@ -22,7 +46,7 @@ modules:
       cmd: "#pt-param cmd"
       code:
         type: host
-        path: ./services/api
+        path: ./code/app-api
       env:
         - name: COUCHBASE_URL
           value: couchbase://couchbase
@@ -39,7 +63,7 @@ modules:
         - name: HTTP_GRAPHQL_UI
           value: "#pt-param dev-mode"
         - name: AUTH_OIDC_AUDIENCE
-          value: www
+          value: http://localhost/api 
         - name: AUTH_OIDC_JWK_URL
           value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
       id: "#pt-param container-id"
@@ -51,18 +75,18 @@ modules:
             id: dependency-cache
       services: "#pt-param services"
       restart: "#pt-param restart"
-  - id: api
-    info: Runs the api service.
-    module: api-base
+  - id: app-api
+    info: Runs the app-api service.
+    module: app-api-base
     args:
       cmd: ./bin/run
       restart:
         policy: on-failure
       services:
-        - id: api
+        - id: app-api
           ports: [{protocol: http, port: 4000}]
-  - id: input-base
-    info: Base module for the input service.
+  - id: ingest-api-base
+    info: Base module for the ingest-api service.
     params:
       - id: cmd
         info: The command to run.
@@ -72,7 +96,7 @@ modules:
         type: [default, bool, true]
       - id: container-id
         info: The ID to use for the container.
-        type: [default, str, input]
+        type: [default, str, ingest-api]
       - id: services
         info: Services to expose.
         type: [maybe, [service-spec]]
@@ -84,7 +108,7 @@ modules:
       cmd: "#pt-param cmd"
       code:
         type: host
-        path: ./services/input
+        path: ./code/ingest-api
       env:
         - name: HTTP_PORT
           value: 3002
@@ -107,19 +131,19 @@ modules:
             id: dependency-cache
       services: "#pt-param services"
       restart: "#pt-param restart"
-  - id: input
-    info: Runs the input service.
-    module: input-base
+  - id: ingest-api 
+    info: Runs the ingest-api service.
+    module: ingest-api-base
     args:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       cmd: ./bin/run
       restart:
         policy: on-failure
       services:
-        - id: input
+        - id: ingest-api 
           ports: [{protocol: http, port: 3002}]
-  - id: frontend-base
-    info: Base module for the frontend.
+  - id: web-app-base
+    info: Base module for the web app.
     module: polytope/node
     params:
       - id: cmd
@@ -130,7 +154,7 @@ modules:
         type: [maybe, [env-var]]
       - id: container-id
         info: The ID to use for the container.
-        type: [default, str, frontend]
+        type: [default, str, web-app]
       - id: services
         info: Services to expose.
         type: [maybe, [service-spec]]
@@ -140,7 +164,7 @@ modules:
       cmd: "#pt-param cmd"
       code:
         type: host
-        path: ./frontend
+        path: ./code/web-app
       env: "#pt-param env"
       id: "#pt-param container-id"
       mounts:
@@ -156,9 +180,9 @@ modules:
             id: npm-cache
       restart: "#pt-param restart"
       services: "#pt-param services"
-  - id: frontend
-    info: Builds and serves the frontend using a devlopment server.
-    module: frontend-base
+  - id: web-app 
+    info: Builds and serves the web app using a devlopment server.
+    module: web-app-base
     args:
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
       cmd: ./bin/run
@@ -168,21 +192,20 @@ modules:
         - name: HOST
           value: 0.0.0.0
         - name: REACT_APP_API_BASE_URL
-          value: http://localhost/api
+          value: http://localhost:8080/api
         - name: REACT_APP_OIDC_AUTHORITY
           value: https://localhost:8443/oauth/v2/oauth-anonymous
       restart:
         policy: on-failure
       services:
-        - id: frontend
+        - id: web-app 
           ports: [{protocol: http, port: 3000}]
   - id: oauth-agent-base
-    info: Base module for the frontend.
-    module: polytope/node
+    info: Base module for the oauth-agent.
     params:
       - id: cmd
         info: The command to run.
-        type: [default, [either, str, [str]], bash]
+        type: [maybe, [either, str, [str]]]
       - id: env 
         info: Environment variables to pass to the container.
         type: [maybe, [env-var]]
@@ -194,32 +217,18 @@ modules:
         type: [maybe, [service-spec]]
       - id: restart
         type: [maybe, {policy: [enum, always, on-failure]}]
+    module: polytope/container
     args:
+      image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
       cmd: "#pt-param cmd"
-      code:
-        type: host
-        path: ./code/oauth-agent-node-express
       env: "#pt-param env"
       id: "#pt-param container-id"
-      mounts:
-        - path: /root/.cache/
-          source:
-            type: volume
-            scope: project
-            id: dependency-cache
-        - path: /root/.npm/
-          source:
-            type: volume
-            scope: project
-            id: npm-cache
       restart: "#pt-param restart"
       services: "#pt-param services"
   - id: oauth-agent
-    info: Builds and serves the frontend using a devlopment server.
+    info: Serves the oauth-agent
     module: oauth-agent-base
     args:
-      image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
-      #cmd: "node", "--openssl-legacy-provider", "dist/server.js"
       env:
         - name: PORT
           value: 3001
@@ -232,7 +241,7 @@ modules:
         - name: TOKEN_ENDPOINT
           value: 'https://curity:8443/oauth/v2/oauth-token'
         - name: USERINFO_ENDPOINT
-          value: 'https://localhost:8443/oauth/v2/oauth-userinfo'
+          value: 'https://curity:8443/oauth/v2/oauth-userinfo'
         - name: LOGOUT_ENDPOINT
           value: 'https://localhost:8443/oauth/v2/oauth-session/logout'
         - name: CLIENT_ID
@@ -240,19 +249,21 @@ modules:
         - name: CLIENT_SECRET
           value: 'Password1'
         - name: REDIRECT_URI
-          value: 'http://localhost:8080/'
+          value: 'http://localhost:8080/auth/callback'
         - name: POST_LOGOUT_REDIRECT_URI
           value: 'http://localhost:8080/'
         - name: SCOPE
           value: 'openid profile'
         - name: COOKIE_DOMAIN
-          value: 'localhost:8080'
+          value: 'localhost'
         - name: COOKIE_NAME_PREFIX
           value: 'curity'
         - name: COOKIE_ENCRYPTION_KEY
           value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe'
         - name: CORS_ENABLED
-          value: 'true'
+          value: 'false'
+        - name: NODE_TLS_REJECT_UNAUTHORIZED
+          value: '0'
       restart:
         policy: on-failure
       services:
@@ -263,6 +274,9 @@ modules:
     args:
       image: gcr.io/arched-inkwell-420116/kong:3.6.1
       port: 3000
+      env: 
+        - name: KONG_NGINX_HTTP_LUA_SHARED_DICT
+          value: 'phantom-token 10m'
       plugins: 
         - name: oauth-proxy
           package: kong-oauth-proxy
@@ -279,7 +293,7 @@ modules:
         ports:
         - port: 3000
           protocol: http
-          expose-as: 80
+          expose-as: 8080
   - id: curity
     module: polytope/curity
     args:
@@ -420,27 +434,3 @@ modules:
         type: volume
         scope: project
         id: mailpit-data
-templates:
-- id: stack
-  run:
-  - couchbase
-  #- id: init-cb-cluster
-  #  module: init-couchbase-cluster
-  #- id: create-cb-bucket
-  #  module: create-couchbase-bucket
-  #  run-when:
-  #    after: init-cb-cluster
-  #- module: init-couchbase-bucket
-  #  run-when:
-  #    after: create-cb-bucket
-  - curity-db
-  - oauth-agent
-  - curity
-  - kong
-  - frontend
-  - api
-  #- input
-  #- kafka
-  #- kafka-connect
-  #- create-connectors
- # - mailpit
