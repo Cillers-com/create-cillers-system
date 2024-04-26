@@ -88,8 +88,29 @@ async function getAuthRequestUrl(): Promise<any> {
   }
 }
 
-async function signalLogoutToOtherTabs() { 
+const useLogoutEventHandler = (onLogout: () => Promise<void>) => {
+  useEffect(() => {
+    const handleStorageEvent = async (event: StorageEvent) => {
+      if (event.key === "logout") {
+        onLogout();
+      }
+    };
+    window.addEventListener('logout', onLogout); 
+    window.addEventListener('storage', handleStorageEvent);
+    return () => {
+      window.removeEventListener('logout', onLogout); 
+      window.removeEventListener('storage', handleStorageEvent);
+    };
+  }, [onLogout]); 
+};
+
+const login = async () => {
+  window.location.href = await getAuthRequestUrl(); 
+} 
+
+async function signalLogout() { 
   localStorage.setItem("logout", "" + Date.now()); 
+  window.dispatchEvent(new CustomEvent('logout')); 
 } 
 
 type UserInfo = Record<string, any>; 
@@ -118,42 +139,20 @@ const App: React.FC = () => {
     })(); 
   }, []); 
 
-  // Logout if other tab is logged out. 
-  useEffect(() => {
-    const handleEventLogoutFromOtherTab = (event: StorageEvent) => {
-      if (event.key === "logout") {
-        resetStateOnLogout();
-      }
-    };
-    window.addEventListener('storage', handleEventLogoutFromOtherTab);
-    return () => {
-      window.removeEventListener('storage', handleEventLogoutFromOtherTab);
-    };
-  }, []);
-
-  const login = async () => {
-    window.location.href = await getAuthRequestUrl(); 
-  } 
-
-  const logout = async () => {
-    if (!isLoggedIn) { 
-      throw new Error("Not logged in"); 
+  useLogoutEventHandler(async () => { 
+    if (isLoggedIn) { 
+      if (!csrf) { 
+        throw new Error("No CSRF"); 
+      } 
+      setIsLoggingOut(true);
+      await Ologout(csrf); 
+      setIsLoggingOut(false);
+      setIsLoggedIn(false);
+      setCsrf(null); 
+      setUserInfo(null);
     } 
-    if (!csrf) { 
-      throw new Error("No CSRF"); 
-    } 
-    setIsLoggingOut(true);
-    await Ologout(csrf); 
-    setIsLoggingOut(false);
-    resetStateOnLogout();
-    signalLogoutToOtherTabs(); 
   } 
-  
-  const resetStateOnLogout = () => { 
-    setIsLoggedIn(false);
-    setCsrf(null); 
-    setUserInfo(null);
-  }
+ );
 
   const component: React.ReactElement = (() => { 
     if (isLoggingOut) { 
@@ -175,7 +174,7 @@ const App: React.FC = () => {
       return (
         <>
           Authenticated as: {JSON.stringify(userInfo)}
-          <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button onClick={signalLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
             Logout
           </button>
         </>
