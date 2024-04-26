@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PRODUCTS, ADD_PRODUCT, REMOVE_PRODUCT, PRODUCT_ADDED_SUBSCRIPTION } from '../graphql/operations';
-import { getAccessToken, getUser, signIn, signOut } from '../services/authService';
 import { ApolloProvider } from '@apollo/client';
 import client from '../apolloClient';
 
@@ -51,12 +50,10 @@ const Products: React.FC = () => {
   const handleAddProduct = async () => {
     if (!newProductText.trim()) return;
     if (pushToKafka) {
-      const token = await getAccessToken();
       const response = await fetch('/input/add_product', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({ name: newProductText }),
       });
@@ -97,7 +94,7 @@ const Products: React.FC = () => {
           <a href="/" className="p-2 normal-case text-xl">ProductLister</a>
         </div>
         <div className="flex-none">
-          <button className="btn" onClick={signOut}>
+          <button className="btn" >
           Sign out
           </button>
         </div>

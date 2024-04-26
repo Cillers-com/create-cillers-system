@@ -2,7 +2,6 @@ import { ApolloClient, InMemoryCache, HttpLink, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { getAccessToken } from './services/authService';
 import config from './config';
 
 const httpLink = new HttpLink({
@@ -10,12 +9,8 @@ const httpLink = new HttpLink({
 });
 
 const authLink = setContext(async (_, { headers }) => {
-  const token = await getAccessToken();
   return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    }
+    headers: headers
   };
 });
 
@@ -24,11 +19,8 @@ const wsLink = new WebSocketLink({
   options: {
     reconnect: true,
     connectionParams: async () => {
-      const token = await getAccessToken();
       return {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
+        headers: {}
       };
     },
   },

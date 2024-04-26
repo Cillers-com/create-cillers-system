@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosRequestConfig, Method } from 'axios';
-import { RemoteError } from '../utilities/remoteError';
+import { RemoteError } from '../utils/remoteError';
 
 async function myfetch(method: string, path: string, body: any): Promise<any> {
   const url = `http://localhost:8080/oauth-agent/${path}`;

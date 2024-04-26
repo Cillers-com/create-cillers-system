@@ -1,39 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import useAuth, { login, logout } from '../useAuth'
+import React from 'react';
+import useAuth, { login, logout } from '../utils/useAuth';
+import Authenticated from './Authenticated';
+import Anonymous from './Anonymous';
 
-const App: React.FC = () => {
+const LoadingLoginState = () => (
+    <div>Waiting for login state info ...</div>
+);
+
+const LoadingUserInfo = () => (
+    <div>Waiting for user info ...</div>
+);
+
+const LoggingOut = () => (
+    <div>Logging out ...</div>
+);
+
+const Main: React.FC = () => {
     const { getLoginStateComplete, isLoggedIn, userInfo, isLoggingOut } = useAuth();
 
-  const component: React.ReactElement = (() => { 
-    if (isLoggingOut) { 
-      return (<>Logging out ...</>)
-    } else if (!getLoginStateComplete) { 
-      return (<>Waiting for login state info...</>)
-    } else if (!isLoggedIn){ 
-      return (
-        <>
-          Not authenticated 
-          <button onClick={login} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            Login
-          </button>
-        </>
-      )
-    } else if (!userInfo) { 
-      return (<>Waiting for user info ...</>)
-    } else {  
-      return (
-        <>
-          Authenticated as: {JSON.stringify(userInfo)}
-          <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            Logout
-          </button>
-        </>
-      )
-    }   
-  })(); 
+    const component: React.ReactElement = (() => { 
+        if (isLoggingOut) return <LoggingOut />;
+        if (!getLoginStateComplete) return <LoadingLoginState />;
+        if (!isLoggedIn) return <Anonymous login={login} />;
+        if (!userInfo) return <LoadingUserInfo />;
+        return <Authenticated logout={logout} userInfo={userInfo} />;
+    })();  
 
-  return component; 
+    return component;
 }
 
-export default App;
+export default Main;
