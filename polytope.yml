@@ -193,6 +193,10 @@ modules:
           value: 0.0.0.0
         - name: REACT_APP_API_BASE_URL
           value: http://localhost:8080/api
+        - name: REACT_APP_OAUTH_AGENT_BASE_URL
+          value: http://localhost:8080/oauth-agent
+        - name: REACT_APP_OIDC_CLIENT_ID
+          value: spa-client  
         - name: REACT_APP_OIDC_AUTHORITY
           value: https://localhost:8443/oauth/v2/oauth-anonymous
       restart:
