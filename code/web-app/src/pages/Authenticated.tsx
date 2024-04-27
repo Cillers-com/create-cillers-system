@@ -20,8 +20,8 @@ const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout }) => {
     <>
       <p>Authenticated as: {JSON.stringify(userInfo)}</p>
       <button onClick={logout}>Logout</button>
-      <Products />
       <GameBoard size={testSize} coordinates={testCoordinates} />
+      <Products />
     </>
   );
 };
