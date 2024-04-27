@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { ADD_GAME, ADD_PLAYER, LIST_PLAYERS } from "../graphql/operations";
 
-const Products: React.FC = () => {
+interface UserProps {
+  userInfo: Record<string, any>;
+}
+
+const Games: React.FC<UserProps> = ({ userInfo }) => {
   const [addGame] = useMutation(ADD_GAME);
   const [addPlayer] = useMutation(ADD_PLAYER);
 
@@ -23,16 +27,14 @@ const Products: React.FC = () => {
   if (error) return <p>{"Error: " + error}</p>;
 
   const handleCreateGame = async () => {
-    // TODO: get the playername.
     if (!newGameText.trim()) return;
-    await addGame({ variables: { name: newGameText, host: "player" } });
+    await addGame({ variables: { name: newGameText, host: userInfo.sub } });
     setNewGameText(newGameText);
   };
 
   const handleAddPlayer = async () => {
-    // TODO: get the playername.
     const response = await addPlayer({
-      variables: { gameName: newGameText, name: "player" },
+      variables: { gameName: newGameText, name: userInfo.sub },
     });
     if (response.data && !response.data["addPlayer"]) {
       // TODO: show error.
@@ -74,4 +76,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products;
+export default Games;

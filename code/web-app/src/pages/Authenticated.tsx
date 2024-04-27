@@ -11,7 +11,7 @@ const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout }) => {
     <>
       <p>Authenticated as: {JSON.stringify(userInfo)}</p>
       <button onClick={logout}>Logout</button>
-      <Games />
+      <Games userInfo={userInfo} />
     </>
   );
 };
