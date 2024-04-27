@@ -2,7 +2,6 @@ import React from "react";
 import Games from "./Games";
 import { gameConfig } from "../config/gameConfig";
 import GameBoard from "./GameBoard";
-import { gameConfig } from "../config/gameConfig";
 
 interface AuthenticatedProps {
   userInfo: Record<string, any>;
