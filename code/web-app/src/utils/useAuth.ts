@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; 
+import { useState, useEffect, useCallback } from 'react'; 
 import { 
     getLoginState, 
     getUserInfo, 
@@ -6,14 +6,6 @@ import {
     getAuthRequestUrl, 
     UserInfo 
 } from './oauthAgentClient'
-
-interface AuthState {
-    getLoginStateComplete: boolean;
-    isLoggedIn: boolean;
-    csrf: string | null;
-    userInfo: UserInfo | null;
-    isLoggingOut: boolean;
-}
 
 export const login = async () => {
     window.location.href = await getAuthRequestUrl(); 
@@ -31,7 +23,7 @@ const useAuth = () => {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         if (isLoggedIn) {
             if (!csrf) { 
                 throw new Error("No CSRF"); 
@@ -40,10 +32,11 @@ const useAuth = () => {
             await logoutFromAgent(csrf);
             setIsLoggedIn(false);
             setCsrf(null);
+            localStorage.setItem('csrf', "");
             setUserInfo(null);
             setIsLoggingOut(false);
         }
-    };
+    }, [isLoggedIn, csrf]);
 
     // Check login state on pageload. 
     useEffect(() => { 
@@ -56,6 +49,7 @@ const useAuth = () => {
                 }
                 setIsLoggedIn(true);
                 setCsrf(loginState.csrf);
+                localStorage.setItem('csrf', loginState.csrf);
                 const userInfo = await getUserInfo(loginState.csrf); 
                 setUserInfo(userInfo); 
             }
@@ -77,7 +71,7 @@ const useAuth = () => {
             window.removeEventListener('logout', handleLogout);
             window.removeEventListener('storage', handleStorageEvent);
         };
-    }, [isLoggedIn, csrf]);
+    }, [handleLogout]);
 
     return { getLoginStateComplete, isLoggedIn, csrf, userInfo, isLoggingOut };
 };

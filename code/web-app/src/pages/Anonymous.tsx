@@ -7,7 +7,9 @@ interface AnonymousProps {
 const Anonymous: React.FC<AnonymousProps> = ({ login }) => {
     return (
         <>
-            Not authenticated 
+            <p> 
+                Not authenticated 
+            </p>
             <button onClick={login} >
                 Login
             </button>

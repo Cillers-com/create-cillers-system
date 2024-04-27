@@ -1,4 +1,5 @@
 import React from 'react'; 
+import Products from './Products';
 
 interface AuthenticatedProps {
   userInfo: Record<string, any>; 
@@ -8,10 +9,13 @@ interface AuthenticatedProps {
 const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout }) => {
     return (
         <>
-            Authenticated as: {JSON.stringify(userInfo)}
-            <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            <p>
+                Authenticated as: {JSON.stringify(userInfo)}
+            </p>
+            <button onClick={logout}>
                 Logout
             </button>
+            <Products />
         </>
     )
 } 

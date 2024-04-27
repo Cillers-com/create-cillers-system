@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PRODUCTS, ADD_PRODUCT, REMOVE_PRODUCT, PRODUCT_ADDED_SUBSCRIPTION } from '../graphql/operations';
-import { ApolloProvider } from '@apollo/client';
-import client from '../apolloClient';
 
 interface Product {
   id: string;
@@ -87,16 +85,10 @@ const Products: React.FC = () => {
   };
 
   return (
-    <ApolloProvider client={client}>
     <div className="min-h-screen flex flex-col">
       <div className="navbar bg-base-300 text-neutral-content">
         <div className="flex-1">
-          <a href="/" className="p-2 normal-case text-xl">ProductLister</a>
-        </div>
-        <div className="flex-none">
-          <button className="btn" >
-          Sign out
-          </button>
+          <a href="/" className="p-2 normal-case text-xl">Products</a>
         </div>
       </div>
 
@@ -118,11 +110,6 @@ const Products: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="form-control w-full flex flex-row justify-center items-center">
-              <label className="join-item label">Submit directly</label>
-              <input type="checkbox" className="toggle mx-2" checked={pushToKafka} onChange={() => setPushToKafka(!pushToKafka)} />
-              <label className="join-item label">Submit via Kafka</label>
-            </div>
             <div className="space-y-2 w-full">
               {data.products.map(({ name, id }: Product) => (
                 <div key={id} className="card card-compact w-full bg-base-200 flex-row items-center justify-between">
@@ -141,7 +128,6 @@ const Products: React.FC = () => {
         </div>
       </div>
     </div>
-    </ApolloProvider>
   );
 };
 

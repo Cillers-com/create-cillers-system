@@ -16,7 +16,7 @@ const LoggingOut = () => (
 );
 
 const Main: React.FC = () => {
-    const { getLoginStateComplete, isLoggedIn, userInfo, isLoggingOut } = useAuth();
+    const { getLoginStateComplete, isLoggedIn, csrf, userInfo, isLoggingOut } = useAuth();
 
     const component: React.ReactElement = (() => { 
         if (isLoggingOut) return <LoggingOut />;

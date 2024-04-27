@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig, AxiosRequestHeaders, Method } from 'axios';
 import { ErrorHandler } from './errorHandler';
 import { RemoteError } from './remoteError';
+import config from '../config'
 
-async function myfetch(method: string, path: string, body: any, csrf?: string): Promise<any> {
-  const url = `http://localhost:8080/oauth-agent/${path}`;
+async function oauthAgentFetch(method: string, path: string, body: any, csrf?: string): Promise<any> {
+  const url = `${config.oauthAgentBaseUrl}/${path}`;
   const options: AxiosRequestConfig = {
     url,
     method: method as Method,
@@ -32,10 +33,19 @@ async function myfetch(method: string, path: string, body: any, csrf?: string): 
   }
 }
 
+export async function getAuthCookies(pageUrl: string) { 
+  const request = JSON.stringify({ pageUrl });
+  const response = await oauthAgentFetch('POST', 'login/end', request);
+  if (!response.handled) { 
+    throw new Error("response.handled is expected to be true in callback"); 
+  } 
+  return response;  
+} 
+
 export async function getLoginState(pageUrl: string): Promise<any> {
   try {
     const request = pageUrl ? JSON.stringify({ pageUrl }) : null; 
-    return await myfetch('POST', 'login/end', request);
+    return await oauthAgentFetch('POST', 'login/end', request);
   } catch (e) {
     const remoteError = e as RemoteError;
     if (remoteError.isSessionExpiredError()) {
@@ -50,7 +60,7 @@ export async function getLoginState(pageUrl: string): Promise<any> {
     
 export async function getUserInfo(csrf: string): Promise<any> {
   try {
-    return await myfetch('GET', 'userInfo', null, csrf);
+    return await oauthAgentFetch('GET', 'userInfo', null, csrf);
   } catch (remoteError) {
     console.log('Remote error', remoteError); 
     if (!(remoteError instanceof RemoteError)) {
@@ -61,7 +71,7 @@ export async function getUserInfo(csrf: string): Promise<any> {
     }
     await refreshToken(csrf);
     try {
-      return await myfetch('GET', 'userInfo', null, csrf);
+      return await oauthAgentFetch('GET', 'userInfo', null, csrf);
     } catch (e) {
       throw ErrorHandler.handleFetchError('OAuth Agent', e);
     }
@@ -69,16 +79,16 @@ export async function getUserInfo(csrf: string): Promise<any> {
 }
 
 export async function refreshToken(csrf: string): Promise<void> {
-  myfetch('POST', 'refresh', null, csrf);
+  oauthAgentFetch('POST', 'refresh', null, csrf);
 }
 
 export async function logoutFromAgent(csrf: string): Promise<void> {
-  myfetch('POST', 'logout', null, csrf);
+  oauthAgentFetch('POST', 'logout', null, csrf);
 } 
 
 export async function getAuthRequestUrl(): Promise<any> {
   try {
-    const data = await myfetch('POST', 'login/start', null);    
+    const data = await oauthAgentFetch('POST', 'login/start', null);    
     return data.authorizationRequestUrl; 
   } catch (error) {
     console.error('Error:', error); 
