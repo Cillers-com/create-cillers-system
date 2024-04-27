@@ -1,6 +1,11 @@
 import React, { useState } from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import { ADD_GAME, ADD_PLAYER, LIST_PLAYERS } from "../graphql/operations";
 
 const Products: React.FC = () => {
+  const [addGame] = useMutation(ADD_GAME);
+  const [addPlayer] = useMutation(ADD_PLAYER);
+
   const [newGameText, setNewGameText] = useState("");
 
   const loading = false;
@@ -18,21 +23,23 @@ const Products: React.FC = () => {
   if (error) return <p>{"Error: " + error}</p>;
 
   const handleCreateGame = async () => {
+    // TODO: get the playername.
     if (!newGameText.trim()) return;
-
-    // TODO: add query to create game
-    // await addProduct({ variables: { name: newGameText } });
-    alert("sim: Game created");
+    await addGame({ variables: { name: newGameText, host: "player" } });
     setNewGameText(newGameText);
   };
 
-  const handleJoinGame = async () => {
-    if (!newGameText.trim()) return;
+  const handleAddPlayer = async () => {
+    // TODO: get the playername.
+    const response = await addPlayer({
+      variables: { gameName: newGameText, name: "player" },
+    });
+    if (response.data && !response.data["addPlayer"]) {
+      // TODO: show error.
+      return;
+    }
 
-    // TODO: add query to join game
-    // await addProduct({ variables: { name: newGameText } });
-    alert("sim: Game joined");
-    setNewGameText(newGameText);
+    // TODO: re-render list.
   };
 
   return (
@@ -57,7 +64,7 @@ const Products: React.FC = () => {
           </button>
           <button
             className="join-item btn btn-square btn-md btn-primary"
-            onClick={handleJoinGame}
+            onClick={handleAddPlayer}
           >
             Join
           </button>
