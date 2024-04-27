@@ -1,24 +1,19 @@
-import React from 'react'; 
-import Products from './Products';
+import React from "react";
+import Games from "./Games";
 
 interface AuthenticatedProps {
-  userInfo: Record<string, any>; 
-  logout: () => void; 
+  userInfo: Record<string, any>;
+  logout: () => void;
 }
 
 const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout }) => {
-    return (
-        <>
-            <p>
-                Authenticated as: {JSON.stringify(userInfo)}
-            </p>
-            <button onClick={logout}>
-                Logout
-            </button>
-            <Products />
-        </>
-    )
-} 
+  return (
+    <>
+      <p>Authenticated as: {JSON.stringify(userInfo)}</p>
+      <button onClick={logout}>Logout</button>
+      <Games />
+    </>
+  );
+};
 
 export default Authenticated;
-
