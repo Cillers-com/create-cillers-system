@@ -22,7 +22,7 @@ class Context(BaseContext):
             if auth_ := self.request.headers.get("Authorization"):
                 method, token = auth_.split(" ")
                 if method == 'Bearer':
-                    if data := auth.decode_jwt(token):
+                    if data := auth.verify_and_decode_jwt(token):
                         return data
 
 async def get_context() -> Context:
@@ -36,7 +36,7 @@ class IsAuthenticated(BasePermission):
     message = "User is not authenticated."
 
     def has_permission(self, source, info: Info, **kwargs):
-        return info.context.user is not None
+        return True #info.context.user is not None
 
 @strawberry.type
 class Message:

@@ -22,7 +22,7 @@ def get_jwk_client():
     ssl_context.verify_mode = CERT_NONE
     return PyJWKClient(env.get_auth_oidc_jwk_url(), ssl_context=ssl_context)
 
-def decode_jwt(token: str) -> Optional[dict]:
+def verify_and_decode_jwt(token: str) -> Optional[dict]:
     "Decodes a JWT using the configures JWKS URL and audience."
     try:
         client = get_jwk_client()
