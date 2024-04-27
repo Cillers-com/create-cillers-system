@@ -1,5 +1,5 @@
 import React from "react";
-import Products from "./Products";
+import Games from "./Games";
 import GameBoard from "./GameBoard";
 
 interface AuthenticatedProps {
@@ -20,8 +20,8 @@ const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout }) => {
     <>
       <p>Authenticated as: {JSON.stringify(userInfo)}</p>
       <button onClick={logout}>Logout</button>
+      <Games />
       <GameBoard size={testSize} coordinates={testCoordinates} />
-      <Products />
     </>
   );
 };
