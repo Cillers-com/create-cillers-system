@@ -1,0 +1,40 @@
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  width: 50px; /* Adjust size of cells */
+  height: 50px; /* Adjust size of cells */
+  border: 1px solid #ddd; /* Light grey border for cells */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s; /* Smooth transition for visual feedback */
+}
+
+.cell.active {
+  background-color: #90ee90; /* Light green background for active cells */
+}
+
+.cell:hover {
+  background-color: #add8e6; /* Light blue background for cell hover state */
+}
+
+.correct {
+  font-size: 1.5rem;
+  color: green; /* Green color for correct symbols */
+  font-weight: bold;
+}
+
+.user-selected {
+  background-color: #ffcccb; /* Light red background for user selected cells */
+}
