@@ -17,11 +17,6 @@ templates:
   - kong
   - web-app 
   - app-api
-  #- ingest-api
-  #- kafka
-  #- kafka-connect
-  #- create-connectors
- # - mailpit
 modules:
   - id: app-api-base
     info: Base module for the app-api.
@@ -85,63 +80,6 @@ modules:
       services:
         - id: app-api
           ports: [{protocol: http, port: 4000}]
-  - id: ingest-api-base
-    info: Base module for the ingest-api service.
-    params:
-      - id: cmd
-        info: The command to run.
-        type: [default, [either, str, [str]], bash]
-      - id: dev-mode
-        info: Whether to run in dev mode (with hot reload, debugging).
-        type: [default, bool, true]
-      - id: container-id
-        info: The ID to use for the container.
-        type: [default, str, ingest-api]
-      - id: services
-        info: Services to expose.
-        type: [maybe, [service-spec]]
-      - id: restart
-        type: [maybe, {policy: [enum, always, on-failure]}]
-    module: polytope/python
-    args:
-      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      cmd: "#pt-param cmd"
-      code:
-        type: host
-        path: ./code/ingest-api
-      env:
-        - name: HTTP_PORT
-          value: 3002
-        - name: HTTP_DEBUG
-          value: false   # NOTE: set to true to debug HTTP calls
-        - name: HTTP_AUTORELOAD
-          value: "#pt-param dev-mode"
-        - name: KAFKA_BROKER
-          value: kafka:9092
-        - name: AUTH_OIDC_AUDIENCE
-          value: www
-        - name: AUTH_OIDC_JWK_URL
-          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
-      id: "#pt-param container-id"
-      mounts:
-        - path: /root/.cache/
-          source:
-            type: volume
-            scope: project
-            id: dependency-cache
-      services: "#pt-param services"
-      restart: "#pt-param restart"
-  - id: ingest-api 
-    info: Runs the ingest-api service.
-    module: ingest-api-base
-    args:
-      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      cmd: ./bin/run
-      restart:
-        policy: on-failure
-      services:
-        - id: ingest-api 
-          ports: [{protocol: http, port: 3002}]
   - id: web-app-base
     info: Base module for the web app.
     module: polytope/node
@@ -368,73 +306,8 @@ modules:
         CREATE PRIMARY INDEX IF NOT EXISTS ON cillers;
         CREATE PRIMARY INDEX IF NOT EXISTS ON cillers._default.products;
       retries: 20
-  - id: kafka
-    module: polytope/kafka
-    args:
-      image: gcr.io/arched-inkwell-420116/cp-kafka:7.5.1
-      root-log-level: WARN
-      data-volume:
-        type: volume
-        scope: project
-        id: kafka-data
-  - id: kafka-connect
-    module: polytope/kafka!connect
-    args:
-      image: gcr.io/arched-inkwell-420116/cp-kafka-connect:7.5.1
-      connectors:
-        - couchbase/kafka-connect-couchbase:4.1.13
-        - confluentinc/kafka-connect-http:1.7.3
-      root-log-level: WARN
-  - id: create-connectors
-    module: polytope/kafka!create-connectors
-    args:
-      image: gcr.io/arched-inkwell-420116/curl:latest
-      host: kafka-connect
-      connectors:
-        - name: couchbase-products-sink
-          config:
-            name:                           couchbase-products-sink
-            connector.class:                com.couchbase.connect.kafka.CouchbaseSinkConnector
-            tasks.max:                      '2'
-            topics:                         products
-            couchbase.seed.nodes:           couchbase
-            couchbase.bootstrap.timeout:    10s
-            couchbase.bucket:               cillers
-            couchbase.default.collection:   _default.products
-            couchbase.document.id:          ${/id}
-            couchbase.username:             admin
-            couchbase.password:             password
-            key.converter:                  org.apache.kafka.connect.storage.StringConverter
-            value.converter:                org.apache.kafka.connect.json.JsonConverter
-            value.converter.schemas.enable: 'false'
   - id: ngrok
     module: polytope/ngrok!http
     args:
       host: kong
       port: 3000
-  - id: confluent-control-center
-    module: polytope/kafka!control-center
-    args:
-      root-log-level: WARN
-      schema-registry-url: http://schema-registry:8081
-      connect-cluster-url: kafka-connect:8083
-  - id: confluent-schema-registry
-    module: polytope/kafka!schema-registry
-    args:
-      root-log-level: WARN
-  - id: mailpit
-    info: Mock mail server for testing.
-    module: polytope/mailpit
-    args:
-      image: gcr.io/arched-inkwell-420116/mailpit:latest
-      restart:
-        policy: on-failure
-      env:
-        - name: MP_SMTP_AUTH_ACCEPT_ANY
-          value: 1
-        - name: MP_SMTP_AUTH_ALLOW_INSECURE
-          value: 1
-      data-volume:
-        type: volume
-        scope: project
-        id: mailpit-data
