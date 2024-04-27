@@ -6,7 +6,12 @@ from . import couchbase as cb, env
 class Product:
     id: str
     name: str
-
+    
+@strawberry.type
+class Game:
+    name: str
+    host: str
+    
 def create_product(name: str) -> Product:
     id = str(uuid.uuid1())
     cb.insert(env.get_couchbase_conf(),
@@ -35,3 +40,56 @@ def list_products() -> list[Product]:
         f"SELECT name, META().id FROM {env.get_couchbase_bucket()}._default.products"
     )
     return [Product(**r) for r in result]
+
+def create_game(name: str, host: str) -> Game:
+    cb.insert(
+        env.get_couchbase_conf(),
+        cb.DocSpec(
+            bucket=env.get_couchbase_bucket(),
+            collection='games',
+            key=name,
+            data={
+                'name': name,
+                'host': host,
+            }
+        )
+    )
+    
+    return Game(name=name, host=host)
+
+def add_player(game_name: str, name: str) -> bool:
+    # Check that game exists.
+    try:
+        cb.get(
+            env.get_couchbase_conf(),
+            cb.DocRef(
+                key=game_name,
+                bucket=env.get_couchbase_bucket(),
+                collection='games',   
+            )
+        )
+    except:
+        return False
+    
+    cb.insert(
+        env.get_couchbase_conf(),
+        cb.DocSpec(
+            bucket=env.get_couchbase_bucket(),
+            collection='players',
+            key=game_name+name,
+            data={
+                'name': name,
+                'game_name': game_name,
+            }
+        )
+    )
+    
+    return True
+
+def list_players(game_name: str) -> list[str]:
+    result = cb.exec(
+        env.get_couchbase_conf(),
+        f"SELECT name FROM {env.get_couchbase_bucket()}._default.players WHERE game_name = '{game_name}'"
+    )
+    
+    return [r['name'] for r in result]

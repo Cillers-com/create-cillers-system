@@ -47,21 +47,21 @@ class Message:
 @strawberry.type
 class Mutation:
     @strawberry.field(permission_classes=[IsAuthenticated])
-    async def add_product(self, name: str) -> db.Product:
-        return db.create_product(name)
+    async def add_game(self, name: str, host: str) -> db.Game:
+        return db.create_game(name, host)
 
     @strawberry.field(permission_classes=[IsAuthenticated])
-    async def remove_product(self, id: str) -> None:
-        db.delete_product(id)
+    async def add_player(self, game_name: str, name: str) -> bool:
+        return db.add_player(game_name, name)
 
 #### Queries ####
 
 @strawberry.type
 class Query:
     @strawberry.field
-    def products(self) -> list[db.Product]:
-        return db.list_products()
-
+    def list_players(self, game_name: str) -> list[str]:
+        return db.list_players(game_name)
+    
     @strawberry.field(permission_classes=[IsAuthenticated])
     def hello(self) -> Message:
         return Message(message="Hej, hej")
