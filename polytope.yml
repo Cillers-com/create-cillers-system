@@ -39,27 +39,17 @@ modules:
         - id: "app-api"
           ports: [{protocol: http, port: 4000}]
       env:
-        - COUCHBASE_URL: couchbase://couchbase
-        - COUCHBASE_USERNAME: admin
-      env:
-        - name: COUCHBASE_URL
-          value: couchbase://couchbase
-        - name: COUCHBASE_USERNAME
-          value: admin
-        - name: COUCHBASE_PASSWORD
-          value: password
-        - name: HTTP_PORT
-          value: 4000
-        - name: HTTP_DEBUG
-          value: false
-        - name: HTTP_AUTORELOAD
-          value: true 
-        - name: HTTP_GRAPHQL_UI
-          value: false
-        - name: AUTH_OIDC_AUDIENCE
-          value: http://localhost/api 
-        - name: AUTH_OIDC_JWK_URL
-          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
+        - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
+        - { name: COUCHBASE_USERNAME, value: admin } 
+        - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
+        - { name: COUCHBASE_USERNAME, value: admin }
+        - { name: COUCHBASE_PASSWORD, value: password }
+        - { name: HTTP_PORT, value: 4000 } 
+        - { name: HTTP_DEBUG, value: false } 
+        - { name: HTTP_AUTORELOAD, value: true } 
+        - { name: HTTP_GRAPHQL_UI, value: false } 
+        - { name: AUTH_OIDC_AUDIENCE, value: http://localhost/api }
+        - { name: AUTH_OIDC_JWK_URL, value: https://curity:8443/oauth/v2/oauth-anonymous/jwks }
       mounts:
         - path: /root/.cache/
           source:
@@ -78,18 +68,12 @@ modules:
         path: ./code/web-app
       cmd: ./bin/run
       env:
-        - name: PORT
-          value: 3000
-        - name: HOST
-          value: 0.0.0.0
-        - name: REACT_APP_API_BASE_URL
-          value: http://localhost:8080/api
-        - name: REACT_APP_OAUTH_AGENT_BASE_URL
-          value: http://localhost:8080/oauth-agent
-        - name: REACT_APP_OIDC_CLIENT_ID
-          value: spa-client  
-        - name: REACT_APP_OIDC_AUTHORITY
-          value: https://localhost:8443/oauth/v2/oauth-anonymous
+        - { name: PORT, value: 3000 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: http://localhost:8080/api } 
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: http://localhost:8080/oauth-agent } 
+        - { name: REACT_APP_OIDC_CLIENT_ID, value: spa-client } 
+        - { name: REACT_APP_OIDC_AUTHORITY, value: https://localhost:8443/oauth/v2/oauth-anonymous }
       restart:
         policy: on-failure
       services:
@@ -114,40 +98,23 @@ modules:
       id: oauth-agent 
       image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
       env:
-        - name: PORT
-          value: 3001
-        - name: TRUSTED_WEB_ORIGIN
-          value: 'http://localhost:8080'
-        - name: ISSUER
-          value: 'https://localhost:8443/oauth/v2/oauth-anonymous'
-        - name: AUTHORIZE_ENDPOINT
-          value: 'https://localhost:8443/oauth/v2/oauth-authorize'
-        - name: TOKEN_ENDPOINT
-          value: 'https://curity:8443/oauth/v2/oauth-token'
-        - name: USERINFO_ENDPOINT
-          value: 'https://curity:8443/oauth/v2/oauth-userinfo'
-        - name: LOGOUT_ENDPOINT
-          value: 'https://localhost:8443/oauth/v2/oauth-session/logout'
-        - name: CLIENT_ID
-          value: 'spa-client'
-        - name: CLIENT_SECRET
-          value: 'Password1'
-        - name: REDIRECT_URI
-          value: 'http://localhost:8080/auth/callback'
-        - name: POST_LOGOUT_REDIRECT_URI
-          value: 'http://localhost:8080/'
-        - name: SCOPE
-          value: 'openid profile'
-        - name: COOKIE_DOMAIN
-          value: 'localhost'
-        - name: COOKIE_NAME_PREFIX
-          value: 'curity'
-        - name: COOKIE_ENCRYPTION_KEY
-          value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe'
-        - name: CORS_ENABLED
-          value: 'false'
-        - name: NODE_TLS_REJECT_UNAUTHORIZED
-          value: '0'
+        - { name: PORT, value: 3001 }
+        - { name: TRUSTED_WEB_ORIGIN, value: 'http://localhost:8080' }
+        - { name: ISSUER, value: 'https://localhost:8443/oauth/v2/oauth-anonymous' }
+        - { name: AUTHORIZE_ENDPOINT, value: 'https://localhost:8443/oauth/v2/oauth-authorize' }
+        - { name: TOKEN_ENDPOINT, value: 'https://curity:8443/oauth/v2/oauth-token' }
+        - { name: USERINFO_ENDPOINT, value: 'https://curity:8443/oauth/v2/oauth-userinfo' }
+        - { name: LOGOUT_ENDPOINT, value: 'https://localhost:8443/oauth/v2/oauth-session/logout' }
+        - { name: CLIENT_ID, value: 'spa-client' }
+        - { name: CLIENT_SECRET, value: 'Password1' }
+        - { name: REDIRECT_URI, value: 'http://localhost:8080/auth/callback' }
+        - { name: POST_LOGOUT_REDIRECT_URI, value: 'http://localhost:8080/' }
+        - { name: SCOPE, value: 'openid profile' }
+        - { name: COOKIE_DOMAIN, value: 'localhost' }
+        - { name: COOKIE_NAME_PREFIX, value: 'curity' }
+        - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
+        - { name: CORS_ENABLED, value: 'false' }
+        - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
       restart:
         policy: on-failure
       services:
@@ -160,8 +127,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/kong:3.6.1
       port: 3000
       env: 
-        - name: KONG_NGINX_HTTP_LUA_SHARED_DICT
-          value: 'phantom-token 10m'
+        - { name: KONG_NGINX_HTTP_LUA_SHARED_DICT, value: 'phantom-token 10m' }
       plugins: 
         - name: oauth-proxy
           package: kong-oauth-proxy
@@ -205,10 +171,8 @@ modules:
         id: curity-db-data
       service-id: curity-db
       env:
-        - name: POSTGRES_HOST_AUTH_METHOD
-          value: trust
-        - name: POSTGRES_DB
-          value: idsvr
+        - { name: POSTGRES_HOST_AUTH_METHOD, value: trust }
+        - { name: POSTGRES_DB, value: idsvr }
       scripts:
         - type: host
           path: ./conf/curity-db.sql
@@ -261,7 +225,7 @@ modules:
     module: polytope/redpanda
     args:
       image: docker.redpanda.com/redpandadata/redpanda:v23.3.11
-      root-log-level: WARN
+      root-log-level: warn 
       data-volume:
         id: redpanda-data
         type: volume
