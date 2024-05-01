@@ -1,0 +1,8 @@
+modules:
+  - id: ngrok
+    module: polytope/ngrok!http
+    args:
+      host: kong
+      port: 3000
+
+

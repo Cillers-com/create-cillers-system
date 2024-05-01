@@ -1,0 +1,9 @@
+modules:
+  - id: confluent-control-center
+    module: polytope/kafka!control-center
+    args:
+      root-log-level: WARN
+      schema-registry-url: http://schema-registry:8081
+      connect-cluster-url: kafka-connect:8083
+
+

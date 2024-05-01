@@ -1,0 +1,19 @@
+modules:
+  - id: mailpit
+    info: Mock mail server for testing.
+    module: polytope/mailpit
+    args:
+      image: gcr.io/arched-inkwell-420116/mailpit:latest
+      restart:
+        policy: on-failure
+      env:
+        - name: MP_SMTP_AUTH_ACCEPT_ANY
+          value: 1
+        - name: MP_SMTP_AUTH_ALLOW_INSECURE
+          value: 1
+      data-volume:
+        type: volume
+        scope: project
+        id: mailpit-data
+
+

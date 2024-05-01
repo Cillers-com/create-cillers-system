@@ -1,0 +1,61 @@
+modules:
+  - id: ingest-api-base
+    info: Base module for the ingest-api service.
+    params:
+      - id: cmd
+        info: The command to run.
+        type: [default, [either, str, [str]], bash]
+      - id: dev-mode
+        info: Whether to run in dev mode (with hot reload, debugging).
+        type: [default, bool, true]
+      - id: container-id
+        info: The ID to use for the container.
+        type: [default, str, ingest-api]
+      - id: services
+        info: Services to expose.
+        type: [maybe, [service-spec]]
+      - id: restart
+        type: [maybe, {policy: [enum, always, on-failure]}]
+    module: polytope/python
+    args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      cmd: "#pt-param cmd"
+      code:
+        type: host
+        path: ./code/ingest-api
+      env:
+        - name: HTTP_PORT
+          value: 3002
+        - name: HTTP_DEBUG
+          value: false   # NOTE: set to true to debug HTTP calls
+        - name: HTTP_AUTORELOAD
+          value: "#pt-param dev-mode"
+        - name: KAFKA_BROKER
+          value: kafka:9092
+        - name: AUTH_OIDC_AUDIENCE
+          value: www
+        - name: AUTH_OIDC_JWK_URL
+          value: https://curity:8443/oauth/v2/oauth-anonymous/jwks
+      id: "#pt-param container-id"
+      mounts:
+        - path: /root/.cache/
+          source:
+            type: volume
+            scope: project
+            id: dependency-cache
+      services: "#pt-param services"
+      restart: "#pt-param restart"
+
+  - id: ingest-api 
+    info: Runs the ingest-api service.
+    module: ingest-api-base
+    args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      cmd: ./bin/run
+      restart:
+        policy: on-failure
+      services:
+        - id: ingest-api 
+          ports: [{protocol: http, port: 3002}]
+
+

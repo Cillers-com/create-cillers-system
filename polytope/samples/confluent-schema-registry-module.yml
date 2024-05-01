@@ -1,0 +1,7 @@
+modules: 
+  - id: confluent-schema-registry
+    module: polytope/kafka!schema-registry
+    args:
+      root-log-level: WARN
+
+
