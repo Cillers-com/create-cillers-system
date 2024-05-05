@@ -240,7 +240,8 @@ modules:
       brokers: [{host: redpanda, port: 9092}]
       log-level: info
       port: 8079
-      restart: {max-restarts: null, policy: always}
+      restart: 
+        policy: always
 
   - id: kafka-connect
     info: Runs the Kafka connect service
@@ -251,7 +252,6 @@ modules:
       connectors:
         - couchbase/kafka-connect-couchbase:4.1.13
         - confluentinc/kafka-connect-http:1.7.3
-      brokers: [{host: "redpanda", port: 9092}]
       bootstrap-servers: [{host: redpanda, port: 9092}]
       group-id: kafka-connect
       config-topic: kafka-connect-config
@@ -264,6 +264,8 @@ modules:
       value-converter: org.apache.kafka.connect.json.JsonConverter
       root-log-level: WARN
       port: 8083
+      restart: 
+        policy: always
 
   - id: create-connectors
     module: polytope/kafka!create-connectors
