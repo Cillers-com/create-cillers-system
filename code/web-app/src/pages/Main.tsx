@@ -23,10 +23,12 @@ const Main: React.FC = () => {
         if (!getLoginStateComplete) return <LoadingLoginState />;
         if (!isLoggedIn) return <Anonymous login={login} />;
         if (!userInfo) return <LoadingUserInfo />;
-        return <Authenticated logout={logout} userInfo={userInfo} />;
+
+        if (!csrf) throw new Error("No csrf!"); 
+        return <Authenticated logout={logout} userInfo={userInfo} csrf={csrf} />;
     })();  
 
-    return component;
+    return component;     
 }
 
 export default Main;

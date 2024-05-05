@@ -32,30 +32,30 @@ services:
     paths:
     - /api
 
-#  plugins:
-#    - name: oauth-proxy
-#      config:
-#        cookie_name_prefix: curity
-#        encryption_key: fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe
-#        trusted_web_origins:
-#        - http://localhost:8080
-#        cors_enabled: true
-#        allow_tokens: true
-#
-#    - name: phantom-token
-#      config:
-#        introspection_endpoint: https://curity:8443/oauth/v2/oauth-introspect
-#        client_id: kong-introspection 
-#        client_secret: Password1
-#        token_cache_seconds: 900
-#        verify_ssl: false
-#
-#    - name: response-transformer
-#      config:
-#        remove:
-#          headers:
-#          - Access-Control-Allow-Origin
-#        append:
-#          headers:
-#          - "Access-Control-Allow-Origin:http://localhost:8080"
+  plugins:
+    - name: oauth-proxy
+      config:
+        cookie_name_prefix: curity
+        encryption_key: fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe
+        trusted_web_origins:
+        - http://localhost:8080
+        cors_enabled: true
+        allow_tokens: true
+
+    - name: phantom-token
+      config:
+        introspection_endpoint: https://curity:8443/oauth/v2/oauth-introspect
+        client_id: kong-introspection 
+        client_secret: Password1
+        token_cache_seconds: 900
+        verify_ssl: false
+
+    - name: response-transformer
+      config:
+        remove:
+          headers:
+          - Access-Control-Allow-Origin
+        append:
+          headers:
+          - "Access-Control-Allow-Origin:http://localhost:8080"
 

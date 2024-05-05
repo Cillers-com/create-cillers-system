@@ -36,7 +36,7 @@ class IsAuthenticated(BasePermission):
     message = "User is not authenticated."
 
     def has_permission(self, source, info: Info, **kwargs):
-        return True #info.context.user is not None
+        return info.context.user is not None
 
 @strawberry.type
 class Message:

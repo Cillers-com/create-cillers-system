@@ -16,6 +16,8 @@ export const logout = () => {
     window.dispatchEvent(new CustomEvent('logout')); 
 } 
 
+let isLoginStateChecked = false;
+
 const useAuth = () => {
     const [getLoginStateComplete, setGetLoginStateComplete] = useState<boolean>(false);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -35,12 +37,16 @@ const useAuth = () => {
             localStorage.setItem('csrf', "");
             setUserInfo(null);
             setIsLoggingOut(false);
+            isLoginStateChecked = true; 
         }
     }, [isLoggedIn, csrf]);
 
     // Check login state on pageload. 
     useEffect(() => { 
         (async () => {
+            if (isLoginStateChecked) {
+                return;
+            }
             const loginState = await getLoginState(window.location.href);
             setGetLoginStateComplete(true);
             if (loginState.isLoggedIn) {
@@ -49,7 +55,6 @@ const useAuth = () => {
                 }
                 setIsLoggedIn(true);
                 setCsrf(loginState.csrf);
-                localStorage.setItem('csrf', loginState.csrf);
                 const userInfo = await getUserInfo(loginState.csrf); 
                 setUserInfo(userInfo); 
             }
