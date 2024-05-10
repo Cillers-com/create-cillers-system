@@ -13,7 +13,7 @@ const createAutenticatedClient = (csrf: string) => {
     const authLink = setContext(async (_, { headers }) => {
         const contextHeaders = { 
             ...headers, 
-            "x-csrf-token": csrf,
+            "x-curity-csrf": csrf,
         }; 
 
         return {
