@@ -60,6 +60,9 @@ modules:
   - id: web-app
     info: The Web App
     module: polytope/node
+    params:
+      - id: cmd
+        type: [default, str, ./bin/run]
     args:
       id: web-app 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
@@ -90,6 +93,11 @@ modules:
             type: volume
             scope: project
             id: npm-cache
+        - path: /app/node_modules/
+          source:
+            type: volume
+            scope: project
+            id: npm-modules
 
   - id: oauth-agent
     info: The OAuth Agent
