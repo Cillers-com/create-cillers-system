@@ -68,6 +68,7 @@
         <authentication-service xmlns="https://curity.se/ns/conf/profile/authentication">
           <redirect-url-whitelist>
             <url>http://localhost:8080</url>
+            <url>http://localhost:8080*</url>
           </redirect-url-whitelist>
 	  <logout-redirect-url>http://localhost:8080</logout-redirect-url>
           <authenticators>
@@ -370,36 +371,16 @@
                 <id>spa-client</id>
                 <secret>$5$RbiJ8E3azxUdOZx8$jpj3y0vsGVOILRAQV.6CGFLchJcEbpPvU33PnAetvQ3</secret>
                 <redirect-uris>http://localhost:8080/auth/callback</redirect-uris>
+                <application-url>http://localhost:8080</application-url>
+                <access-token-ttl>3600</access-token-ttl>
+                <refresh-token-ttl>57600</refresh-token-ttl>
+                <refresh-token-max-rolling-lifetime>57600</refresh-token-max-rolling-lifetime>
                 <audience>http://localhost/api</audience>
                 <audience>spa-client</audience>
                 <scope>openid</scope>
                 <scope>profile</scope>
                 <user-authentication>
                   <force-authn>true</force-authn>
-                </user-authentication>
-                <allowed-origins>http://localhost:8080</allowed-origins>
-                <capabilities>
-                  <code>
-                  </code>
-                </capabilities>
-                <validate-port-on-loopback-interfaces>true</validate-port-on-loopback-interfaces>
-              </client>
-              <client>
-                <id>www</id>
-                <client-name>Frontend client</client-name>
-                <no-authentication>true</no-authentication>
-                <redirect-uris>http://localhost:8080</redirect-uris>
-		<redirect-uris>http://localhost:8080/auth/callback</redirect-uris>
-                <proof-key>
-                  <require-proof-key>true</require-proof-key>
-                </proof-key>
-                <refresh-token-ttl>3600</refresh-token-ttl>
-                <scope>openid</scope>
-                <scope>profile</scope>
-                <user-authentication>
-                  <allowed-authenticators>default-authenticator</allowed-authenticators>
-                  <frontchannel-logout-uri>http://localhost:8080/logout</frontchannel-logout-uri>
-		  <allowed-post-logout-redirect-uris>http://localhost:8080</allowed-post-logout-redirect-uris>
                 </user-authentication>
                 <allowed-origins>http://localhost:8080</allowed-origins>
                 <capabilities>

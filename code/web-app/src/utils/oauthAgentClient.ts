@@ -1,100 +1,120 @@
-import axios, { AxiosRequestConfig, AxiosRequestHeaders, Method } from 'axios';
-import { ErrorHandler } from './errorHandler';
-import { RemoteError } from './remoteError';
 import config from '../config'
 
-async function oauthAgentFetch(method: string, path: string, body: any, csrf?: string): Promise<any> {
-  const url = `${config.oauthAgentBaseUrl}/${path}`;
-  const options: AxiosRequestConfig = {
-    url,
-    method: method as Method,
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-    },
-    withCredentials: true,
-  };
-  const headers = options.headers as AxiosRequestHeaders
-
-  if (body) {
-    options.data = body;
-  }
-
-  if (csrf) {
-    headers['x-curity-csrf'] = csrf;
-  }
-
-  try {
-    const response = await axios.request(options);
-    return response.data;
-  } catch (e) {
-    console.error(e);  
-    throw ErrorHandler.handleFetchError('OAuth Agent', e);
-  }
-}
-
-export async function getAuthCookies(pageUrl: string) { 
-  const request = JSON.stringify({ pageUrl });
-  const response = await oauthAgentFetch('POST', 'login/end', request);
-  if (!response.handled) { 
-    throw new Error("response.handled is expected to be true in callback"); 
-  } 
-  return response;  
+export interface LoginState { 
+    isLoggedIn: boolean,
+    isHandled: boolean,
+    csrf: string
 } 
-
-export async function getLoginState(pageUrl: string): Promise<any> {
-  try {
-    const request = pageUrl ? JSON.stringify({ pageUrl }) : null; 
-    return await oauthAgentFetch('POST', 'login/end', request);
-  } catch (e) {
-    const remoteError = e as RemoteError;
-    if (remoteError.isSessionExpiredError()) {
-      return {
-        handled: false,
-        isLoggedIn: false
-      };
-    }
-    throw e;
-  }
-}
-    
-export async function getUserInfo(csrf: string): Promise<any> {
-  try {
-    return await oauthAgentFetch('GET', 'userInfo', null, csrf);
-  } catch (remoteError) {
-    console.log('Remote error', remoteError); 
-    if (!(remoteError instanceof RemoteError)) {
-      throw remoteError;
-    }
-    if (!remoteError.isAccessTokenExpiredError()) {
-      throw remoteError;
-    }
-    await refreshToken(csrf);
-    try {
-      return await oauthAgentFetch('GET', 'userInfo', null, csrf);
-    } catch (e) {
-      throw ErrorHandler.handleFetchError('OAuth Agent', e);
-    }
-  }
-}
-
-export async function refreshToken(csrf: string): Promise<void> {
-  oauthAgentFetch('POST', 'refresh', null, csrf);
-}
-
-export async function logoutFromAgent(csrf: string): Promise<void> {
-  oauthAgentFetch('POST', 'logout', null, csrf);
-} 
-
-export async function getAuthRequestUrl(): Promise<any> {
-  try {
-    const data = await oauthAgentFetch('POST', 'login/start', null);    
-    return data.authorizationRequestUrl; 
-  } catch (error) {
-    console.error('Error:', error); 
-    throw error;
-  }
-}
 
 export type UserInfo = Record<string, any>; 
+
+let csrf: string | null = null; 
+
+const base_URL = `${config.oauth_agent_base_url}`;
+async function fetch_from_agent(method: string, path: string, body?: string): Promise<Response> {
+    const URL = `${base_URL}/${path}`;
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    });
+    if (csrf) {
+        headers.append('x-curity-csrf', csrf);
+    }
+    const options: RequestInit = {
+        method: method,
+        headers: headers,
+        credentials: 'include',
+        body: body,
+    };
+    return fetch(URL, options); 
+}
+
+async function fetch_data_from_agent_with_token_refresh(method: string, path: string, body?: string) : Promise<any> { 
+    const response: Response = await fetch_from_agent(method, path, body);
+    assert_response_status(response, [200, 401]); 
+    const data = await response.json(); 
+    if (response.status === 200) { 
+        return data;
+    }
+    assert(data.code === "token_expired", `Unexpected code: ${data.code}`); 
+    const tokenRefreshed = await refresh_token(); 
+    if (!tokenRefreshed) {
+        return null; 
+    }
+    const response2 = await fetch_from_agent(method, path, body); 
+    assert_response_status(response2, [200]); 
+    return response2.json(); 
+}
+
+export async function get_login_state(): Promise<LoginState> {
+    const response = await fetch_from_agent('POST', 'login/end');
+    assert_response_status(response, 200);
+    return await response.json(); 
+}
+
+export async function exchange_code_for_cookies(pageUrl: string): Promise<LoginState> { 
+    const request = JSON.stringify({ pageUrl });
+    const response = await fetch_from_agent('POST', 'login/end', request);
+    assert_response_status(response, 200);
+    const data = await response.json(); 
+    assert(data.handled, `handled is expected to be true ${JSON.stringify(data)}`); 
+    assert(data.csrf, `csrf is expected to be non-null ${JSON.stringify(data)}`); 
+    csrf = data.csrf; 
+    return data;  
+}
+
+export async function get_user_info(): Promise<UserInfo | null> {
+    return await fetch_data_from_agent_with_token_refresh('GET', 'userInfo');
+}
+
+export async function refresh_token(): Promise<boolean> {
+    const response: Response = await fetch_from_agent('POST', 'refresh');
+    assert_response_status(response, [204, 401]); 
+    if (response.status === 401) { 
+        await login(); 
+        return false;
+    } 
+    return true; 
+}
+
+
+export async function login() {
+    window.location.href = await get_auth_request_url(); 
+} 
+
+export async function logout(access_token_is_invalid?: boolean): Promise<void> {
+    if (!access_token_is_invalid) { 
+        const response = await fetch_from_agent('POST', 'logout');
+        assert_response_status(response, [200, 401]);
+    } 
+    csrf = null; 
+    signalLoggedOut(); 
+} 
+
+function signalLoggedOut(): void { 
+    localStorage.setItem("logout", "" + Date.now()); 
+    window.dispatchEvent(new CustomEvent('logout')); 
+}
+
+export async function get_auth_request_url(): Promise<string> {
+    const response = await fetch_from_agent('POST', 'login/start');
+    assert_response_status(response, 200); 
+    const data = await response.json(); 
+    assert(data.authorizationRequestUrl, "Unexpected empty authorizationRequestUrl."); 
+    return data.authorizationRequestUrl; 
+}
+
+function assert(condition: boolean, message: string): void { 
+    if (!condition) { 
+        throw new Error(`Assertion failed: ${message}`); 
+    }
+} 
+
+function assert_response_status(response: Response, accepted_statuses: number | number[]): void {
+    if (typeof accepted_statuses === 'number') { 
+        assert(accepted_statuses === response.status, `Unexpected response status: ${response.status}`); 
+    } else { 
+        assert(accepted_statuses.includes(response.status), `Unexpected response status: ${response.status}`); 
+    }
+} 
 

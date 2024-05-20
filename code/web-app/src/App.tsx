@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Main from './pages/Main';
-import AuthCallback from './pages/AuthCallback';
+import Main from './components/Main';
+import AuthCallback from './components/AuthCallback';
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 
 const isDev = process.env.NODE_ENV === 'development';

@@ -1,6 +1,6 @@
 import React from 'react'; 
 import { ApolloProvider } from '@apollo/client';
-import createAuthenticatedClient from '../apolloClient';
+import create_api_client from '../utils/apolloClient';
 import Products from './Products';
 
 interface AuthenticatedProps {
@@ -11,7 +11,7 @@ interface AuthenticatedProps {
 
 const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout, csrf }) => {
     return (
-        <ApolloProvider client={createAuthenticatedClient(csrf)}>
+        <ApolloProvider client={create_api_client(csrf)}>
             <p>
                 Authenticated as: {JSON.stringify(userInfo)}
             </p>

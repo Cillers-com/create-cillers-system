@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import AsyncGenerator
 from functools import cached_property
 from typing import Dict
@@ -34,7 +35,6 @@ Info = _Info[Context, RootValueType]
 
 class IsAuthenticated(BasePermission):
     message = "User is not authenticated."
-
     def has_permission(self, source, info: Info, **kwargs):
         return info.context.user is not None
 
@@ -70,11 +70,16 @@ class Query:
 
 @strawberry.type
 class Subscription:
-    @strawberry.subscription
-    async def product_added(self) -> AsyncGenerator[db.Product, None]:
-        # TODO: use a Kafka topic to avoid polling here
+    @strawberry.subscription(permission_classes=[IsAuthenticated])
+    async def product_added(self, info: strawberry.types.Info) -> AsyncGenerator[db.Product, None]:
         seen = set(p.id for p in db.list_products())
         while True:
+            current_time = int(time.time())
+            if current_time > info.context.user['exp']:
+                print("Token has expired")
+                await info.context.request.close(code=4499, reason="token_expired")
+                break
+            
             for p in db.list_products():
                 if p.id not in seen:
                     seen.add(p.id)

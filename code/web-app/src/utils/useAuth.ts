@@ -1,45 +1,35 @@
 import { useState, useEffect, useCallback } from 'react'; 
 import { 
-    getLoginState, 
-    getUserInfo, 
-    logoutFromAgent, 
-    getAuthRequestUrl, 
-    UserInfo 
+    get_login_state, 
+    get_user_info, 
+    logout, 
+    login,
+    get_auth_request_url, 
+    UserInfo,
+    LoginState
 } from './oauthAgentClient'
 
-export const login = async () => {
-    window.location.href = await getAuthRequestUrl(); 
-} 
-
-export const logout = () => { 
-    localStorage.setItem("logout", "" + Date.now()); 
-    window.dispatchEvent(new CustomEvent('logout')); 
-} 
+export { logout, login }; 
 
 let isLoginStateChecked = false;
 
 const useAuth = () => {
     const [getLoginStateComplete, setGetLoginStateComplete] = useState<boolean>(false);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [csrf, setCsrf] = useState<string | null>(null);
+    const [csrf, setCsrf] = useState<string | null | undefined>(null);
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
 
     const handleLogout = useCallback(async () => {
         if (isLoggedIn) {
-            if (!csrf) { 
-                throw new Error("No CSRF"); 
-            } 
             setIsLoggingOut(true);
-            await logoutFromAgent(csrf);
             setIsLoggedIn(false);
             setCsrf(null);
-            localStorage.setItem('csrf', "");
             setUserInfo(null);
             setIsLoggingOut(false);
             isLoginStateChecked = true; 
         }
-    }, [isLoggedIn, csrf]);
+    }, [isLoggedIn]);
 
     // Check login state on pageload. 
     useEffect(() => { 
@@ -47,15 +37,12 @@ const useAuth = () => {
             if (isLoginStateChecked) {
                 return;
             }
-            const loginState = await getLoginState(window.location.href);
+            const loginState: LoginState = await get_login_state();
             setGetLoginStateComplete(true);
             if (loginState.isLoggedIn) {
-                if (!loginState.csrf) { 
-                    throw new Error("No CSRF in loginState"); 
-                }
                 setIsLoggedIn(true);
                 setCsrf(loginState.csrf);
-                const userInfo = await getUserInfo(loginState.csrf); 
+                const userInfo = await get_user_info(); 
                 setUserInfo(userInfo); 
             }
         })(); 
@@ -82,3 +69,4 @@ const useAuth = () => {
 };
 
 export default useAuth; 
+

@@ -15,7 +15,6 @@ _SUPPORTED_JWT_ALGORITHMS = ['RS256', 'ES256', 'EdDSA']
 #### Decoding ####
 
 def get_jwk_client():
-    "Builds a JWK client."
     # TODO: make Curity use a trusted SSL certificate so we don't have to do this
     ssl_context = SSLContext(PROTOCOL_TLS_CLIENT)
     ssl_context.check_hostname = False
@@ -23,7 +22,6 @@ def get_jwk_client():
     return PyJWKClient(env.get_auth_oidc_jwk_url(), ssl_context=ssl_context)
 
 def verify_and_decode_jwt(token: str) -> Optional[dict]:
-    "Decodes a JWT using the configures JWKS URL and audience."
     try:
         client = get_jwk_client()
         signing_key = client.get_signing_key_from_jwt(token)
