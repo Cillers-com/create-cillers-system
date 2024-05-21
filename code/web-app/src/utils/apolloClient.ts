@@ -39,7 +39,7 @@ function create_ws_link (csrf: string): GraphQLWsLink {
         on: {
             closed: async (event: any) => {
                 console.log("Subscription websocket closed: ", event); 
-                if (event.code === 4499 && event.reason === "token_expired") { 
+                if (event.code === 4403 && event.reason === "token_expired") { 
                     const token_refreshed = await refresh_token();
                     return token_refreshed;
                 }

@@ -77,7 +77,7 @@ class Subscription:
             current_time = int(time.time())
             if current_time > info.context.user['exp']:
                 print("Token has expired")
-                await info.context.request.close(code=4499, reason="token_expired")
+                await info.context.request.close(code=4403, reason="token_expired")
                 break
             
             for p in db.list_products():
