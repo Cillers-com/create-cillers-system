@@ -6,6 +6,7 @@ from typing import Dict
 import strawberry
 from strawberry.fastapi import BaseContext, GraphQLRouter
 from strawberry.permission import BasePermission
+from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.types import Info as _Info
 from strawberry.types.info import RootValueType
 import logging
@@ -35,6 +36,8 @@ Info = _Info[Context, RootValueType]
 
 class IsAuthenticated(BasePermission):
     message = "User is not authenticated."
+    error_extensions = {"code": "UNAUTHORIZED"}
+
     def has_permission(self, source, info: Info, **kwargs):
         return info.context.user is not None
 

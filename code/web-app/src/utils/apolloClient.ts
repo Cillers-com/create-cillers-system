@@ -66,7 +66,7 @@ interface ServerError {
     statusCode: number
 } 
 
-function create_error_link (csrf: string) : ApolloLink { 
+function create_error_link (csrf: string, on_error: Function) : ApolloLink { 
     return onError(({ graphQLErrors, networkError, operation, forward }) => {
         if (networkError) {
             if (networkError.name === "ServerError" && (networkError as ServerError).statusCode === 401) {
@@ -87,8 +87,9 @@ function create_error_link (csrf: string) : ApolloLink {
                 });
             }
         }
-        if (graphQLErrors) { 
-            console.log("GraphQL Error:", graphQLErrors); 
+        if (graphQLErrors) {
+            const messages = graphQLErrors.map(error => error.message); 
+            on_error(messages); 
         } 
     });
 } 
@@ -101,11 +102,11 @@ function is_subscription_query({ query }: { query: DocumentNode }) {
     );
 } 
 
-function create_api_client (csrf: string) : ApolloClient<NormalizedCacheObject> { 
+function create_api_client (csrf: string, on_error: Function) : ApolloClient<NormalizedCacheObject> { 
     const ws_link = create_ws_link(csrf);
     const http_link = create_http_link();
     const csrf_link = create_csrf_link(csrf); 
-    const error_link = create_error_link(csrf); 
+    const error_link = create_error_link(csrf, on_error); 
     const http_chain = error_link.concat(csrf_link.concat(http_link)) 
 
     const split_link = split(is_subscription_query, ws_link, http_chain);
@@ -113,6 +114,17 @@ function create_api_client (csrf: string) : ApolloClient<NormalizedCacheObject> 
     return new ApolloClient({
         link: split_link,
         cache: new InMemoryCache(),
+        defaultOptions: {
+            watchQuery: {
+                errorPolicy: 'all'
+            },
+            query: {
+                errorPolicy: 'all'
+            },
+            mutate: {
+                errorPolicy: 'all'
+            }
+        }
     }); 
 };
 

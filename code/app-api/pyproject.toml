@@ -8,7 +8,7 @@ authors = ["Apparently Required <not-a-real-name@localhost>"]
 python = "^3.10"
 fastapi = "^0.105.0"
 pyjwt = {extras = ["crypto"], version = "^2.8.0"}
-strawberry-graphql = {extras = ["debug-server"], version = "^0.216.1"}
+strawberry-graphql = {extras = ["debug-server"], version = "^0.229.1"}
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
 couchbase = "^4.1.12"
 
