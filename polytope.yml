@@ -29,15 +29,11 @@ modules:
     args: 
       id: app-api
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code:
-        type: host
-        path: ./code/app-api
+      code: { type: host, path: ./code/app-api }
       cmd: ./bin/run
-      restart: 
-        policy: on-failure
+      restart: { policy: on-failure }
       services: 
-        - id: "app-api"
-          ports: [{protocol: http, port: 4000}]
+        - { id: "app-api", ports: [{protocol: http, port: 4000}] }
       env:
         - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
         - { name: COUCHBASE_USERNAME, value: admin } 
@@ -51,11 +47,7 @@ modules:
         - { name: AUTH_OIDC_AUDIENCE, value: http://localhost/api }
         - { name: AUTH_OIDC_JWK_URL, value: https://curity:8443/oauth/v2/oauth-anonymous/jwks }
       mounts:
-        - path: /root/.cache/
-          source:
-            type: volume
-            scope: project
-            id: dependency-cache
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
 
   - id: web-app
     info: The Web App
@@ -63,9 +55,7 @@ modules:
     args:
       id: web-app 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: 
-        type: host
-        path: ./code/web-app
+      code: { type: host, path: ./code/web-app }
       cmd: ./bin/run
       env:
         - { name: PORT, value: 3000 } 
@@ -78,21 +68,9 @@ modules:
         - id: web-app 
           ports: [{protocol: http, port: 3000}]
       mounts:
-        - path: /root/.cache/
-          source:
-            type: volume
-            scope: project
-            id: dependency-cache
-        - path: /root/.npm/
-          source:
-            type: volume
-            scope: project
-            id: npm-cache
-#        - path: /app/node_modules/
-#          source:
-#            type: volume
-#            scope: project
-#            id: npm-modules
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
+#        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
   - id: oauth-agent
     info: The OAuth Agent
@@ -118,11 +96,9 @@ modules:
         - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
         - { name: CORS_ENABLED, value: 'false' }
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
-      restart:
-        policy: on-failure
-      services:
-        - id: oauth-agent
-          ports: [{protocol: http, port: 3001}]
+      restart: { policy: on-failure }
+      services: 
+        - { id: oauth-agent, ports: [{protocol: http, port: 3001}]}
 
   - id: oauth-agent-code
     info: The OAuth Agent, running local code
@@ -130,9 +106,7 @@ modules:
     args: 
       id: oauth-agent 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: 
-        type: host
-        path: ../oauth-agent-node-express
+      code: { type: host, path: ../oauth-agent-node-express }
       cmd: ./bin/run 
       env:
         - { name: PORT, value: 3001 }
@@ -152,27 +126,13 @@ modules:
         - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
         - { name: CORS_ENABLED, value: 'false' }
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
-      restart:
-        policy: on-failure
+      restart: { policy: on-failure }
       services:
-        - id: oauth-agent
-          ports: [{protocol: http, port: 3001}]
+        - { id: oauth-agent, ports: [{protocol: http, port: 3001}]}
       mounts:
-        - path: /root/.cache/
-          source:
-            type: volume
-            scope: project
-            id: dependency-cache
-        - path: /root/.npm/
-          source:
-            type: volume
-            scope: project
-            id: npm-cache
-        - path: /app/node_modules/
-          source:
-            type: volume
-            scope: project
-            id: npm-modules
+        - path: { /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - path: { /root/.npm/, source: { type: volume, scope: project, id: npm-cache }}
+        - path: { /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
   - id: kong
     module: polytope/kong!simple
@@ -182,22 +142,12 @@ modules:
       env: 
         - { name: KONG_NGINX_HTTP_LUA_SHARED_DICT, value: 'phantom-token 10m' }
       plugins: 
-        - name: oauth-proxy
-          package: kong-oauth-proxy
-          version: 1.3.0
-        - name: phantom-token
-          package: kong-phantom-token
-          version: 2.0.0
-      config-file:
-        type: host
-        path: ./conf/kong-dev.yml
+        - { name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0 }
+        - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
+      config-file: { type: host, path: ./conf/kong-dev.yml }
       autoreload: true
       services:
-      - id: kong
-        ports:
-        - port: 3000
-          protocol: http
-          expose-as: 8080
+      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 8080 }]}
 
   - id: curity
     module: polytope/curity
@@ -205,41 +155,28 @@ modules:
       image: gcr.io/arched-inkwell-420116/idsvr:9.0.1
       password: password
       # log-level: DEBUG  # NOTE: uncomment when developing against curity
-      license-file:
-        type: host
-        path: ./conf/curity-license.json
-      config-file:
-        type: host
-        path: ./conf/curity-config.xml
-      restart:
-        policy: always
+      license-file: { type: host, path: ./conf/curity-license.json }
+      config-file: { type: host, path: ./conf/curity-config.xml }
+      restart: { policy: always }
 
   - id: curity-db
     module: polytope/postgres
     args:
       image: gcr.io/arched-inkwell-420116/postgres:16.2
-      data-volume:
-        type: volume
-        scope: project
-        id: curity-db-data
+      data-volume: { type: volume, scope: project, id: curity-db-data }
       service-id: curity-db
       env:
         - { name: POSTGRES_HOST_AUTH_METHOD, value: trust }
         - { name: POSTGRES_DB, value: idsvr }
       scripts:
-        - type: host
-          path: ./conf/curity-db.sql
-      restart:
-        policy: on-failure
+        - { type: host, path: ./conf/curity-db.sql }
+      restart: { policy: on-failure }
 
   - id: couchbase
     module: polytope/couchbase
     args:
       image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
-      data-volume:
-        type: volume
-        scope: project
-        id: couchbase-data
+      data-volume: { type: volume, scope: project, id: couchbase-data }
 
   - id: init-couchbase-cluster
     module: polytope/couchbase!init-cluster
@@ -279,10 +216,7 @@ modules:
     args:
       image: docker.redpanda.com/redpandadata/redpanda:v23.3.11
       root-log-level: warn 
-      data-volume:
-        id: redpanda-data
-        type: volume
-        scope: project
+      data-volume: { id: redpanda-data, type: volume, scope: project }
 
   - id: redpanda-console
     info: Runs the Redpanda Console service
@@ -293,8 +227,7 @@ modules:
       brokers: [{host: redpanda, port: 9092}]
       log-level: info
       port: 8079
-      restart: 
-        policy: always
+      restart: { policy: always }
 
   - id: kafka-connect
     info: Runs the Kafka connect service
@@ -317,8 +250,7 @@ modules:
       value-converter: org.apache.kafka.connect.json.JsonConverter
       root-log-level: WARN
       port: 8083
-      restart: 
-        policy: always
+      restart: { policy: always }
 
   - id: create-connectors
     module: polytope/kafka!create-connectors
