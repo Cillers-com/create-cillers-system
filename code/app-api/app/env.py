@@ -45,7 +45,7 @@ def get_http_conf() -> http_server.ServerConf:
 ## Couchbase ##
 
 def get_couchbase_bucket() -> str:
-    return os.environ.get('COUCHBASE_BUCKET', 'cillers')
+    return os.environ.get('COUCHBASE_BUCKET', 'main')
 
 def get_couchbase_url() -> str:
     return os.environ.get('COUCHBASE_URL', 'couchbase://couchbase')

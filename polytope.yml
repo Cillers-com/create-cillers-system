@@ -194,7 +194,7 @@ modules:
       cluster: couchbase:8091
       username: admin
       password: password
-      name: cillers
+      name: main
       retries: 20
 
   - id: init-couchbase-bucket
@@ -205,9 +205,9 @@ modules:
       username: admin
       password: password
       script: |
-        CREATE COLLECTION cillers._default.products IF NOT EXISTS;
-        CREATE PRIMARY INDEX IF NOT EXISTS ON cillers;
-        CREATE PRIMARY INDEX IF NOT EXISTS ON cillers._default.products;
+        CREATE COLLECTION main._default.products IF NOT EXISTS;
+        CREATE PRIMARY INDEX IF NOT EXISTS ON main;
+        CREATE PRIMARY INDEX IF NOT EXISTS ON main._default.products;
       retries: 20
 
   - id: redpanda
@@ -266,7 +266,7 @@ modules:
             topics:                         products
             couchbase.seed.nodes:           couchbase
             couchbase.bootstrap.timeout:    10s
-            couchbase.bucket:               cillers
+            couchbase.bucket:               main
             couchbase.default.collection:   _default.products
             couchbase.document.id:          ${/id}
             couchbase.username:             admin
