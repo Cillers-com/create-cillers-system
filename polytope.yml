@@ -36,8 +36,6 @@ modules:
         - { id: "app-api", ports: [{protocol: http, port: 4000}] }
       env:
         - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
-        - { name: COUCHBASE_USERNAME, value: admin } 
-        - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
         - { name: COUCHBASE_USERNAME, value: admin }
         - { name: COUCHBASE_PASSWORD, value: password }
         - { name: HTTP_PORT, value: 4000 } 
