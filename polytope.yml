@@ -142,7 +142,7 @@ modules:
       plugins: 
         - { name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0 }
         - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
-      config-file: { type: host, path: ./conf/kong-dev.yml }
+      config-file: { type: host, path: ./conf/kong/kong-dev.yml }
       autoreload: true
       services:
       - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 8080 }]}
@@ -153,8 +153,8 @@ modules:
       image: gcr.io/arched-inkwell-420116/idsvr:9.0.1
       password: password
       # log-level: DEBUG  # NOTE: uncomment when developing against curity
-      license-file: { type: host, path: ./conf/curity-license.json }
-      config-file: { type: host, path: ./conf/curity-config.xml }
+      license-file: { type: host, path: ./conf/curity/curity-license.json }
+      config-file: { type: host, path: ./conf/curity/curity-config.xml }
       restart: { policy: always }
 
   - id: curity-db
@@ -167,7 +167,7 @@ modules:
         - { name: POSTGRES_HOST_AUTH_METHOD, value: trust }
         - { name: POSTGRES_DB, value: idsvr }
       scripts:
-        - { type: host, path: ./conf/curity-db.sql }
+        - { type: host, path: ./conf/curity/curity-db.sql }
       restart: { policy: on-failure }
 
   - id: couchbase

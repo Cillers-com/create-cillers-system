@@ -1,0 +1,112 @@
+# Configuration for the endpoints that can be used to access the 
+# data containers. Each client contains a connection and credentials 
+# for using that connection. Supports configuring different credentials
+# for different use cases. 
+# 
+# Structure:
+#
+# - <namespace>:
+#     <id>:
+#       connection:
+#         type: <connection_type>
+#         <connection type specific params>: <values>
+#       credentials: 
+#         <id>:
+#           type: <credential type>
+#           <type specific param>: <value>
+#
+# - <namespace>:
+#     <id>:
+#       connection: <standard connection configuration id>
+#       credentials: 
+#         <id>: <standard credentials configuratino id>
+#
+# - <namespace>:
+#     <id>:
+#       connection: <standard connection configuration id>
+#       credentials: <standard credentials configuration id> 
+#
+# - <namespace>:
+#     <id>: <shared id for connection and credentials>
+#
+# - <standard client namespace config id>
+#
+# Example:
+#
+# - couchbase
+# - redpanda
+
+- couchbase: 
+    production_eu: 
+      connection: 
+        type: couchbase_capella
+        host: xxx.cb.couchbase.com
+      credentials: 
+        api: 
+          type: basic
+          username: !env COUCHBASE_PRODUCTION_EU_API_USERNAME
+          password: !env COUCHBASE_PRODUCTION_EU_API_PASSWORD
+        change_maker: 
+          type: basic
+          username: !env COUCHBASE_PRODUCTION_EU_CHANGE_MAKER_USERNAME
+          password: !env COUCHBASE_PRODUCTION_EU_CHANGE_MAKER_PASSWORD
+
+    production_asia:
+      connection:
+        type: couchbase_capella
+        host: xxx.cb.couchbase.com
+      credentials: basic_for_api_and_change_maker
+
+    stage:
+      connection:
+        type: url-components
+        protocol: couchbases
+        host: xxx.example.com
+        port: 1234
+      credentials:
+        api: 
+          type: basic
+          username: !env COUCHBASE_STAGE_API_USERNAME
+          password: !env COUCHBASE_STAGE_API_PASSWORD
+        change_maker: 
+          username: !env COUCHBASE_STAGE_CHANGE_MAKER_USERNAME
+          password: !env COUCHBASE_STAGE_CHANGE_MAKER_PASSWORD
+              
+    development: couchbase_local_development
+
+    test:
+      connection: couchbase_local_test
+      credentials:
+        admin: 
+          type: basic
+          username: !env COUCHBASE_DEFAULT_ADMIN_USERNAME
+          password: !env COUCHBASE_DEFAULT_ADMIN_PASSWORD
+
+- redpanda:
+    production: 
+      connection:
+        type: redpanda_cloud
+        host: xxx.redpanda.cloud
+      credentials: 
+        api:
+          type: api_key
+          api_key: !env REDPANDA_PRODUCTION_API_API_KEY
+          secret: !env REDPANDA_PRODUCTION_API_SECRET
+        change_maker:
+          type: api_key
+          api_key: !env REDPANDA_PRODUCTION_CHANGE_MAKER_API_KEY
+          secret: !env REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET
+
+    stage:
+      connection:
+        type: redpanda_cloud
+        host: yyy.redpanda.cloud
+      credentials: api_keys_for_api_and_change_maker
+
+    development: 
+      connection: redpanda_local_development
+      credentials: 
+        _default: redpanda.development._default 
+
+    test: redpanda_local_test
+
