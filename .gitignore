@@ -1,5 +1,8 @@
+secrets
+
 __pycache__
 .venv
 **/*.pyc
 .polytope
 .DS_Store
+
