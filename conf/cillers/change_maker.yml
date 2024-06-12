@@ -1,26 +1,27 @@
-# Configurations for which data containers should be managed for each 
-# environment. The data containers are configured in the data_containers.yml
+# Configurations for which data stores should be managed for each 
+# environment. The data stores are configured in the data_stores.yml
 # file.
 #
 # Structure:
 #
 # <environment>: 
-#   - <data container id>
+#   - <data store id>
 #
 
 production: 
-  - couchbase.production_eu
-  - couchbase.production_asia
-  - redpanda.production
+  couchbase: 
+    - production_eu
+    - production_asia
+  redpanda: production
 
 stage: 
-  - couchbase.stage
-  - redpanda.stage
+  couchbase: stage
+  redpanda: stage
 
 development:
-  - couchbase.development
-  - redpanda.development
+  couchbase: development
+  redpanda: development
 
 test: 
-  - couchbase.test
-  - redpanda.test
+  couchbase: test
+  redpanda: test

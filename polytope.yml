@@ -1,6 +1,7 @@
 templates:
 - id: stack
   run:
+  - change-maker
   - couchbase
   - id: init-cb-cluster
     module: init-couchbase-cluster
@@ -22,7 +23,69 @@ templates:
   - kafka-connect
   - create-connectors
 
+- id: change
+  run: 
+  - couchbase
+  - redpanda
+  - redpanda-console
+  - change-maker
+
 modules:
+  - id: change-maker 
+    info: The Change Maker 
+    module: polytope/python
+    params: 
+      - id: environment
+        info: The environment to change.
+        name: Environment
+        type: [default, str, development]
+    args: 
+      id: change-maker 
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./code/change-maker }
+      cmd: ./bin/run
+      env:
+        - { name: ENVIRONMENT, value: "#pt-param environment" }
+        - { name: COUCHBASE_EU_PRODUCTION_HOST, value: "xxx.couchbase.com" }
+        - { name: COUCHBASE_EU_PRODUCTION_PORT, value: "18092" }
+        - { name: COUCHBASE_EU_PRODUCTION_API_USERNAME, value: "api" }
+        - { name: COUCHBASE_EU_PRODUCTION_API_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_EU_PRODUCTION_CHANGE_MAKER_USERNAME, value: "change_maker" }
+        - { name: COUCHBASE_EU_PRODUCTION_CHANGE_MAKER_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_ASIA_PRODUCTION_HOST, value: "xxx.couchbase.com" }
+        - { name: COUCHBASE_ASIA_PRODUCTION_PORT, value: "18092" }
+        - { name: COUCHBASE_ASIA_PRODUCTION_API_USERNAME, value: "api" }
+        - { name: COUCHBASE_ASIA_PRODUCTION_API_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_ASIA_PRODUCTION_CHANGE_MAKER_USERNAME, value: "change_maker" }
+        - { name: COUCHBASE_ASIA_PRODUCTION_CHANGE_MAKER_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_STAGE_HOST, value: "xxx.couchbase.com" }
+        - { name: COUCHBASE_STAGE_PORT, value: "18092" }
+        - { name: COUCHBASE_STAGE_API_USERNAME, value: "api" }
+        - { name: COUCHBASE_STAGE_API_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_STAGE_CHANGE_MAKER_USERNAME, value: "change_maker" }
+        - { name: COUCHBASE_STAGE_CHANGE_MAKER_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_DEFAULT_ADMIN_USERNAME, value: "admin" }
+        - { name: COUCHBASE_DEFAULT_ADMIN_PASSWORD, value: "password" }
+        - { name: REDPANDA_PRODUCTION_HOST, value: "xxx.couchbase.com" }
+        - { name: REDPANDA_PRODUCTION_PORT, value: "18092" }
+        - { name: REDPANDA_PRODUCTION_API_API_KEY, value: "api" }
+        - { name: REDPANDA_PRODUCTION_API_SECRET, value: "xxx" }
+        - { name: REDPANDA_PRODUCTION_CHANGE_MAKER_API_KEY, value: "change_maker" }
+        - { name: REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET, value: "xxx" }
+        - { name: REDPANDA_STAGE_HOST, value: "xxx.couchbase.com" }
+        - { name: REDPANDA_STAGE_PORT, value: "18092" }
+        - { name: REDPANDA_STAGE_API_API_KEY, value: "api" }
+        - { name: REDPANDA_STAGE_API_SECRET, value: "xxx" }
+        - { name: REDPANDA_STAGE_CHANGE_MAKER_API_KEY, value: "change_maker" }
+        - { name: REDPANDA_STAGE_CHANGE_MAKER_SECRET, value: "xxx" }
+        - { name: REDPANDA_DEFAULT_ADMIN_API_KEY, value: "admin" }
+        - { name: REDPANDA_DEFAULT_ADMIN_SECRET, value: "password" }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/change_maker.yml, source: { type: host, path: "./conf/cillers/change_maker.yml" }} 
+        - { path: /root/conf/data_stores.yml, source: { type: host, path: "./conf/cillers/data_stores.yml" }} 
+        - { path: /root/conf/clients.yml, source: { type: host, path: "./conf/cillers/clients.yml" }} 
+
   - id: app-api
     info: The App API
     module: polytope/python
@@ -68,7 +131,7 @@ modules:
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
-#        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
   - id: oauth-agent
     info: The OAuth Agent
