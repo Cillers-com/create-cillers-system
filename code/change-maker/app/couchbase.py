@@ -1,10 +1,13 @@
 import json
+import time
 from datetime import timedelta
 from typing import Annotated, Any, Dict
 import logging
 
 from couchbase.auth import PasswordAuthenticator
 from couchbase.cluster import Cluster
+from couchbase.diagnostics import ServiceType
+from couchbase.options import WaitUntilReadyOptions
 from couchbase.exceptions import CouchbaseException
 from couchbase.options import ClusterOptions, QueryOptions
 from pydantic import BaseModel, StringConstraints, validate_arguments
@@ -40,6 +43,35 @@ class DocSpec(BaseModel):
     collection: str = '_default'
 
 #### Utils ####
+
+def wait_until_ready(client_config, max_retries=10, retry_delay=1, timeout=10):
+    connection = client_config['connection']
+    credentials = client_config['credentials']
+    protocol = connection['protocol']
+    host = connection['host']
+    port = connection['port']
+    username = credentials['username']
+    password = credentials['password']
+
+    auth = PasswordAuthenticator(username, password)
+    for attempt in range(max_retries):
+        try:
+            cluster = Cluster.connect(protocol + '://' + host, ClusterOptions(auth))
+            cluster.wait_until_ready(
+                timedelta(seconds=timeout),
+                WaitUntilReadyOptions(service_types=[
+                    ServiceType.Management, 
+                    ServiceType.KeyValue, 
+                    ServiceType.Query
+                ])
+            )
+            print("Couchbase is ready to receive instructions.")
+            return 0
+        except Exception as e:
+            print(f"Retrying...")
+            time.sleep(retry_delay)
+    print("Failed to connect to Couchbase.")
+    return -1
 
 @validate_arguments
 def get_authenticator(conf: ConnectionConf) -> PasswordAuthenticator:

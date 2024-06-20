@@ -9,9 +9,8 @@
 #
 
 production: 
-  couchbase: 
-    - production_eu
-    - production_asia
+  couchbase:
+    - production
   redpanda: production
 
 stage: 

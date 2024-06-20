@@ -27,7 +27,6 @@ templates:
   run: 
   - couchbase
   - redpanda
-  - redpanda-console
   - change-maker
 
 modules:

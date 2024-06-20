@@ -33,88 +33,88 @@
 #
 # Example:
 #
-# couchbase: standard_local_and_capella
-# redpanda: standard_local_and_cloud
+couchbase: standard_local_and_capella
+redpanda: standard_local_and_cloud
 
-couchbase: 
-  production_eu: 
-    connection: 
-      protocol: couchbases
-      host: !env COUCHBASE_PRODUCTION_EU_HOST
-      port: 18091
-    credentials: 
-      api: 
-        type: basic
-        username: !env COUCHBASE_PRODUCTION_EU_API_USERNAME
-        password: !env COUCHBASE_PRODUCTION_EU_API_PASSWORD
-      change_maker: 
-        type: basic
-        username: !env COUCHBASE_PRODUCTION_EU_CHANGE_MAKER_USERNAME
-        password: !env COUCHBASE_PRODUCTION_EU_CHANGE_MAKER_PASSWORD
-
-  production_asia:
-    connection:
-      protocol: couchbases
-      host: !env COUCHBASE_PRODUCTION_ASIA_HOST
-      port: 18091
-    credentials:
-      api: 
-        type: basic
-        username: !env COUCHBASE_PRODUCTION_ASIA_API_USERNAME
-        password: !env COUCHBASE_PRODUCTION_ASIA_API_PASSWORD
-      change_maker: 
-        type: basic
-        username: !env COUCHBASE_PRODUCTION_ASIA_CHANGE_MAKER_USERNAME
-        password: !env COUCHBASE_PRODUCTION_ASIA_CHANGE_MAKER_PASSWORD
-
-  stage:
-    connection:
-      protocol: couchbases
-      host: xxx.example.com
-      port: 18091 
-    credentials:
-      api: 
-        type: basic
-        username: !env COUCHBASE_STAGE_API_USERNAME
-        password: !env COUCHBASE_STAGE_API_PASSWORD
-      change_maker: 
-        username: !env COUCHBASE_STAGE_CHANGE_MAKER_USERNAME
-        password: !env COUCHBASE_STAGE_CHANGE_MAKER_PASSWORD
-            
-  development: standard_development_local
-
-  test:
-    connection: standard_test_connection_local
-    credentials:
-      admin: 
-        type: basic
-        username: !env COUCHBASE_DEFAULT_ADMIN_USERNAME
-        password: !env COUCHBASE_DEFAULT_ADMIN_PASSWORD
-
-redpanda:
-  production: 
-    connection:
-      host: xxx.redpanda.cloud
-      port: 19092
-    credentials: 
-      api:
-        type: api_key
-        api_key: !env REDPANDA_PRODUCTION_API_API_KEY
-        secret: !env REDPANDA_PRODUCTION_API_SECRET
-      change_maker:
-        type: api_key
-        api_key: !env REDPANDA_PRODUCTION_CHANGE_MAKER_API_KEY
-        secret: !env REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET
-
-  stage:
-    connection:
-      host: yyy.redpanda.cloud
-      port: 19092
-    credentials: api_keys_for_api_and_change_maker
-
-  development: 
-    connection: standard_development_connection_local
-    credentials: standard_development_credentials
-
-  test: standard_test_local
-
+#couchbase: 
+#  production_eu: 
+#    connection: 
+#      protocol: couchbases
+#      host: !env COUCHBASE_PRODUCTION_EU_HOST
+#      port: 18091
+#    credentials: 
+#      api: 
+#        type: basic
+#        username: !env COUCHBASE_PRODUCTION_EU_API_USERNAME
+#        password: !env COUCHBASE_PRODUCTION_EU_API_PASSWORD
+#      change_maker: 
+#        type: basic
+#        username: !env COUCHBASE_PRODUCTION_EU_CHANGE_MAKER_USERNAME
+#        password: !env COUCHBASE_PRODUCTION_EU_CHANGE_MAKER_PASSWORD
+#
+#  production_asia:
+#    connection:
+#      protocol: couchbases
+#      host: !env COUCHBASE_PRODUCTION_ASIA_HOST
+#      port: 18091
+#    credentials:
+#      api: 
+#        type: basic
+#        username: !env COUCHBASE_PRODUCTION_ASIA_API_USERNAME
+#        password: !env COUCHBASE_PRODUCTION_ASIA_API_PASSWORD
+#      change_maker: 
+#        type: basic
+#        username: !env COUCHBASE_PRODUCTION_ASIA_CHANGE_MAKER_USERNAME
+#        password: !env COUCHBASE_PRODUCTION_ASIA_CHANGE_MAKER_PASSWORD
+#
+#  stage:
+#    connection:
+#      protocol: couchbases
+#      host: xxx.example.com
+#      port: 18091 
+#    credentials:
+#      api: 
+#        type: basic
+#        username: !env COUCHBASE_STAGE_API_USERNAME
+#        password: !env COUCHBASE_STAGE_API_PASSWORD
+#      change_maker: 
+#        username: !env COUCHBASE_STAGE_CHANGE_MAKER_USERNAME
+#        password: !env COUCHBASE_STAGE_CHANGE_MAKER_PASSWORD
+#            
+#  development: standard_development_local
+#
+#  test:
+#    connection: standard_test_connection_local
+#    credentials:
+#      admin: 
+#        type: basic
+#        username: !env COUCHBASE_DEFAULT_ADMIN_USERNAME
+#        password: !env COUCHBASE_DEFAULT_ADMIN_PASSWORD
+#
+#redpanda:
+#  production: 
+#    connection:
+#      host: xxx.redpanda.cloud
+#      port: 19092
+#    credentials: 
+#      api:
+#        type: api_key
+#        api_key: !env REDPANDA_PRODUCTION_API_API_KEY
+#        secret: !env REDPANDA_PRODUCTION_API_SECRET
+#      change_maker:
+#        type: api_key
+#        api_key: !env REDPANDA_PRODUCTION_CHANGE_MAKER_API_KEY
+#        secret: !env REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET
+#
+#  stage:
+#    connection:
+#      host: yyy.redpanda.cloud
+#      port: 19092
+#    credentials: api_keys_for_api_and_change_maker
+#
+#  development: 
+#    connection: standard_development_connection_local
+#    credentials: standard_development_credentials
+#
+#  test: standard_test_local
+#

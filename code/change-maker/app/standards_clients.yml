@@ -1,0 +1,136 @@
+couchbase:
+
+  local_and_capella:
+    production: standard_production_capella
+    stage: standard_stage_capella
+    development: standard_development_local
+    test: standard_test_local
+
+  production_capella:
+    connection: standard_production_connection_capella
+    credentials: standard_production_credentials
+
+  stage_capella:
+    connection: standard_stage_connection_capella
+    credentials: standard_stage_credentials
+
+  development_local:
+    connection: standard_development_connection_local
+    credentials: standard_default_credentials
+
+  test_local:
+    connection: standard_test_connection_local
+    credentials: standard_default_credentials
+
+  production_connection_capella:
+    protocol: couchbases
+    host: !env COUCHBASE_PRODUCTION_HOST
+    port: 18091
+
+  stage_connection_capella:
+    protocol: couchbases
+    host: !env COUCHBASE_STAGE_HOST
+    port: 18091
+
+  development_connection_local:
+    protocol: couchbase
+    host: !env COUCHBASE_DEVELOPMENT_HOST
+    port: 8091
+
+  test_connection_local:
+    protocol: couchbase
+    host: !env COUCHBASE_TEST_HOST
+    port: 8092
+
+  production_credentials:
+    api:
+      type: basic
+      username: !env COUCHBASE_PRODUCTION_API_USERNAME
+      password: !env COUCHBASE_PRODUCTION_API_PASSWORD
+    change_maker:
+      type: basic
+      username: !env COUCHBASE_PRODUCTION_CHANGE_MAKER_USERNAME
+      password: !env COUCHBASE_PRODUCTION_CHANGE_MAKER_PASSWORD
+
+  stage_credentials:
+    api:
+      type: basic
+      username: !env COUCHBASE_STAGE_API_USERNAME
+      password: !env COUCHBASE_STAGE_API_PASSWORD
+    change_maker:
+      type: basic
+      username: !env COUCHBASE_STAGE_CHANGE_MAKER_USERNAME
+      password: !env COUCHBASE_STAGE_CHANGE_MAKER_PASSWORD
+
+  default_credentials:
+    _default: 
+      type: basic
+      username: admin
+      password: password 
+        
+redpanda:
+
+  local_and_cloud:
+    production: standard_production_cloud
+    stage: standard_stage_cloud
+    development: standard_development_local
+    test: standard_test_local
+
+  production_cloud:
+    connection: standard_production_connection_cloud
+    credentials: standard_production_credentials
+
+  stage_cloud:
+    connection: standard_stage_connection_cloud
+    credentials: standard_stage_credentials
+
+  development_local:
+    connection: standard_development_connection_local
+    credentials: standard_default_credentials
+
+  test_local:
+    connection: standard_test_connection_local
+    credentials: standard_default_credentials
+
+  production_connection_cloud:
+    host: !env REDPANDA_PRODUCTION_HOST
+    port: 19092
+
+  stage_connection_cloud:
+    host: !env REDPANDA_STAGE_HOST
+    port: 19092
+
+  development_connection_local:
+    host: redpanda
+    port: 9092
+
+  test_connection_local:
+    host: redpanda
+    port: 9092
+
+  production_credentials:
+    api:
+      type: api_key
+      client_id: !env REDPANDA_PRODUCTION_API_CLIENT_ID
+      secret: !env REDPANDA_PRODUCTION_API_SECRET
+    change_maker:
+      type: api_key
+      client_id: !env REDPANDA_PRODUCTION_CHANGE_MAKER_CLIENT_ID
+      secret: !env REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET
+
+  stage_credentials:
+    api:
+      type: api_key
+      client_id: !env REDPANDA_STAGE_API_CLIENT_ID
+      secret: !env REDPANDA_STAGE_API_SECRET
+    change_maker:
+      type: api_key
+      client_id: !env REDPANDA_STAGE_CHANGE_MAKER_CLIENT_ID
+      secret: !env REDPANDA_STAGE_CHANGE_MAKER_SECRET
+
+  default_credentials:
+    _default:
+      type: api_key
+      client_id: admin
+      secret: secret
+
