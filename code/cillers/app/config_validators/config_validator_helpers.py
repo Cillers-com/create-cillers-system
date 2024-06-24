@@ -10,7 +10,7 @@ def assert_subdicts_have_same_keys(conf):
 
 def assert_list_of_strings(conf):
     assert isinstance(conf, list)
-    for item in conf.items():
+    for item in conf:
         assert isinstance(item, str)
 
 def assert_valid_dict(conf, schema):
@@ -27,8 +27,10 @@ def assert_valid_dict(conf, schema):
                 assert False
         if callable(spec):
             spec(value)
+        elif isinstance(spec, type):
+            assert isinstance(value, spec)
         else:
-            assert isinstance(value, spec) or value == spec
+            assert value == spec
     schema_keys = {k[:-1] if k.endswith('?') else k for k in schema.keys()}
     assert not set(conf.keys()) - set(schema_keys)
 

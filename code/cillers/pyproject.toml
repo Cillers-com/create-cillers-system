@@ -2,11 +2,12 @@
 name = "app"
 version = "0.0.1"
 description = ""
-authors = ["Apparently Required <not-a-real-name@localhost>"]
+authors = ["Peder Linder <peder@cillers.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 couchbase = "^4.1.12"
+confluent-kafka = "^2.4.0"
 pyyaml = "^6.0.1"
 
 [tool.poetry.group.dev]
@@ -19,7 +20,8 @@ ipdb = "^0.13.13"
 ipython = "^8.15.0"
 
 [tool.poetry.scripts]
-app = 'app.main:main'
+change = 'app.main:change'
+validate_conf = 'app.main:validate_config'
 
 [build-system]
 requires = ["poetry-core"]

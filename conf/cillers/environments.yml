@@ -1,5 +1,5 @@
 # Configurations for which data stores should be managed for each 
-# environment. The data stores are configured in the data_stores.yml
+# environment. The data stores are configured in the datastores.yml
 # file.
 #
 # Structure:

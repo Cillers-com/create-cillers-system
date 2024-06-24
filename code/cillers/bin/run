@@ -4,4 +4,4 @@
 
 trap 'jobs -p | xargs -r kill' EXIT
 
-poetry run app
+poetry run "$1"

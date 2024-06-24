@@ -34,12 +34,12 @@ couchbase:
 
   development_connection_local:
     protocol: couchbase
-    host: !env COUCHBASE_DEVELOPMENT_HOST
+    host: couchbase
     port: 8091
 
   test_connection_local:
     protocol: couchbase
-    host: !env COUCHBASE_TEST_HOST
+    host: couchbase
     port: 8092
 
   production_credentials:
@@ -93,44 +93,48 @@ redpanda:
     credentials: standard_default_credentials
 
   production_connection_cloud:
+    protocol: https
     host: !env REDPANDA_PRODUCTION_HOST
     port: 19092
 
   stage_connection_cloud:
+    protocol: https
     host: !env REDPANDA_STAGE_HOST
     port: 19092
 
   development_connection_local:
+    protocol: http
     host: redpanda
     port: 9092
 
   test_connection_local:
+    protocol: http
     host: redpanda
     port: 9092
 
   production_credentials:
     api:
-      type: api_key
-      client_id: !env REDPANDA_PRODUCTION_API_CLIENT_ID
-      secret: !env REDPANDA_PRODUCTION_API_SECRET
+      type: basic
+      username: !env REDPANDA_PRODUCTION_API_USERNAME
+      password: !env REDPANDA_PRODUCTION_API_PASSWORD
     change_maker:
-      type: api_key
-      client_id: !env REDPANDA_PRODUCTION_CHANGE_MAKER_CLIENT_ID
-      secret: !env REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET
+      type: basic
+      username: !env REDPANDA_PRODUCTION_CHANGE_MAKER_USERNAME
+      password: !env REDPANDA_PRODUCTION_CHANGE_MAKER_PASSWORD
 
   stage_credentials:
     api:
-      type: api_key
-      client_id: !env REDPANDA_STAGE_API_CLIENT_ID
-      secret: !env REDPANDA_STAGE_API_SECRET
+      type: basic
+      username: !env REDPANDA_STAGE_API_USERNAME
+      password: !env REDPANDA_STAGE_API_PASSWORD
     change_maker:
-      type: api_key
-      client_id: !env REDPANDA_STAGE_CHANGE_MAKER_CLIENT_ID
-      secret: !env REDPANDA_STAGE_CHANGE_MAKER_SECRET
+      type: basic
+      username: !env REDPANDA_STAGE_CHANGE_MAKER_USERNAME
+      password: !env REDPANDA_STAGE_CHANGE_MAKER_PASSWORD
 
   default_credentials:
     _default:
-      type: api_key
-      client_id: admin
-      secret: secret
+      type: basic
+      username: admin
+      password: password
 

@@ -13,7 +13,7 @@ def assert_valid_connection(conf):
 def assert_valid_credentials_instance(conf):
     assert_valid_typed_dict(conf, {
         'api_key': {
-            'client_id': str,
+            'api_key': str,
             'secret': str
         }, 
         'basic': {

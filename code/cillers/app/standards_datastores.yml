@@ -1,17 +1,18 @@
 couchbase:
   local_and_capella_eu:
-    data_structures: standard_data_structure
     metadata: standard_metadata
+    data_structures: standard_data_structure
     capella_projects: standard_capella_projects
+    services: standard_services
     clusters: standard_clusters_local_and_capella_eu
-
-  data_structure:
-    main:
-      type: couchbase_cluster
 
   metadata:
     bucket: main
     scope: metadata
+
+  data_structure:
+    main:
+      type: couchbase_cluster
 
   capella_projects:
     production: 
@@ -20,6 +21,12 @@ couchbase:
     stage:
       organization_id: !env CAPELLA_MAIN_ORGANIZATION_ID_STAGE
       project_id: !env CAPELLA_MAIN_PROJECT_ID_STAGE
+
+  services: 
+    - data
+    - index
+    - query
+    - search
 
   clusters_local_and_capella_eu:
     production: standard_capella_cluster_eu_production
@@ -50,7 +57,6 @@ couchbase:
     module: couchbase
     change_maker_client: couchbase.development._default
     specs: standard_cluster_specs_local_development
-    services: ['data', 'index', 'query', 'search']
     metadata_bucket_specs: standard_metadata_bucket_specs_development
 
   local_single_node_cluster_test:
@@ -58,7 +64,6 @@ couchbase:
     module: couchbase
     change_maker_client: couchbase.test._default
     specs: standard_cluster_specs_local_test
-    services: ['data', 'index', 'query', 'search']
     metadata_bucket_specs: standard_metadata_bucket_specs_test
 
   cloud_eu:
@@ -114,38 +119,37 @@ couchbase:
         iops: 3000
 
   metadata_bucket_specs_production:
-    bucket_type: couchbase
     ram: 512
     replicas: 2
     durability: majority
 
   metadata_bucket_specs_stage:
-    bucket_type: couchbase
     ram: 512
     replicas: 2
     durability: majority
 
   metadata_bucket_specs_development:
-    bucket_type: couchbase
-    ram: 512
-    replicas: 1
+    ram: 256 
+    replicas: 0
     durability: none
 
   metadata_bucket_specs_test:
-    bucket_type: couchbase
-    ram: 512 
-    replicas: 1
+    ram: 256 
+    replicas: 0
     durability: none
 
 redpanda:
   local_and_cloud_eu:
     data_structures: standard_data_structure
-    metadata_topics_prefix: metadata
+    metadata: standard_metadata
     clusters: standard_clusters_local_and_cloud_eu
 
   data_structure:
     main:
       type: redpanda_cluster
+
+  metadata:
+    topics_prefix: metadata
 
   clusters_local_and_cloud_eu:
     production: standard_cloud_cluster_eu_production

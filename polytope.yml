@@ -3,15 +3,15 @@ templates:
   run:
   - change-maker
   - couchbase
-  - id: init-cb-cluster
-    module: init-couchbase-cluster
-  - id: create-cb-bucket
-    module: create-couchbase-bucket
+  - id: couchbase-ensure-cluster-initialized-step
+    module: couchbase-ensure-cluster-initialized
+  - id: couchbase-bucket-create-step
+    module: couchbase-bucket-create
     run-when:
-      after: init-cb-cluster
-  - module: init-couchbase-bucket
+      after: couchbase-ensure-cluster-initialized-step
+  - module: couchbase-bucket-init
     run-when:
-      after: create-cb-bucket
+      after: couchbase-bucket-create-step
   - curity-db
   - oauth-agent
   - curity
@@ -27,36 +27,43 @@ templates:
   run: 
   - couchbase
   - redpanda
-  - change-maker
+  - cillers-change
+
+- id: init-couchbase
+  run: 
+  - couchbase
+  - couchbase-ensure-cluster-initialized
 
 modules:
-  - id: change-maker 
-    info: The Change Maker 
+  - id: cillers 
+    info: The Cillers Manager 
     module: polytope/python
     params: 
+      - id: id
+        info: ID
+        name: Id
+        type: str
       - id: environment
-        info: The environment to change.
+        info: The environment to manage.
         name: Environment
         type: [default, str, development]
+      - id: command
+        info: The command to run
+        name: Command
+        type: str
     args: 
-      id: change-maker 
+      id: "#pt-param id" 
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./code/change-maker }
-      cmd: ./bin/run
+      code: { type: host, path: ./code/cillers }
+      cmd: "#pt-clj (str \"./bin/run \" (:command params))" 
       env:
         - { name: ENVIRONMENT, value: "#pt-param environment" }
-        - { name: COUCHBASE_EU_PRODUCTION_HOST, value: "xxx.couchbase.com" }
-        - { name: COUCHBASE_EU_PRODUCTION_PORT, value: "18092" }
-        - { name: COUCHBASE_EU_PRODUCTION_API_USERNAME, value: "api" }
-        - { name: COUCHBASE_EU_PRODUCTION_API_PASSWORD, value: "xxx" }
-        - { name: COUCHBASE_EU_PRODUCTION_CHANGE_MAKER_USERNAME, value: "change_maker" }
-        - { name: COUCHBASE_EU_PRODUCTION_CHANGE_MAKER_PASSWORD, value: "xxx" }
-        - { name: COUCHBASE_ASIA_PRODUCTION_HOST, value: "xxx.couchbase.com" }
-        - { name: COUCHBASE_ASIA_PRODUCTION_PORT, value: "18092" }
-        - { name: COUCHBASE_ASIA_PRODUCTION_API_USERNAME, value: "api" }
-        - { name: COUCHBASE_ASIA_PRODUCTION_API_PASSWORD, value: "xxx" }
-        - { name: COUCHBASE_ASIA_PRODUCTION_CHANGE_MAKER_USERNAME, value: "change_maker" }
-        - { name: COUCHBASE_ASIA_PRODUCTION_CHANGE_MAKER_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_PRODUCTION_HOST, value: "xxx.couchbase.com" }
+        - { name: COUCHBASE_PRODUCTION_PORT, value: "18092" }
+        - { name: COUCHBASE_PRODUCTION_API_USERNAME, value: "api" }
+        - { name: COUCHBASE_PRODUCTION_API_PASSWORD, value: "xxx" }
+        - { name: COUCHBASE_PRODUCTION_CHANGE_MAKER_USERNAME, value: "change_maker" }
+        - { name: COUCHBASE_PRODUCTION_CHANGE_MAKER_PASSWORD, value: "xxx" }
         - { name: COUCHBASE_STAGE_HOST, value: "xxx.couchbase.com" }
         - { name: COUCHBASE_STAGE_PORT, value: "18092" }
         - { name: COUCHBASE_STAGE_API_USERNAME, value: "api" }
@@ -67,23 +74,45 @@ modules:
         - { name: COUCHBASE_DEFAULT_ADMIN_PASSWORD, value: "password" }
         - { name: REDPANDA_PRODUCTION_HOST, value: "xxx.couchbase.com" }
         - { name: REDPANDA_PRODUCTION_PORT, value: "18092" }
-        - { name: REDPANDA_PRODUCTION_API_API_KEY, value: "api" }
-        - { name: REDPANDA_PRODUCTION_API_SECRET, value: "xxx" }
-        - { name: REDPANDA_PRODUCTION_CHANGE_MAKER_API_KEY, value: "change_maker" }
-        - { name: REDPANDA_PRODUCTION_CHANGE_MAKER_SECRET, value: "xxx" }
+        - { name: REDPANDA_PRODUCTION_API_USERNAME, value: "api" }
+        - { name: REDPANDA_PRODUCTION_API_PASSWORD, value: "xxx" }
+        - { name: REDPANDA_PRODUCTION_CHANGE_MAKER_USERNAME, value: "change_maker" }
+        - { name: REDPANDA_PRODUCTION_CHANGE_MAKER_PASSWORD, value: "xxx" }
         - { name: REDPANDA_STAGE_HOST, value: "xxx.couchbase.com" }
         - { name: REDPANDA_STAGE_PORT, value: "18092" }
-        - { name: REDPANDA_STAGE_API_API_KEY, value: "api" }
-        - { name: REDPANDA_STAGE_API_SECRET, value: "xxx" }
-        - { name: REDPANDA_STAGE_CHANGE_MAKER_API_KEY, value: "change_maker" }
-        - { name: REDPANDA_STAGE_CHANGE_MAKER_SECRET, value: "xxx" }
-        - { name: REDPANDA_DEFAULT_ADMIN_API_KEY, value: "admin" }
-        - { name: REDPANDA_DEFAULT_ADMIN_SECRET, value: "password" }
+        - { name: REDPANDA_STAGE_API_USERNAME, value: "api" }
+        - { name: REDPANDA_STAGE_API_PASSWORD, value: "xxx" }
+        - { name: REDPANDA_STAGE_CHANGE_MAKER_USERNAME, value: "change_maker" }
+        - { name: REDPANDA_STAGE_CHANGE_MAKER_PASSWORD, value: "xxx" }
+        - { name: REDPANDA_DEFAULT_ADMIN_USERNAME, value: "admin" }
+        - { name: REDPANDA_DEFAULT_ADMIN_PASSWORD, value: "password" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
-        - { path: /root/conf/change_maker.yml, source: { type: host, path: "./conf/cillers/change_maker.yml" }} 
-        - { path: /root/conf/data_stores.yml, source: { type: host, path: "./conf/cillers/data_stores.yml" }} 
-        - { path: /root/conf/clients.yml, source: { type: host, path: "./conf/cillers/clients.yml" }} 
+        - { path: /root/conf, source: { type: host, path: "./conf/cillers" }} 
+
+  - id: cillers-change
+    info: The Cillers Change Maker
+    module: cillers
+    params: 
+      - id: environment
+        info: The environment to manage.
+        name: Environment
+        type: [default, str, development]
+    args: 
+      id: cillers-change 
+      command: change
+
+  - id: cillers-validate-conf 
+    info: The Cillers Change Maker
+    module: cillers
+    params: 
+      - id: environment
+        info: The environment to manage.
+        name: Environment
+        type: [default, str, development]
+    args: 
+      id: cillers-validate-conf 
+      command: validate_conf 
 
   - id: app-api
     info: The App API
@@ -233,13 +262,139 @@ modules:
       restart: { policy: on-failure }
 
   - id: couchbase
-    module: polytope/couchbase
+    module: couchbase-base
     args:
       image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
       data-volume: { type: volume, scope: project, id: couchbase-data }
 
-  - id: init-couchbase-cluster
-    module: polytope/couchbase!init-cluster
+  - id: couchbase-base
+    info: Runs a Couchbase container.
+    params:
+    - id: image
+      info: The container image to use.
+      name: Image
+      type: [default, str, 'public.ecr.aws/docker/library/couchbase:community-7.2.4']
+    - id: id
+      info: The ID of the container to spawn.
+      name: ID
+      type: [default, str, couchbase]
+    - id: cmd
+      info: The command to run in the container. If unspecified, runs the Couchbase server.
+      name: Command
+      type:
+      - maybe
+      - - either
+        - str
+        - - [maybe, str]
+    - id: data-volume
+      name: Data Volume
+      info: The volume (if any) to mount for data.
+      type: [maybe, mount-source]
+    - id: services
+      info: Ports to expose as services.
+      name: Services
+      type:
+      - maybe
+      - [service-spec]
+    - id: mounts
+      info: Code or files to mount into the container.
+      name: Mounts
+      type:
+      - maybe
+      - - {source: mount-source, path: absolute-path}
+    - id: restart
+      info: What policy to apply on restarting containers that fail.
+      name: Restart policy
+      type:
+      - maybe
+      - policy: [enum, always, on-failure]
+        max-restarts: [maybe, int]
+    module: polytope/container
+    args:
+      image: '#pt-clj (:image params)'
+      id: '#pt-clj (:id params)'
+      services: |-
+        #pt-clj (or
+         (:services params)
+         [{:id    :couchbase
+          :ports [{:internal true
+                   :label    :epmd
+                   :port     4369
+                   :protocol :tcp}
+                  {:label :http, :port 8091, :protocol :http}
+                  {:label :capi, :port 8092, :protocol :http}
+                  {:label :query, :port 8093, :protocol :http}
+                  {:label :fts, :port 8094, :protocol :http}
+                  {:label :cbas, :port 8095, :protocol :http}
+                  {:label :eventing, :port 8096, :protocol :http}
+                  {:label :backup, :port 8097, :protocol :http}
+                  {:internal true
+                   :label    :indexer
+                   :protocol :tcp
+                   :range    "9100-9105"}
+                  {:internal true
+                   :label    :analytics
+                   :protocol :tcp
+                   :range    "9110-9122"}
+                  {:label :prometheus, :port 9123, :protocol :tcp}
+                  {:internal true
+                   :label    :backup-grpc
+                   :port     9124
+                   :protocol :tcp}
+                  {:internal true
+                   :label    :fts-grpc
+                   :port     9130
+                   :protocol :tcp}
+                  {:internal true
+                   :label    :eventing-debug
+                   :port     9140
+                   :protocol :tcp}
+                  {:internal true
+                   :label    :indexer
+                   :port     9999
+                   :protocol :tcp}
+                  {:label    :memcached-ssl
+                   :port     11207
+                   :protocol :tcp}
+                  {:label    :memcached
+                   :protocol :tcp
+                   :range    "11209-11210"}
+                  {:label    :memcached-prometheus
+                   :port     11280
+                   :protocol :tcp}
+                  {:internal true
+                   :label    :cluster-management
+                   :port     21100
+                   :protocol :tcp}
+                  {:internal true
+                   :label    :cluster-management
+                   :port     21150
+                   :protocol :tcp}
+                  {:label :http-ssl, :port 18091, :protocol :http}
+                  {:label :capi-ssl, :port 18092, :protocol :http}
+                  {:label :query-ssl, :port 18093, :protocol :http}
+                  {:label :fts-ssl, :port 18094, :protocol :http}
+                  {:label :cbas-ssl, :port 18095, :protocol :http}
+                  {:label    :eventing-ssl
+                   :port     18096
+                   :protocol :http}
+                  {:label    :backup-ssl
+                   :port     18097
+                   :protocol :http}]}])
+      cmd: |-
+        #pt-clj (when-let [c (:cmd params)]
+          (if (string? c)
+            c
+            (remove nil? c)))
+      mounts: |-
+        #pt-clj (concat
+         (when-let [v (:data-volume params)]
+          [{:path "/opt/couchbase/var", :source v}])
+         (:mounts params))
+      restart: '#pt-clj (:restart params)'
+
+  - id: couchbase-ensure-cluster-initialized
+    module: couchbase-ensure-cluster-initialized-base
     args:
       image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
       cluster: couchbase:8091
@@ -247,7 +402,89 @@ modules:
       password: password
       retries: 20
 
-  - id: create-couchbase-bucket
+  - id: couchbase-ensure-cluster-initialized-base
+    info: Initializes a new Couchbase cluster
+    params:
+    - id: image
+      info: The container image to use.
+      name: Image
+      type: [default, str, 'public.ecr.aws/docker/library/couchbase:community-7.2.4']
+    - {id: cluster, info: The cluster URL to connect to., name: Cluster, type: str}
+    - {id: username, info: The cluster username to use., name: Username, type: str}
+    - {id: password, info: The cluster password to use., name: Password, type: str}
+    - id: services
+      info: Services to expose.
+      name: Services
+      type:
+      - default
+      - [str]
+      - [data, index, query]
+    - id: ram
+      info: Sets the RAM quota in MB for the data service of the cluster.
+      name: Cluster RAM size
+      type: [default, int, 256]
+    - id: index-ram
+      info: Sets the RAM quota in MB for the index service of the cluster.
+      name: Index RAM size
+      type: [default, int, 256]
+    - id: eventing-ram
+      info: Sets the RAM quota in MB for the eventing service of the cluster.
+      name: Eventing RAM size
+      type: [default, int, 256]
+    - id: fts-ram
+      info: Sets the RAM quota in MB for the full-text search (FTS) service of the cluster.
+      name: FTS RAM size
+      type: [default, int, 256]
+    - id: retries
+      info: Number of times to retry on failure.
+      name: Retries
+      type: [maybe, int]
+    module: couchbase-base
+    args:
+      image: '#pt-clj (:image params)'
+      id: init-couchbase-cluster
+      cmd: |-
+        #pt-clj (let [svc (set (:services params))]
+          ["sh"
+           "-c"
+           (str
+            "output=$("
+            (clojure.string/join
+            " "
+            ["couchbase-cli"
+            "cluster-init"
+            (str "--cluster=" (:cluster params))
+            (str
+             "--cluster-username="
+             (:username params))
+            (str
+             "--cluster-password="
+             (:password params))
+            (str
+             "--services="
+             (clojure.string/join "," svc))
+            (when (svc "data")
+              (str "--cluster-ramsize=" (:ram params)))
+            (when (svc "index")
+              (str
+               "--cluster-index-ramsize="
+               (:index-ram params)))
+            (when (svc "eventing")
+              (str
+               "--cluster-eventing-ramsize="
+               (:eventing-ram params)))
+            (when (svc "fts")
+              (str
+               "--cluster-fts-ramsize="
+               (:eventing-ram params)))])
+            ") && echo \"$output\" || (echo \"$output\" | grep -q 'already initialized' && echo \"$output\" && exit 0 || echo \"$output\" && exit 1)")])
+      restart: |-
+        #pt-clj (when-let [n (:retries params)]
+          {:max-restarts n, :policy "on-failure"})
+      services: []
+    default?: false
+
+  - id: couchbase-bucket-create
     module: polytope/couchbase!create-bucket
     args:
       image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
@@ -257,7 +494,7 @@ modules:
       name: main
       retries: 20
 
-  - id: init-couchbase-bucket
+  - id: couchbase-bucket-init
     module: polytope/couchbase!cbq
     args:
       image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
@@ -272,11 +509,69 @@ modules:
 
   - id: redpanda
     info: Runs the Redpanda server in dev mode
-    module: polytope/redpanda
+    module: redpanda-base
     args:
       image: docker.redpanda.com/redpandadata/redpanda:v23.3.11
       root-log-level: warn 
       data-volume: { id: redpanda-data, type: volume, scope: project }
+
+  - id: redpanda-base
+    params:
+    - id: image
+      info: The container image to use.
+      name: Container Image
+      type: [default, str, 'docker.redpanda.com/redpandadata/redpanda:v23.3.11']
+    - id: data-volume
+      info: Volume to use for data.
+      name: Data Volume
+      type: [maybe, mount-source]
+    - id: log-level
+      info: The default log level.
+      name: Log level
+      type:
+      - default
+      - [enum, trace, debug, info, warn, error]
+      - info
+    - id: restart
+      info: Restart policy for the containers.
+      name: Restart policy
+      type:
+      - default
+      - policy: [enum, always, on-failure]
+        max-restarts: [maybe, int]
+      - {policy: always, max-restarts: null}
+    module: polytope/container
+    args:
+      id: redpanda
+      image: '#pt-clj (:image params)'
+      restart: '#pt-clj (:restart params)'
+      cmd:
+      - redpanda
+      - start
+      - --kafka-addr=0.0.0.0:9092
+      - --advertise-kafka-addr=redpanda:9092
+      - --pandaproxy-addr=0.0.0.0:8082
+      - --advertise-pandaproxy-addr=redpanda:8082
+      - --rpc-addr=0.0.0.0:33145
+      - --advertise-rpc-addr=redpanda:33145
+      - --schema-registry-addr=0.0.0.0:8081
+      - --mode=dev-container
+      - --smp=1
+      - |-
+        #pt-clj (str
+         "--default-log-level="
+         (:log-level params))
+      mounts: |-
+        #pt-clj (when-let [v (:data-volume params)]
+          [{:path "/var/lib/redpanda/data", :source v}])
+      services:
+      - id: redpanda
+        ports:
+        - {port: 9092, protocol: tcp, label: kafka}
+        - {port: 8082, protocol: http, label: pandaproxy}
+        - {port: 8081, protocol: http, label: schema-registry}
+        - {port: 9644, protocol: http, label: admin-api}
+        - {port: 33145, protocol: tcp, label: rpc}
 
   - id: redpanda-console
     info: Runs the Redpanda Console service

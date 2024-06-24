@@ -8,7 +8,7 @@ def assert_valid_data_structures(conf):
     assert isinstance(conf, dict)
     assert len(conf) > 0
     for key, data_structure_conf in conf.items():
-        assert_valid_typed_dict(conf, {
+        assert_valid_typed_dict(data_structure_conf, {
             'couchbase_cluster': {
                 'bucket_prefixes_to_exclude?': assert_list_of_strings,
                 'scope_prefixes_to_exclude?': assert_list_of_strings
@@ -34,9 +34,9 @@ def assert_valid_capella_disk_type(conf):
     assert isinstance(conf, str)
     assert conf in ['gp3']
 
-def assert_valid_coudhbase_capella_disk_iops(conf):
+def assert_valid_capella_disk_iops(conf):
     assert isinstance(conf, int)
-    asset conf in [3000]
+    assert conf in [3000]
 
 def assert_valid_capella_cpu(conf):
     assert isinstance(conf, int)
@@ -55,7 +55,7 @@ def assert_valid_capella_disk(conf):
 
 def assert_valid_capella_service_groups(conf):
     for key, group_conf in conf.items():
-        assert_valid_dict(conf, {
+        assert_valid_dict(group_conf, {
             'services': assert_valid_services,
             'nodes': assert_valid_capella_nodes,
             'cpu': assert_valid_capella_cpu,
@@ -137,15 +137,18 @@ def assert_valid_bucket_ram(conf):
 
 def assert_valid_bucket_replicas(conf):
     assert isinstance(conf, int)
-    assert 1 <= conf <= 5
+    assert 0 <= conf <= 5
 
 def assert_valid_bucket_durability(conf):
     assert isinstance(conf, str)
     assert conf in {'majority', 'none'}
 
+def assert_valid_bucket_type(conf):
+    assert isinstance(conf, str)
+    assert conf in {'couchbase', 'memcached', 'ephemeral'}
+
 def assert_valid_metadata_bucket_specs(conf):
     assert_valid_dict(conf, {
-        'bucket_type': 'counchbase',
         'ram': assert_valid_bucket_ram,
         'replicas': assert_valid_bucket_replicas,
         'durability': assert_valid_bucket_durability
@@ -160,20 +163,20 @@ def assert_valid_metadata(conf):
 def assert_valid_clusters(conf):
     assert isinstance(conf, dict)
     assert len(conf) > 0
-    assert_valid_typed_dict(conf, {
-        'capella': {
-            'service_groups': assert_valid_capella_service_groups,
-            'capella_project': str,
-            'cloud': assert_valid_cloud
-        }, 
-        'polytope_local': {
-            'services': assert_valid_services
-        }}, {
-            'change_maker_client': str,
-            'specs': assert_valid_cluster_specs,
-            'metadata_bucket_specs': assert_valid_metadata_bucket_specs,
-        }
-    })
+    for key, cluster_conf in conf.items():
+        assert_valid_typed_dict(cluster_conf, {
+            'capella': {
+                'service_groups': assert_valid_capella_service_groups,
+                'capella_project': str,
+                'cloud': assert_valid_capella_cloud
+            }, 
+            'polytope_local': {
+                'module': str
+            }}, {
+                'change_maker_client': str,
+                'specs': assert_valid_cluster_specs,
+                'metadata_bucket_specs': assert_valid_metadata_bucket_specs,
+        })
     
 def assert_valid_capella_projects(conf):
     assert isinstance(conf, dict)
@@ -181,9 +184,10 @@ def assert_valid_capella_projects(conf):
 
 def assert_valid(conf):
     assert_valid_dict(conf, {
-        'data_structures': assert_valid_data_structures,
         'metadata': assert_valid_metadata, 
-        'capella_projects?: assert_valid_capellla_projects, 
+        'data_structures': assert_valid_data_structures,
+        'services': assert_valid_services,
+        'capella_projects?': assert_valid_capella_projects, 
         'clusters': assert_valid_clusters
     })
 

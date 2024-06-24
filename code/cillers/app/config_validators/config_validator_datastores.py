@@ -2,6 +2,9 @@ from . import (
     config_validator_couchbase,
     config_validator_redpanda
 )
+from .config_validator_helpers import (
+    assert_valid_dict
+)
 
 def assert_valid_module(module, conf):
     config_validators = { 

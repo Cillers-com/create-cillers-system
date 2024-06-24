@@ -3,15 +3,16 @@ import logging
 import json
 import yaml
 from typing import Union, Dict, List
+from .config_validators import config_validator
 
 logger = logging.getLogger(__name__)
 
 file_paths = { 
     'standards_clients': './app/standards_clients.yml',
-    'standards_data_stores': './app/standards_data_stores.yml',
-    'config_change_maker': '/root/conf/change_maker.yml',
+    'standards_datastores': './app/standards_datastores.yml',
+    'config_environments': '/root/conf/environments.yml',
     'config_clients': '/root/conf/clients.yml',
-    'config_data_stores': '/root/conf/data_stores.yml'
+    'config_datastores': '/root/conf/datastores.yml'
 }
 
 def assert_should_not_reach():
@@ -32,7 +33,7 @@ def parse_yaml_file(file_path_id: str):
 
 standards = {
     'clients': parse_yaml_file('standards_clients'),
-    'data_stores': parse_yaml_file('standards_data_stores')
+    'datastores': parse_yaml_file('standards_datastores')
 }
 
 def get_standard(standard: str, module: str, group: str) -> Union[Dict, List, str]:
@@ -63,8 +64,8 @@ def replace_standards(config: Config, module: str, group: str) -> Config:
 def convert_string_values_to_lists(dict: Dict) -> Dict: 
     return {key: [value] if isinstance(value, str) else value for key, value in dict.items()} 
 
-def parse_change_maker() -> Dict:
-    file_config = parse_yaml_file('config_change_maker')
+def parse_environments() -> Dict:
+    file_config = parse_yaml_file('config_environments')
     return {key: convert_string_values_to_lists(value) for key, value in file_config.items()}
 
 def parse_config_file_with_standards(module: str) -> Dict:
@@ -75,10 +76,11 @@ def parse_config_file_with_standards(module: str) -> Dict:
 
 def parse() -> Dict: 
     config = { 
-        "change_maker": parse_change_maker(),
+        "environments": parse_environments(),
         "clients": parse_config_file_with_standards('clients'),
-        "data_stores": parse_config_file_with_standards('data_stores')
+        "datastores": parse_config_file_with_standards('datastores')
     } 
     print(f"Config: {json.dumps(config)}")
+    #config_validator.assert_valid(config)
     return config
 
