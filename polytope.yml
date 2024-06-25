@@ -68,7 +68,7 @@ modules:
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
-#        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
   - id: oauth-agent
     info: The OAuth Agent
