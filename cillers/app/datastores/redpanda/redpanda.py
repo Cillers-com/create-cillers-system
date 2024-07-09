@@ -24,12 +24,14 @@ def wait_until_ready_for_instructions(client_conf, retries=10, retry_delay=1, ti
     raise Exception(f"Failed to connect to Redpanda server at {server} after {retries} attempts.")
 
 def ensure_cluster_initialized(datastore_conf, cluster_conf, client_conf):
-    print(f"Ensuring Redpanda cluster is initialized")
-    print(datastore_conf, cluster_conf, client_conf)
+#    print(f"Ensuring Redpanda cluster is initialized")
+#    print(datastore_conf, cluster_conf, client_conf)
+    return True
 
 def ensure_metadata_initialized(datastore_conf, cluster_conf, client_conf):
-    print(f"Ensuring Redpanda cluster metadata is initialized")
-    metadata_conf = datastore_conf['metadata']
-    metadata_topics_specs_conf = cluster_conf['metadata_topics_specs']
-    print(metadata_conf)
-    print(metadata_topics_specs_conf)
+#    print(f"Ensuring Redpanda cluster metadata is initialized")
+#    metadata_conf = datastore_conf['metadata']
+#    metadata_topics_specs_conf = cluster_conf['metadata_topics_specs']
+#    print(metadata_conf)
+#    print(metadata_topics_specs_conf)
+    return True

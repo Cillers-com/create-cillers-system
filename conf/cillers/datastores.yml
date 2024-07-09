@@ -54,9 +54,10 @@
 # 
 # Example:
 #
+
 couchbase: standard_local_and_capella_eu
 redpanda: standard_local_and_cloud_eu
-#
+
 #couchbase:
 #  data_structures: 
 #    main:

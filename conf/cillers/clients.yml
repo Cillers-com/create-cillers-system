@@ -33,6 +33,7 @@
 #
 # Example:
 #
+
 couchbase: standard_local_and_capella
 redpanda: standard_local_and_cloud
 

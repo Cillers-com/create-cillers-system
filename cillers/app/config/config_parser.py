@@ -80,7 +80,5 @@ def parse() -> Dict:
         "clients": parse_config_file_with_standards('clients'),
         "datastores": parse_config_file_with_standards('datastores')
     } 
-    print(f"Config: {json.dumps(config)}")
-    #config_validator.assert_valid(config)
     return config
 

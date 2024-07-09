@@ -36,3 +36,9 @@ def get_client(path):
         'credentials': copy.deepcopy(client['credentials'][credentials_id])
     }
 
+def get_data_structures_conf(datastore_conf):
+    return datastore_conf['data_structures']
+
+def get_metadata_conf(datastore_conf):
+    return datastore_conf['metadata']
+

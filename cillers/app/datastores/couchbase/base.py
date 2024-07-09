@@ -1,3 +1,4 @@
+import os
 import json
 import time
 from datetime import timedelta
@@ -72,27 +73,43 @@ def get_collection_manager(cluster, bucket_name):
         except Exception as e:
             if attempt == max_retries - 1: 
                 raise e
-            print(f"Get collection manager failed. Retrying ... Error: {e}")
+            print(f"Get collection manager attempt failed. Retrying ... Error: {e}")
             time.sleep(1)
     assert False
 
-    
+def get_collection(cluster, bucket_name, scope_name, collection_name=None):
+    max_retries = 20
+    for attempt in range(max_retries):
+        try:
+            bucket = cluster.bucket(bucket_name)
+            scope = bucket.scope(scope_name)
+            if collection_name: 
+                return scope.collection(collection_name)
+            else:
+                return scope.default_collection()
+        except Exception as e:
+            if attempt == max_retries - 1: 
+                raise e
+            print(f"Get collection attempt failed. Retrying ... Error: {e}")
+            time.sleep(1)
+    assert False
+
 bucket_type_conf_to_sdk = {
         'couchbase': BucketType.COUCHBASE,
         'memcached': BucketType.MEMCACHED,
         'ephemeral': BucketType.EPHEMERAL
     }
 
-def bucket_needs_update(bucket, bucket_settings):
-    if existing_bucket.ram_quota_mb != settings.ram_quota_mb: return True
-    if existing_bucket.num_replicas != settings.num_replicas: return True
-    if existing_bucket.durability_min_level != settings.durability_min_level: return True
+def bucket_needs_update(existing_bucket, spec_settings):
+    if existing_bucket.get('ram_quota_mb') != spec_settings.get('ramQuotaMB'): return True
+    if existing_bucket.numReplicas != spec_settings.numReplicas: return True
+    if existing_bucket.durabilityMinLevel != spec_settings.durabilityMinLevel: return True
     return False 
 
 def update_bucket(cluster, bucket, settings):
-    bucket.ram_quota_mb = settings.ram_quota_mb
-    bucket.num_replicas = settings.num_replicas
-    bucket.durability_min_level = settings.durability_min_level
+    bucket.settings.ramQuotaMB = settings.ramQuotaMB
+    bucket.settings.numReplicas = settings.numReplicas
+    bucket.settings.durabilityMinLevel = settings.durabilityMinLevel
     bucket_manager = cluster.buckets()
     bucket_manager.update_bucket(bucket)
 
@@ -104,9 +121,9 @@ def ensure_bucket_provisioned(cluster, settings):
 
         if existing_bucket:
             print(f"Bucket '{settings.name}' already exists.")
-            if bucket_needs_update(existing_bucket, settings):
-                update_bucket(existing_bucket, settings) 
-                print(f"Updated '{settings.name}' settings to match required specifications.")
+            #if bucket_needs_update(existing_bucket, settings):
+            #    update_bucket(existing_bucket, settings) 
+            #    print(f"Updated '{settings.name}' settings to match required specifications.")
         else:
             print(f"Bucket '{settings.name}' does not exist. Creating new bucket...")
             bucket_manager.create_bucket(settings)
@@ -124,49 +141,6 @@ def ensure_scope_exists(cluster, bucket_name, scope_name):
         print(f"Scope '{scope_name}' created in bucket '{bucket_name}'.")
     else:
         print(f"Scope '{scope_name}' already exists in bucket '{bucket_name}'.")
-
-def ensure_cluster_initialized(datastore_conf, cluster_conf, client_conf):
-    print(f"Ensuring Couchbase cluster is initialized")
-    initialize_cluster(datastore_conf, cluster_conf, client_conf)
-
-def generate_metadata_bucket_settings(datastore_conf, cluster_conf):
-    metadata_conf = datastore_conf['metadata']
-    metadata_bucket_specs_conf = cluster_conf['metadata_bucket_specs']
-    bucket_settings = BucketSettings(
-            name = metadata_conf['bucket'],
-            bucket_type = BucketType.COUCHBASE,
-            ram_quota_mb = metadata_bucket_specs_conf['ram'],
-            num_replicas = metadata_bucket_specs_conf['replicas'],
-            durability_min_level = metadata_bucket_specs_conf['durability']
-        )
-    return bucket_settings
-
-def ensure_metadata_initialized(datastore_conf, cluster_conf, client_conf):
-    print(f"Ensuring Couchbase cluster metadata is initialized")
-    cluster = get_cluster(client_conf)
-    bucket_settings = generate_metadata_bucket_settings(datastore_conf, cluster_conf)
-    ensure_bucket_provisioned(cluster, bucket_settings)
-    ensure_scope_exists(cluster, bucket_settings.name, 'metadata')
-
-def wait_until_ready_for_instructions(client_conf, max_retries=100, retry_delay=1, timeout_seconds=10):
-    print("Connecting to Couchbase ...")
-    service_types = [
-            ServiceType.Management,
-            ServiceType.KeyValue,
-            ServiceType.Query
-        ]
-    timeout_option = timedelta(seconds=timeout_seconds)
-    wait_until_ready_options = WaitUntilReadyOptions(service_types=service_types)
-    for attempt in range(max_retries):
-        try:
-            cluster = get_cluster(client_conf)
-            cluster.wait_until_ready(timeout_option, wait_until_ready_options)
-            print("Couchbase is ready for instructions.")
-            return
-        except Exception as e:
-            print(f"Retrying... {e}")
-            time.sleep(retry_delay)
-    raise Exception("Failed to connnect to Couchbase.")
 
 def is_cluster_initialized(client_conf):
     max_retries = 30
@@ -187,43 +161,10 @@ def is_cluster_initialized(client_conf):
     raise Exception("Max retries exceeded")
 
 def ensure_bucket_exists(bucket_conf):
-    # Create a manager instance to interact with the cluster
     cluster_manager = cluster.buckets()
-    
-    # Get the list of buckets
     bucket_list = cluster_manager.get_all_buckets()
-    
-    # Check if the specified bucket exists
     exists = any(bucket.name == bucket_name for bucket in bucket_list)
     return exists
-
-def initialize_cluster_test():
-    url = "http://couchbase:8091/clusterInit"
-    data = {
-        'username': 'admin',
-        'password': 'password',
-        'services': 'kv,n1ql,index,fts,cbas,eventing,backup',
-        'hostname': '127.0.0.1',
-        'memoryQuota': '256',
-        'sendStats': 'false',
-        'clusterName': 'cillers',
-        'setDefaultMemQuotas': 'true',
-        'indexerStorageMode': 'plasma',
-        'port': 'SAME'
-    }
-    encoded_data = urllib.parse.urlencode(data).encode()
-    request = urllib.request.Request(url, data=encoded_data, method='POST')
-    try:
-        response = urllib.request.urlopen(request)
-        response_body = response.read().decode()
-        print("Cluster initialization successful.")
-    except urllib.error.URLError as e:
-        error_message = str(e)
-        print(e)
-        if 'already initialized' in error_message:
-            print("Cluster was already initialized.")
-        else:
-            raise Exception(f"Failed to initialize cluster: {e}")
 
 def initialize_cluster(datastore_conf, cluster_conf, client_conf):
     connection = client_conf['connection']
@@ -233,24 +174,15 @@ def initialize_cluster(datastore_conf, cluster_conf, client_conf):
     data = {
         'username': credentials['username'],
         'password': credentials['password'],
-        'services': 'kv', #','.join(datastore_conf['services']),
+        'services': ','.join(datastore_conf['services']),
         'hostname': '127.0.0.1',
-        'memoryQuota': '256',
+        'memoryQuota': '256', #specs['ram'],
         'sendStats': 'false',
         'clusterName': 'cillers',
         'setDefaultMemQuotas': 'true',
         'indexerStorageMode': 'plasma',
         'port': 'SAME'
     }
-    print(url)
-    print(data)
-    # 'kv,n1ql,index,fts,cbas,eventing,backup',
-#    if 'data' in datastore_conf['services']:
-#        data['memoryQuota'] = specs['ram']
-#    if 'index' in datastore_conf['services']:
-#        data['indexMemoryQuota'] = specs['index_ram']
-#    if 'fts' in datastore_conf['services']:
-#        data['ftsMemoryQuota'] = specs['fts_ram']
     encoded_data = urllib.parse.urlencode(data).encode()
     request = urllib.request.Request(url, data=encoded_data, method='POST')
     max_retries = 30
@@ -265,10 +197,10 @@ def initialize_cluster(datastore_conf, cluster_conf, client_conf):
                 print('Max retries exceeded')
                 raise e
             error_message = str(e)
-            if 'already initialized' in error_message:
+            if 'already initialized' in error_message or 'Unauthorized' in error_message:
                 print("Cluster was already initialized.")
                 return
-            elif any(s in error_message for s in ['Broken pipe', 'Connection reset by peer']):
+            else: 
                 print(f"The cluster is not responding. Retrying ... {e}")
                 time.sleep(1)
     assert False

@@ -90,7 +90,7 @@ def assert_valid_capella_cloud(conf):
 
 def assert_valid_services(conf):
     assert isinstance(conf, list)
-    assert not set(conf) - set(['data', 'index', 'query', 'search', 'analytics'])
+    assert not set(conf) - set(['kv', 'index', 'n1ql', 'fts', 'cbas', 'eventing'])
 
 def assert_valid_capella_node_size(conf):
     assert isinstance(conf, str)

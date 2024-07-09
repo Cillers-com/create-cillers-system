@@ -54,7 +54,7 @@ modules:
     args: 
       id: "#pt-param id" 
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./code/cillers }
+      code: { type: host, path: ./cillers }
       cmd: "#pt-clj (str \"./bin/run \" (:command params))" 
       env:
         - { name: ENVIRONMENT, value: "#pt-param environment" }

@@ -1,7 +1,7 @@
 couchbase:
   local_and_capella_eu:
     metadata: standard_metadata
-    data_structures: standard_data_structure
+    data_structures: standard_data_structures
     capella_projects: standard_capella_projects
     services: standard_services
     clusters: standard_clusters_local_and_capella_eu
@@ -10,7 +10,7 @@ couchbase:
     bucket: main
     scope: metadata
 
-  data_structure:
+  data_structures:
     main:
       type: couchbase_cluster
 
@@ -23,10 +23,12 @@ couchbase:
       project_id: !env CAPELLA_MAIN_PROJECT_ID_STAGE
 
   services: 
-    - data
+    - kv 
+    - n1ql
     - index
-    - query
-    - search
+    - fts
+    - cbas
+    - eventing
 
   clusters_local_and_capella_eu:
     production: standard_capella_cluster_eu_production
@@ -98,7 +100,7 @@ couchbase:
 
   service_groups_production:
     main:
-      services: ['data', 'index', 'query', 'search']
+      services: ['kv', 'index', 'n1ql', 'fts']
       nodes: 3
       cpu: 16
       ram: 32
@@ -109,7 +111,7 @@ couchbase:
 
   service_groups_stage:
     main:
-      services: ['data', 'index', 'query', 'search']
+      services: ['kv', 'index', 'n1ql', 'fts']
       nodes: 3
       cpu: 16
       ram: 32
