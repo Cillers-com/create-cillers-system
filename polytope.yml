@@ -252,7 +252,7 @@ modules:
       username: admin
       password: password
       retries: 20
-      services: [data, index, query, search, eventing]
+      services: [data, index, query, fts, eventing]
 
   - id: create-couchbase-bucket
     module: polytope/couchbase!create-bucket
