@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+. "$(dirname "$0")/init"
+
+exec yarn run start
