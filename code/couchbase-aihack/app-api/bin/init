@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+[[ "${TRACE:-}" == true ]] && set -o xtrace
+
+readonly project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &> /dev/null && pwd)"
+cd "$project_root"
+
+POETRY_VENV="$HOME/.cache/poetry-venvs/api"
+
+if [ ! -f "$POETRY_VENV/bin/poetry" ]; then
+    PYTHON_CMD="$(command -v python3 || command -v python)"
+    [[ $PYTHON_CMD != "" ]] || { echo "Python not found"; exit 1; }
+    $PYTHON_CMD -m venv "$POETRY_VENV"
+    source "$POETRY_VENV/bin/activate"
+    echo "Installing Poetry..."
+    pip install poetry --quiet --disable-pip-version-check
+else
+    source "$POETRY_VENV/bin/activate"
+fi
+
+poetry lock --no-update
+poetry install --no-interaction --no-ansi ${POETRY_ARGS:-}
