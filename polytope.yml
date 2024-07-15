@@ -40,7 +40,7 @@ templates:
   - id: init-cb-cluster-aihack
     module: init-couchbase-cluster-aihack
   - id: create-cb-bucket
-    module: create-couchbase-bucket
+    module: couchbase-bucket-create
     run-when:
       after: init-cb-cluster-aihack
   - module: init-couchbase-bucket-aihack
