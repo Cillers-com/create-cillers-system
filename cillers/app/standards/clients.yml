@@ -47,7 +47,7 @@ couchbase:
       type: basic
       username: !env COUCHBASE_PRODUCTION_API_USERNAME
       password: !env COUCHBASE_PRODUCTION_API_PASSWORD
-    change_maker:
+    change:
       type: basic
       username: !env COUCHBASE_PRODUCTION_CHANGE_MAKER_USERNAME
       password: !env COUCHBASE_PRODUCTION_CHANGE_MAKER_PASSWORD
@@ -57,7 +57,7 @@ couchbase:
       type: basic
       username: !env COUCHBASE_STAGE_API_USERNAME
       password: !env COUCHBASE_STAGE_API_PASSWORD
-    change_maker:
+    change:
       type: basic
       username: !env COUCHBASE_STAGE_CHANGE_MAKER_USERNAME
       password: !env COUCHBASE_STAGE_CHANGE_MAKER_PASSWORD
@@ -117,7 +117,7 @@ redpanda:
       type: basic
       username: !env REDPANDA_PRODUCTION_API_USERNAME
       password: !env REDPANDA_PRODUCTION_API_PASSWORD
-    change_maker:
+    change:
       type: basic
       username: !env REDPANDA_PRODUCTION_CHANGE_MAKER_USERNAME
       password: !env REDPANDA_PRODUCTION_CHANGE_MAKER_PASSWORD
@@ -127,7 +127,7 @@ redpanda:
       type: basic
       username: !env REDPANDA_STAGE_API_USERNAME
       password: !env REDPANDA_STAGE_API_PASSWORD
-    change_maker:
+    change:
       type: basic
       username: !env REDPANDA_STAGE_CHANGE_MAKER_USERNAME
       password: !env REDPANDA_STAGE_CHANGE_MAKER_PASSWORD

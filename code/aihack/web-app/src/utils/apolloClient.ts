@@ -4,12 +4,10 @@ import {
     InMemoryCache, 
     HttpLink, 
     split, 
-    Observable,
     NormalizedCacheObject,
     DocumentNode
 } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
-import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -45,10 +43,6 @@ function create_ws_link (): GraphQLWsLink {
         }
     }));
 };
-
-interface ServerError { 
-    statusCode: number
-} 
 
 function create_error_link (on_error: Function) : ApolloLink { 
     return onError(({ graphQLErrors, networkError, operation, forward }) => {

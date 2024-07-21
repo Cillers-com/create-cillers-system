@@ -12,7 +12,7 @@ couchbase:
 
   data_structures:
     main:
-      type: couchbase_cluster
+      type: cluster
 
   capella_projects:
     production: 
@@ -39,7 +39,7 @@ couchbase:
   capella_cluster_eu_production:
     type: capella
     capella_project: production 
-    change_maker_client: couchbase.production.change_maker
+    change_client_id: change
     cloud: standard_cloud_eu
     specs: standard_cluster_specs_capella_production
     service_groups: standard_service_groups_production
@@ -48,7 +48,7 @@ couchbase:
   capella_cluster_eu_stage:
     type: capella
     capella_project: stage 
-    change_maker_client: couchbase.stage.change_maker
+    change_client_id: change
     cloud: standard_cloud_eu
     specs: standard_cluster_specs_capella_stage
     service_groups: standard_service_groups_stage
@@ -57,14 +57,14 @@ couchbase:
   local_single_node_cluster_development:
     type: polytope_local 
     module: couchbase
-    change_maker_client: couchbase.development._default
+    change_client_id: _default
     specs: standard_cluster_specs_local_development
     metadata_bucket_specs: standard_metadata_bucket_specs_development
 
   local_single_node_cluster_test:
     type: polytope_local
     module: couchbase
-    change_maker_client: couchbase.test._default
+    change_client_id: _default
     specs: standard_cluster_specs_local_test
     metadata_bucket_specs: standard_metadata_bucket_specs_test
 
@@ -161,26 +161,26 @@ redpanda:
     
   cloud_cluster_eu_production:
     type: cloud
-    change_maker_client: redpanda.production.change_maker
+    change_client_id: change
     cloud: standard_cloud_eu
     metadata_topics_specs: standard_metadata_topics_specs_production
 
   cloud_cluster_eu_stage:
     type: cloud
-    change_maker_client: redpanda.stage.change_maker
+    change_client_id: change
     cloud: standard_cloud_eu
     metadata_topics_specs: standard_metadata_topics_specs_stage
 
   local_single_node_cluster_development:
     type: polytope
     module: redpanda
-    change_maker_client: redpanda.development._default
+    change_client_id: _default
     metadata_topics_specs: standard_metadata_topics_specs_development
 
   local_single_node_cluster_test:
     type: polytope
     module: redpanda
-    change_maker_client: redpanda.test._default
+    change_client_id: _default
     metadata_topics_specs: standard_metadata_topics_specs_test
 
   cloud_eu:

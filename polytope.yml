@@ -1,8 +1,22 @@
 templates:
 - id: stack
   run:
-  - change-maker
   - couchbase
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - curity
+  - curity-db
+  - oauth-agent
+  - kong
+  - web-app 
+  - app-api
+
+- id: setup
+  run:
+  - couchbase
+  - redpanda
+  - kafka-connect
   - id: couchbase-ensure-cluster-initialized-step
     module: couchbase-ensure-cluster-initialized
   - id: couchbase-bucket-create-step
@@ -12,15 +26,6 @@ templates:
   - module: couchbase-bucket-init
     run-when:
       after: couchbase-bucket-create-step
-  - curity-db
-  - oauth-agent
-  - curity
-  - kong
-  - web-app 
-  - app-api
-  - redpanda
-  - redpanda-console
-  - kafka-connect
   - create-connectors
 
 - id: change
@@ -34,20 +39,11 @@ templates:
   - couchbase
   - couchbase-ensure-cluster-initialized
 
-- id: couchbase-aihack
+- id: aihack
   run:
   - couchbase
-  - id: init-cb-cluster-aihack
-    module: init-couchbase-cluster-aihack
-  - id: create-cb-bucket
-    module: couchbase-bucket-create
-    run-when:
-      after: init-cb-cluster-aihack
-  - module: init-couchbase-bucket-aihack
-    run-when:
-      after: create-cb-bucket
-  - app-api-couchbase-aihack
-  - web-app-couchbase-aihack
+  - app-api-aihack
+  - web-app-aihack
 
 modules:
   - id: cillers 
@@ -153,13 +149,13 @@ modules:
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
 
-  - id: app-api-couchbase-aihack
+  - id: app-api-aihack
     info: The App API
     module: polytope/python
     args: 
-      id: app-api-couchbase-aihack
+      id: app-api-aihack
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./code/couchbase-aihack/app-api }
+      code: { type: host, path: ./code/aihack/app-api }
       cmd: ./bin/run
       restart: { policy: on-failure }
       services: 
@@ -198,13 +194,13 @@ modules:
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
         - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
-  - id: web-app-couchbase-aihack
+  - id: web-app-aihack
     info: The Web App
     module: polytope/node
     args:
       id: web-app 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: { type: host, path: ./code/couchbase-aihack/web-app }
+      code: { type: host, path: ./code/aihack/web-app }
       cmd: ./bin/run
       env:
         - { name: PORT, value: 3000 } 

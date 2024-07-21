@@ -14,7 +14,7 @@ from . import db
 
 logger = logging.getLogger(__name__)
 
-resolvers_path = Path(__file__).parent / "resolvers"
+controllers_path = Path(__file__).parent / "controllers"
 
 classes = {
     'Query': [],
@@ -22,8 +22,8 @@ classes = {
     'Subscription': [] 
 }
 
-for _, module_name, _ in pkgutil.iter_modules([resolvers_path]):
-    module = importlib.import_module(f"app.resolvers.{module_name}")
+for _, module_name, _ in pkgutil.iter_modules([controllers_path]):
+    module = importlib.import_module(f"app.controllers.{module_name}")
     for attr_name in dir(module):
         attr = getattr(module, attr_name)
         if isinstance(attr, strawberry.types.types.Type) and attr_name in classes.keys():

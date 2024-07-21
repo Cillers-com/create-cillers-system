@@ -173,7 +173,7 @@ def assert_valid_clusters(conf):
             'polytope_local': {
                 'module': str
             }}, {
-                'change_maker_client': str,
+                'change_client_id': str,
                 'specs': assert_valid_cluster_specs,
                 'metadata_bucket_specs': assert_valid_metadata_bucket_specs,
         })

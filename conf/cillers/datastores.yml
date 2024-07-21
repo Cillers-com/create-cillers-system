@@ -61,15 +61,15 @@ redpanda: standard_local_and_cloud_eu
 #couchbase:
 #  data_structures: 
 #    main:
-#      type: couchbase_cluster
+#      type: cluster
 #      bucket_prefixes_to_exclude: tenant
 #      scope_prefixes_to_exclude:
 #        - tenant
 #    tenant_buckets:
-#      type: couchbase_bucket_clones
+#      type: bucket_clones
 #      prefix: tenant
 #    tenant_scopes:
-#      type: couchbase_scope_clones
+#      type: scope_clones
 #      prefix: tenant
 #      bucket: main
 #  metadata:
