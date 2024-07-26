@@ -7,7 +7,7 @@ authors = ["Peder Linder <peder@cillers.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 couchbase = "^4.1.12"
-confluent-kafka = "^2.4.0"
+kafka-python = "^2.0.2"
 pyyaml = "^6.0.1"
 
 [tool.poetry.group.dev]

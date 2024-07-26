@@ -24,6 +24,7 @@ class ClusterChangeConfig:
     metadata: Dict
     data_structures: Dict
     services: List
+    env_id: str
 
     def __init__(self, datastore_type: str, cluster_id: str):
         self.datastore_type = datastore_type
@@ -35,11 +36,13 @@ class ClusterChangeConfig:
         self.connection = get_connection_conf(datastore_type, cluster_id)
         self.credentials = get_change_credentials_conf(datastore_type, cluster_id)
         self.services = get_services_conf(datastore_type)
+        self.env_id = get_env_id()
 
 def get_env_conf():
-    env = os.getenv("ENVIRONMENT")  
-    env_conf = config['environments'][env]
-    return env_conf
+    return config['environments'][get_env_id()]
+
+def get_env_id():
+    return os.getenv("ENVIRONMENT")
 
 def get_datastore_conf(type):
     datastore_conf = config['datastores'][type]

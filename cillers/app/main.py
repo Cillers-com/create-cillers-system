@@ -27,7 +27,7 @@ def get_datastore_controller(datastore_type):
         raise KeyError(f"No such datastore controller: {datastore_type}")
     return datastore_controller
 
-def change_cluster(datastore_type, cluster_id):
+def change_cluster(datastore_type: str, cluster_id: str):
     conf = config.ClusterChangeConfig(datastore_type, cluster_id)
     controller = get_datastore_controller(datastore_type)
     controller.change_cluster(conf)

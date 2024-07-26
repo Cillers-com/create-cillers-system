@@ -5,51 +5,6 @@ from typing import List, Dict, Callable
 from couchbase.cluster import Cluster
 from couchbase.collection import Collection
 
-def run(cluster: Cluster, data_structures_conf: Dict, metadata_conf: Dict):
-    for key, conf in conf.data_structures:
-        DataStructure(cluster, key, conf, metadata_conf).change()
-
-class DataStructure:
-    directory: DataStructureDirectory
-    collection: DataStructureCollection
-    type: str
-    conf: Dict
-
-    def __init__(self, cluster: Cluster, key: str, conf: Dict, metadata_conf: Dict):
-        self.directory = DataStructureDirectory(key)
-        self.collection = DataStructureCollection(key, cluster, metadata_conf)
-        self.type = conf['type']
-        self.conf = conf
-        
-    def change():
-        if (self.type == 'cluster'):
-            self.change_cluster()
-        elsif (self.type == 'bucket_clones'):
-            self.change_bucket_clones()
-        elsif (self.type == 'scope_clones'):
-            self.change_scope_clones()
-        else
-            raise Exception(f"Type error '{self.type}'")
-
-    def change_cluster():
-        ids = self.to_apply_ids()
-        sorted_ids = sorted(ids, key=lambda x: int(x.split('-')[0]))
-        for id in sorted_ids:
-            change_function = directory.change_function(id)
-            change_function(cluster)
-            collection.set_applied(id, change_function)
-
-    def change_bucket_clones():
-        raise Exception("Not yet implemented")
-
-    def change_scope_clones():
-        raise Exception("Not yet implemented")
-
-    def to_apply_ids() -> List[str]:
-        all_ids = directory.all_ids()
-        applied_ids = collection.applied_ids()
-        ids = [id for id in all_ids if id not in applied_ids]
-
 class DataStructureDirectory:
     path: Path
     key: str
@@ -59,17 +14,18 @@ class DataStructureDirectory:
         self.path = Path('/root/change/couchbase') / key
 
     def all_ids() -> List[str]:
-        return [f[:-3]} for f in self.path.rglob('*') if and f.endswith('.py')]
+        return [f.stem for f in self.path.rglob('*.py')]
 
-    def change_function(id: str):
-        file_path = self.path / f"{id}.py"
-        assert file_path.exists()
-        spec = importlib.util.spec_from_file_location(id, file_path)
+    def change_function(id: str) -> Callable:
+        filename = f"{id}.py"
+        filepath = self.path / filename 
+        assert filepath.exists()
+        spec = importlib.util.spec_from_file_location(filename, filepath)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         if not hasattr(module, 'change'):
             raise Exception(f"change module 'couchbase.{self.key}.{id}' has no function 'change')
-        function = getattr(change_module, 'change')
+        function = getattr(module, 'change')
         if not callable(function):
             raise Exception(f"The 'change' attribute in module 'couchbase.{self.key}.{id}' is not callable")
         return function
@@ -98,4 +54,55 @@ class DataStructureCollection:
     def set_applied(id: str, change_fn: Callable):
         code = inspect.getsource(change_fn)
         collection.create(id, { change_function: code })
+
+class DataStructure:
+    directory: DataStructureDirectory
+    collection: DataStructureCollection
+    type: str
+    conf: Dict
+    env_id: str
+
+    def __init__(self, cluster: Cluster, key: str, conf: Dict, metadata_conf: Dict, env_id: str):
+        self.directory = DataStructureDirectory(key)
+        self.collection = DataStructureCollection(key, cluster, metadata_conf)
+        self.type = conf['type']
+        self.conf = conf
+        self.env_id = env_id
+        
+    def change():
+        if (self.type == 'cluster'):
+            self.change_cluster(env_id)
+        elsif (self.type == 'bucket_clones'):
+            self.change_bucket_clones(env_id)
+        elsif (self.type == 'scope_clones'):
+            self.change_scope_clones(env_id)
+        else
+            raise Exception(f"Type error '{self.type}'")
+
+    def change_cluster():
+        ids = self.to_apply_ids()
+        sorted_ids = sorted(ids, key=lambda x: int(x.split('-')[0]))
+        for id in sorted_ids:
+            change_function = directory.change_function(id)
+            num_params = len(inspect.signature(function).parameters)
+            if num_params == 1:
+                change_function(cluster)
+            elsif num_params == 2:
+                change_function(cluster, self.env_id)
+            collection.set_applied(id, change_function)
+
+    def change_bucket_clones():
+        raise Exception("Not yet implemented")
+
+    def change_scope_clones():
+        raise Exception("Not yet implemented")
+
+    def to_apply_ids() -> List[str]:
+        all_ids = directory.all_ids()
+        applied_ids = collection.applied_ids()
+        return [id for id in all_ids if id not in applied_ids]
+
+def run(cluster: Cluster, data_structures_conf: Dict, metadata_conf: Dict):
+    for key, conf in data_structures_conf:
+        DataStructure(cluster, key, conf, metadata_conf).change()
 

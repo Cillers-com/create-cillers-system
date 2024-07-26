@@ -93,48 +93,54 @@ redpanda:
     credentials: standard_default_credentials
 
   production_connection_cloud:
-    protocol: https
-    host: !env REDPANDA_PRODUCTION_HOST
-    port: 19092
+    bootstrap_servers:
+      - host: !env REDPANDA_PRODUCTION_HOST
+        port: !env REDPANDA_PRODUCTION_PORT
+    security_protocol: SSL
+    ssl_ca_location: !env REDPANDA_PRODUCTION_SSL_CA_LOCATION
+    ssl_certificate_location: !env REDPANDA_PRODUCTION_SSL_CERTIFICATE_LOCATION
+    ssl_key_location: !env REDPANDA_PRODUCTION_SSL_CERT
 
   stage_connection_cloud:
-    protocol: https
-    host: !env REDPANDA_STAGE_HOST
-    port: 19092
+    bootstrap_servers:
+      - host: !env REDPANDA_STAGE_HOST
+        port: !env REDPANDA_STAGE_PORT
+    security_protocol: SSL
+    ssl_ca_location: !env REDPANDA_STAGE_SSL_CA_LOCATION
+    ssl_certificate_location: !env REDPANDA_STAGE_SSL_CERTIFICATE_LOCATION
+    ssl_key_location: !env REDPANDA_STAGE_SSL_CERT
 
   development_connection_local:
-    protocol: http
-    host: redpanda
-    port: 9092
+    bootstrap_servers:
+      - host: !env REDPANDA_DEVELOPMENT_HOST
+        port: !env REDPANDA_DEVELOPMENT_PORT 
 
   test_connection_local:
-    protocol: http
-    host: redpanda
-    port: 9092
+    bootstrap_servers:
+      - host: !env REDPANDA_TEST_HOST
+        port: !env REDPANDA_TEST_PORT
 
   production_credentials:
     api:
-      type: basic
-      username: !env REDPANDA_PRODUCTION_API_USERNAME
-      password: !env REDPANDA_PRODUCTION_API_PASSWORD
+      security_protocol: SASL_PLAINTEXT
+      sasl_mechanism: SCRAM-SHA-256
+      sasl_plain_username: !env REDPANDA_PRODUCTION_API_USERNAME
+      sasl_plain_password: !env REDPANDA_PRODUCTION_API_PASSWORD
     change:
-      type: basic
-      username: !env REDPANDA_PRODUCTION_CHANGE_MAKER_USERNAME
-      password: !env REDPANDA_PRODUCTION_CHANGE_MAKER_PASSWORD
+      security_protocol: SASL_PLAINTEXT
+      sasl_mechanism: SCRAM-SHA-256
+      sasl_plain_username: !env REDPANDA_PRODUCTION_CHANGE_USERNAME
+      sasl_plain_password: !env REDPANDA_PRODUCTION_CHANGE_PASSWORD
 
   stage_credentials:
     api:
-      type: basic
-      username: !env REDPANDA_STAGE_API_USERNAME
-      password: !env REDPANDA_STAGE_API_PASSWORD
+      security_protocol: SASL_PLAINTEXT
+      sasl_mechanism: SCRAM-SHA-256
+      sasl_plain_username: !env REDPANDA_STAGE_API_USERNAME
+      sasl_plain_password: !env REDPANDA_STAGE_API_PASSWORD
     change:
-      type: basic
-      username: !env REDPANDA_STAGE_CHANGE_MAKER_USERNAME
-      password: !env REDPANDA_STAGE_CHANGE_MAKER_PASSWORD
-
-  default_credentials:
-    _default:
-      type: basic
-      username: admin
-      password: password
+      security_protocol: SASL_PLAINTEXT
+      sasl_mechanism: SCRAM-SHA-256
+      sasl_plain_username: !env REDPANDA_STAGE_CHANGE_USERNAME
+      sasl_plain_password: !env REDPANDA_STAGE_CHANGE_PASSWORD
 
