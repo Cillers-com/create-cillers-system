@@ -22,4 +22,3 @@ def assert_valid(conf):
     })
     for module, module_conf in conf.items():
         assert_valid_module(module, module_conf)
-

@@ -7,7 +7,7 @@ from .config_validator_helpers import (
 def assert_valid_data_structures(conf):
     assert isinstance(conf, dict)
     assert len(conf) > 0
-    for key, data_structure_conf in conf.items():
+    for _, data_structure_conf in conf.items():
         assert_valid_typed_dict(data_structure_conf, {
             'couchbase_cluster': {
                 'bucket_prefixes_to_exclude?': assert_list_of_strings,
@@ -54,7 +54,7 @@ def assert_valid_capella_disk(conf):
     })
 
 def assert_valid_capella_service_groups(conf):
-    for key, group_conf in conf.items():
+    for _, group_conf in conf.items():
         assert_valid_dict(group_conf, {
             'services': assert_valid_services,
             'nodes': assert_valid_capella_nodes,
@@ -62,7 +62,7 @@ def assert_valid_capella_service_groups(conf):
             'ram': assert_valid_capella_ram,
             'disk': assert_valid_capella_disk
         })
-    
+
 def assert_valid_capella_region_aws(conf):
     assert isinstance(conf, str)
     assert conf in {'eu-central-1'}
@@ -163,7 +163,7 @@ def assert_valid_metadata(conf):
 def assert_valid_clusters(conf):
     assert isinstance(conf, dict)
     assert len(conf) > 0
-    for key, cluster_conf in conf.items():
+    for _, cluster_conf in conf.items():
         assert_valid_typed_dict(cluster_conf, {
             'capella': {
                 'service_groups': assert_valid_capella_service_groups,
@@ -190,4 +190,3 @@ def assert_valid(conf):
         'capella_projects?': assert_valid_capella_projects, 
         'clusters': assert_valid_clusters
     })
-

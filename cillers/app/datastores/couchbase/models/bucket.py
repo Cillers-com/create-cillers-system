@@ -1,7 +1,5 @@
 from couchbase.cluster import Cluster
-from couchbase.management.buckets import BucketManager, BucketSettings, BucketType
-from couchbase.management.collections import CollectionManager
-from couchbase.exceptions import CouchbaseException
+from couchbase.management.buckets import BucketSettings, BucketType
 
 def ensure_provisioned(cluster: Cluster, settings: BucketSettings):
     try:

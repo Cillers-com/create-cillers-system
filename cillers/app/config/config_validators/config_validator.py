@@ -16,4 +16,3 @@ def assert_valid(conf):
     config_validator_clients.assert_valid(clients)
     config_validator_datastores.assert_valid(datastores)
     config_validator_consistency.assert_valid(environments, clients, datastores)
-

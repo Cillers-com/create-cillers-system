@@ -1,20 +1,27 @@
+from dataclasses import dataclass
 from couchbase.cluster import Cluster
-from couchbase.management.collections import CollectionSpec, CollectionNotFoundException
+from couchbase.management.collections import CollectionSpec
+from couchbase.exceptions import CollectionNotFoundException
 
-def ensure_exists(cluster: Cluster, bucket_name: str, scope_name: str, collection_name: str):
-    if not exists(cluster, bucket_name, scope_name, collection_name):
-        create(cluster, bucket_name, scope_name, collection_name)
+@dataclass
+class Keyspace:
+    bucket: str
+    scope: str
+    collection: str
 
-def exists(cluster: Cluster, bucket_name: str, scope_name: str, collection_name: str) -> Boolean:
+def ensure_exists(cluster: Cluster, keyspace: Keyspace):
+    if not exists(cluster, keyspace):
+        create(cluster, keyspace)
+
+def exists(cluster: Cluster, keyspace: Keyspace) -> bool:
     try:
-        cluster.bucket(bucket_name).scope(scope_name).collection(collection_name)
-    except (CollectionNotFoundException):
+        cluster.bucket(keyspace.bucket).scope(keyspace.scope).collection(keyspace.collection)
+    except CollectionNotFoundException:
         return False
     return True
 
-def create(cluster: Cluster, bucket_name: str, scope_name: str, collection_name: str):
-    collection_spec = CollectionSpec(collection_name, scope_name)
-    bucket = cluster.bucket(bucket_name)
+def create(cluster: Cluster, keyspace: Keyspace):
+    collection_spec = CollectionSpec(keyspace.collection, keyspace.scope)
+    bucket = cluster.bucket(keyspace.bucket)
     collection_manager = bucket.collections()
     collection_manager.create_collection(collection_spec)
-

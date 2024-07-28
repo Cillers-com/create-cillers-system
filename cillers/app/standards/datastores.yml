@@ -1,4 +1,5 @@
 couchbase:
+
   local_and_capella_eu:
     metadata: standard_metadata
     data_structures: standard_data_structures
@@ -55,14 +56,14 @@ couchbase:
     metadata_bucket_specs: standard_metadata_bucket_specs_stage
 
   local_single_node_cluster_development:
-    type: polytope_local 
+    type: server 
     module: couchbase
     change_client_id: _default
     specs: standard_cluster_specs_local_development
     metadata_bucket_specs: standard_metadata_bucket_specs_development
 
   local_single_node_cluster_test:
-    type: polytope_local
+    type: server
     module: couchbase
     change_client_id: _default
     specs: standard_cluster_specs_local_test
@@ -141,6 +142,7 @@ couchbase:
     durability: none
 
 redpanda:
+
   local_and_cloud_eu:
     data_structures: standard_data_structure
     metadata: standard_metadata
@@ -148,7 +150,7 @@ redpanda:
 
   data_structure:
     main:
-      type: redpanda_cluster
+      type: cluster
 
   metadata:
     topics_prefix: metadata
@@ -163,43 +165,42 @@ redpanda:
     type: cloud
     change_client_id: change
     cloud: standard_cloud_eu
-    metadata_topic_specs: standard_metadata_topic_specs_production
+    metadata_topics_specs: standard_metadata_topics_specs_production
 
   cloud_cluster_eu_stage:
     type: cloud
     change_client_id: change
     cloud: standard_cloud_eu
-    metadata_topic_specs: standard_metadata_topic_specs_stage
+    metadata_topics_specs: standard_metadata_topics_specs_stage
 
   local_single_node_cluster_development:
     type: polytope
     module: redpanda
     change_client_id: _default
-    metadata_topic_specs: standard_metadata_topic_specs_development
+    metadata_topics_specs: standard_metadata_topics_specs_development
 
   local_single_node_cluster_test:
     type: polytope
     module: redpanda
     change_client_id: _default
-    metadata_topic_specs: standard_metadata_topic_specs_test
+    metadata_topics_specs: standard_metadata_topics_specs_test
 
   cloud_eu:
     type: aws
     region: 'eu-central-1'
 
-  metadata_topic_specs_production:
+  metadata_topics_specs_production:
     partitions: 3
     replication_factor: 3
 
-  metadata_topic_specs_stage:
+  metadata_topics_specs_stage:
     partitions: 2
     replication_factor: 2
 
-  metadata_topic_specs_development:
+  metadata_topics_specs_development:
     partitions: 1
     replication_factor: 1
 
-  metadata_topic_specs_test:
+  metadata_topics_specs_test:
     partitions: 1
     replication_factor: 1
-

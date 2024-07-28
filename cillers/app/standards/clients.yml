@@ -1,5 +1,4 @@
 couchbase:
-
   local_and_capella:
     production: standard_production_capella
     stage: standard_stage_capella
@@ -143,4 +142,3 @@ redpanda:
       sasl_mechanism: SCRAM-SHA-256
       sasl_plain_username: !env REDPANDA_STAGE_CHANGE_USERNAME
       sasl_plain_password: !env REDPANDA_STAGE_CHANGE_PASSWORD
-

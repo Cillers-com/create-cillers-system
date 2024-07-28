@@ -1,18 +1,20 @@
+import time
 from couchbase.cluster import Cluster, ClusterOptions, ClusterTimeoutOptions
 from couchbase.auth import PasswordAuthenticator
 from couchbase.exceptions import CouchbaseException
 from couchbase.options import WaitUntilReadyOptions
-from couchbase.service_types import ServiceType
+from couchbase.diagnostics import ServiceType
 
-def get_cluster(protocol: str, host: str, username: str, password: str, timeout_seconds: int) -> Cluster:
+def get_cluster(client_params: dict) -> Cluster:
     max_retries = 20
-    connection_string = f"{protocol}://{host}"
-    timeout_options = ClusterTimeoutOptions(connect=timeout_seconds)
-    auth_options = PasswordAuthenticator(username, password)
+    timeout_options = ClusterTimeoutOptions(connect=5*60)
+    auth_options = PasswordAuthenticator(
+        client_params['credentials']['username'], 
+        client_params['credentials']['password'])
     options = ClusterOptions(auth_options, timeout_options=timeout_options)
     for attempt in range(max_retries):
         try:
-            cluster = Cluster(connection_string, options)
+            cluster = Cluster(client_params['connection_string'], options)
             return cluster
         except Exception as e:
             if attempt == max_retries - 1:
@@ -21,7 +23,7 @@ def get_cluster(protocol: str, host: str, username: str, password: str, timeout_
             time.sleep(1)
     assert False
 
-def wait_until_ready(cluster: Cluster, timeout_seconds: int):
+def wait_until_ready_for_change(cluster: Cluster, timeout_seconds: int):
     print("Connecting to Couchbase ...")
     service_types = [
             ServiceType.Management,
@@ -29,13 +31,15 @@ def wait_until_ready(cluster: Cluster, timeout_seconds: int):
             ServiceType.Query
         ]
     options = WaitUntilReadyOptions(service_types=service_types)
-    for attempt in range(max_retries):
+    max_retries = 200
+    retry_delay = 1
+    for _ in range(max_retries):
         try:
-            cluster.wait_until_ready(timeout_option, options)
+            timeout_options = ClusterTimeoutOptions(connect=timeout_seconds)
+            cluster.wait_until_ready(timeout_options, options)
             print("Couchbase is ready.")
             return
-        except Exception as e:
+        except CouchbaseException as e:
             print(f"Retrying SHOULDN'T HAVE TO TO THIS  ... {e}")
             time.sleep(retry_delay)
     raise Exception("Failed to connnect to Couchbase.")
-

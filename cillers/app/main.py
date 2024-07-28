@@ -1,16 +1,14 @@
-import os
 import sys
-import time
 import logging
-import rich.traceback
 from typing import Dict
+import rich
 from .config import config
 from .datastores.couchbase import controller as couchbase_controller
 from .datastores.redpanda import controller as redpanda_controller
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
@@ -21,16 +19,15 @@ datastore_controller_switch = {
     'redpanda': redpanda_controller
 }
 
-def get_datastore_controller(datastore_type):
+def get_datastore_controller(datastore_type: str) -> Dict:
     datastore_controller = datastore_controller_switch[datastore_type]
     if not datastore_controller:
         raise KeyError(f"No such datastore controller: {datastore_type}")
     return datastore_controller
 
 def change_cluster(datastore_type: str, cluster_id: str):
-    conf = config.ClusterChangeConfig(datastore_type, cluster_id)
     controller = get_datastore_controller(datastore_type)
-    controller.change_cluster(conf)
+    controller.change_cluster(cluster_id)
 
 def change():
     env_conf = config.get_env_conf()
@@ -43,4 +40,3 @@ def change():
 def validate_config():
     # Config is validated when the config module is imported
     sys.exit(0)
-

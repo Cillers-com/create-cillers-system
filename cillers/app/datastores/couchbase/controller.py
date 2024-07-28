@@ -1,8 +1,8 @@
-from config import config
 from .models import init, change
+from .cluster_config import CouchbaseClusterConfig
 
-def change_cluster(conf: ClusterChangeConfig):
-    print(f"Couchbase change operator in progress")
+def change_cluster(cluster_id: str):
+    print("Couchbase change operator in progress")
+    conf = CouchbaseClusterConfig(cluster_id)
     cluster = init.ensure_ready_for_change(conf)
-    change.run(cluster, conf.data_structures, conf.metadata, conf.env_id)
-
+    change.run(cluster, conf)

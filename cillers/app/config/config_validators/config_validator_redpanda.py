@@ -1,8 +1,4 @@
-from .config_validator_helpers import (
-    assert_valid_dict,
-    assert_valid_typed_dict,
-    assert_list_of_strings
-)
+from .config_validator_helpers import assert_valid_dict
 
 def assert_valid_data_structures(conf):
     assert isinstance(conf, dict)
@@ -23,4 +19,3 @@ def assert_valid(conf):
         'metadata': assert_valid_metadata,
         'clusters': assert_valid_clusters
     })
-
