@@ -6,8 +6,8 @@ import yaml
 logger = logging.getLogger(__name__)
 
 file_paths = { 
-    'standards_clients': './app/standards_clients.yml',
-    'standards_datastores': './app/standards_datastores.yml',
+    'standards_clients': './app/standards/clients.yml',
+    'standards_datastores': './app/standards/datastores.yml',
     'config_environments': '/root/conf/environments.yml',
     'config_clients': '/root/conf/clients.yml',
     'config_datastores': '/root/conf/datastores.yml'

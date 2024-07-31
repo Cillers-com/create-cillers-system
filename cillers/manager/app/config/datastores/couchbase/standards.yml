@@ -1,0 +1,225 @@
+
+couchbase:
+
+  local_and_capella_eu:
+    shared:
+      metadata: standard_metadata
+      data_structures: standard_data_structures
+      capella_projects: standard_capella_projects
+      services: standard_services
+    clusters: standard_clusters_local_and_capella_eu
+
+  metadata:
+    bucket: main
+    scope: metadata
+
+  data_structures:
+    main:
+      type: cluster
+
+  capella_projects:
+    production: 
+      organization_id: !env CAPELLA_MAIN_ORGANIZATION_ID_PRODUCTION
+      project_id: !env CAPELLA_MAIN_PROJECT_ID_PRODUCTION
+    stage:
+      organization_id: !env CAPELLA_MAIN_ORGANIZATION_ID_STAGE
+      project_id: !env CAPELLA_MAIN_PROJECT_ID_STAGE
+
+  services: 
+    - kv 
+    - n1ql
+    - index
+    - fts
+    - cbas
+    - eventing
+
+  clusters_local_and_capella_eu:
+    production: 
+      main: standard_capella_cluster_eu_production
+    stage: 
+      main: standard_capella_cluster_eu_stage
+    development: 
+      main: standard_server_local_single_node_development
+    test: 
+      main: standard_server_local_single_node_test
+
+  capella_cluster_eu_production:
+    type: capella
+    capella_project_id: production 
+    change_client_id: change
+    cloud: standard_cloud_eu
+    spec: standard_cluster_specs_capella_production
+    service_groups: standard_service_groups_production
+    metadata_bucket_spec: standard_metadata_bucket_specs_production
+    connection: standard_connection_capella_eu_production
+    credentials: standard_credentials_capella_eu_production
+
+  capella_cluster_eu_stage:
+    type: capella
+    capella_project_id: stage 
+    change_client_id: change
+    cloud: standard_cloud_eu
+    spec: standard_cluster_specs_capella_stage
+    service_groups: standard_service_groups_stage
+    metadata_bucket_spec: standard_metadata_bucket_specs_stage
+    connection: standard_connection_capella_eu_stage
+    credentials: standard_credentials_capella_eu_stage
+
+  server_local_single_node_development:
+    type: server_local_single_node 
+    module: couchbase
+    change_client_id: _default
+    spec: standard_cluster_specs_local_development
+    metadata_bucket_spec: standard_metadata_bucket_specs_development
+    connection: standard_connection_server_local_single_node_development
+    credentials: standard_credentials_server_local_single_node_development
+
+  server_local_single_node_test:
+    type: server_local_single_node
+    module: couchbase
+    change_client_id: _default
+    spec: standard_cluster_specs_local_test
+    metadata_bucket_spec: standard_metadata_bucket_specs_test
+    connection: standard_connection_server_local_single_node_test
+    credentials: standard_credentials_server_local_single_node_test
+
+  cloud_eu:
+    provider: aws
+    region: 'eu-central-1'
+    
+  cluster_specs_capella_production:
+    type: capella_multi_node
+    size: small
+    service_tier: developer_pro
+    auto_failover: true
+    auto_failover_timeout: 30
+
+  cluster_specs_capella_stage:
+    type: capella_multi_node
+    size: small 
+    service_tier: developer_pro
+    auto_failover: true
+    auto_failover_timeout: 30
+
+  cluster_specs_local_development:
+    type: server_single_node
+    ram: 4096
+    index_ram: 1024
+    fts_ram: 512
+
+  cluster_specs_local_test:
+    type: server_single_node
+    ram: 4096
+    index_ram: 1024
+    fts_ram: 512
+
+  service_groups_production:
+    main:
+      services: ['kv', 'index', 'n1ql', 'fts']
+      nodes: 3
+      cpu: 16
+      ram: 32
+      disk: 
+        storage: 50
+        type: gp3
+        iops: 3000
+
+  service_groups_stage:
+    main:
+      services: ['kv', 'index', 'n1ql', 'fts']
+      nodes: 3
+      cpu: 16
+      ram: 32
+      disk: 
+        storage: 50
+        type: gp3
+        iops: 3000
+
+  metadata_bucket_specs_production:
+    ram: 512
+    replicas: 2
+    durability: majority
+
+  metadata_bucket_specs_stage:
+    ram: 512
+    replicas: 2
+    durability: majority
+
+  metadata_bucket_specs_development:
+    ram: 256 
+    replicas: 0
+    durability: none
+
+  metadata_bucket_specs_test:
+    ram: 256 
+    replicas: 0
+    durability: none
+
+  local_and_capella:
+    production: standard_production_capella
+    stage: standard_stage_capella
+    development: standard_development_local
+    test: standard_test_local
+
+  production_capella:
+    connection: standard_production_connection_capella
+    credentials: standard_production_credentials
+
+  stage_capella:
+    connection: standard_stage_connection_capella
+    credentials: standard_stage_credentials
+
+  development_local:
+    connection: standard_development_connection_local
+    credentials: standard_default_credentials
+
+  test_local:
+    connection: standard_test_connection_local
+    credentials: standard_default_credentials
+
+  production_connection_capella:
+    protocol: couchbases
+    host: !env COUCHBASE_PRODUCTION_HOST
+    port: 18091
+
+  stage_connection_capella:
+    protocol: couchbases
+    host: !env COUCHBASE_STAGE_HOST
+    port: 18091
+
+  development_connection_local:
+    protocol: couchbase
+    host: couchbase
+    port: 8091
+
+  test_connection_local:
+    protocol: couchbase
+    host: couchbase
+    port: 8092
+
+  production_credentials:
+    api:
+      type: basic
+      username: !env COUCHBASE_PRODUCTION_API_USERNAME
+      password: !env COUCHBASE_PRODUCTION_API_PASSWORD
+    change:
+      type: basic
+      username: !env COUCHBASE_PRODUCTION_CHANGE_USERNAME
+      password: !env COUCHBASE_PRODUCTION_CHANGE_PASSWORD
+
+  stage_credentials:
+    api:
+      type: basic
+      username: !env COUCHBASE_STAGE_API_USERNAME
+      password: !env COUCHBASE_STAGE_API_PASSWORD
+    change:
+      type: basic
+      username: !env COUCHBASE_STAGE_CHANGE_USERNAME
+      password: !env COUCHBASE_STAGE_CHANGE_PASSWORD
+
+  default_credentials:
+    _default: 
+      type: basic
+      username: admin
+      password: password 
+        

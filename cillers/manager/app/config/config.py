@@ -1,15 +1,37 @@
 import os
-from . import config_parser
+from . import config_parser, helpers
+from .helpers import filepaths
+from . import yaml_parser
 from .config_validators import config_validator
+from .datastores.couchbase.main import CouchbaseConfig
+from .datastores.redpanda.main import RedpandaConfig
+
+conf_filepath = '/root/conf/environments.yml'
+
+class CillersConfig:
+    env_id: str
+    environments: list[str]
+    datastores: dict
+
+    def __init__(self):
+        self.env_id = os.getenv('ENVIRONMENT')
+        conf = yaml_parser.load(conf_filepath) 
+        self.environments = conf['environments']
+        self.datastores = {}
+        if 'couchbase' in conf['datastores']:
+            self.datastores['couchbase'] = CouchbaseConfig(self.environments)
+        if 'redpanda' in conf['datastores']:
+            self.datastores['redpanda'] = RedpandaConfig(self.environments)
+
+config = CillersConfig()
+
+
 
 config = config_parser.parse()
 config_validator.assert_valid(config)
 
 def get_env_conf():
     return config['environments'][get_env_id()]
-
-def get_env_id():
-    return os.getenv("ENVIRONMENT")
 
 def get_datastore_conf(datastore_id):
     conf = config['datastores'][datastore_id]
@@ -85,3 +107,4 @@ def get_data_structures_conf(datastore_type):
 
 def get_services_conf(datastore_type):
     return get_datastore_conf(datastore_type)['services']
+

@@ -5,7 +5,7 @@ from .config_validator_helpers import (
 
 def assert_valid_connection(conf):
     assert_valid_dict(conf, {
-        'protocol': str,
+        'protocol?': str,
         'host': str,
         'port?': int
     })
@@ -24,7 +24,8 @@ def assert_valid_credentials_instance(conf):
 
 def assert_valid_credentials(conf):
     for _, instance_conf in conf.items():
-        assert_valid_credentials_instance(instance_conf)
+        if instance_conf is not None:
+            assert_valid_credentials_instance(instance_conf)
 
 def assert_valid(conf):
     assert isinstance(conf, dict)
@@ -36,5 +37,6 @@ def assert_valid(conf):
                 'connection': dict, 
                 'credentials': dict
             })
+            print(instance_conf['connection'])
             assert_valid_connection(instance_conf['connection'])
             assert_valid_credentials(instance_conf['credentials'])

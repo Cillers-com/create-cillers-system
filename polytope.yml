@@ -46,7 +46,7 @@ templates:
   - web-app-aihack
 
 modules:
-  - id: cillers 
+  - id: cillers-manager
     info: The Cillers Manager 
     module: polytope/python
     params: 
@@ -65,7 +65,7 @@ modules:
     args: 
       id: "#pt-param id" 
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./cillers }
+      code: { type: host, path: ./cillers/manager }
       cmd: "#pt-clj (str \"./bin/run \" (:command params))" 
       env:
         - { name: ENVIRONMENT, value: "#pt-param environment" }
@@ -111,7 +111,7 @@ modules:
 
   - id: cillers-change
     info: The Cillers Change Maker
-    module: cillers
+    module: cillers-manager
     params: 
       - id: environment
         info: The environment to manage.
@@ -123,7 +123,7 @@ modules:
 
   - id: cillers-validate-conf 
     info: The Cillers Change Maker
-    module: cillers
+    module: cillers-manager
     params: 
       - id: environment
         info: The environment to manage.

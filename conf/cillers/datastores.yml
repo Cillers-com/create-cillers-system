@@ -1,3 +1,4 @@
+#
 # Configuration for the data containers, which are services that store data in some form. 
 #
 # Structure: 
@@ -61,15 +62,15 @@ redpanda: standard_local_and_cloud_eu
 #couchbase:
 #  data_structures: 
 #    main:
-#      type: cluster
+#      type: couchbase_cluster
 #      bucket_prefixes_to_exclude: tenant
 #      scope_prefixes_to_exclude:
 #        - tenant
 #    tenant_buckets:
-#      type: bucket_clones
+#      type: couchbase_bucket_clones
 #      prefix: tenant
 #    tenant_scopes:
-#      type: scope_clones
+#      type: couchbase_scope_clones
 #      prefix: tenant
 #      bucket: main
 #  metadata:
@@ -78,7 +79,7 @@ redpanda: standard_local_and_cloud_eu
 #  capella_projects: 
 #    main:
 #      organization_id: ffffffff-aaaa-1414-eeee-000000000000
-#      project_id: 4ead0ff6-869a-41bc-a84a-3be557b1c355
+#     project_id: 4ead0ff6-869a-41bc-a84a-3be557b1c355
 #  clusters:
 #    production_eu:
 #      type: capella
