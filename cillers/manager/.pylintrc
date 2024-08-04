@@ -441,7 +441,9 @@ disable=raw-checker-failed,
         missing-class-docstring,
         broad-exception-raised,
         broad-exception-caught,
-        trailing-newlines
+        trailing-newlines,
+        too-few-public-methods,
+        too-many-arguments
 
 
 # Enable the message, report, category or checker with the given id(s). You can

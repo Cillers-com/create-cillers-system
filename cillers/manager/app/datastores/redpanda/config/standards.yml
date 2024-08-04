@@ -1,0 +1,217 @@
+local:
+  shared: standard_shared_local
+  clusters: standard_clusters_local
+
+local_and_cloud:
+  shared: standard_shared_local_and_cloud
+  clusters: standard_clusters_local_and_cloud
+
+local_and_cloud_aws_eu_central:
+  shared: standard_shared_local_and_cloud
+  clusters: standard_clusters_local_and_cloud_aws_eu_central
+
+shared_local:
+  metadata: standard_metadata
+  data_structures: standard_data_structures
+  services: standard_services
+
+shared_local_and_cloud:
+  metadata: standard_metadata
+  data_structures: standard_data_structures
+  services: standard_services
+
+local_and_cloud_eu:
+  shared:
+  data_structures: standard_data_structure
+  metadata: standard_metadata
+  clusters: standard_clusters_local_and_cloud_eu
+
+data_structures:
+  main:
+    type: cluster
+
+metadata:
+  prefix: cillers_metadata
+
+clusters_local:
+  development:
+    main: standard_cluster_local_development
+  test:
+    main: standard_cluster_local_test
+
+clusters_local_and_cloud:
+  production:
+    main: standard_cluster_cloud_production
+  stage:
+    main: standard_cluster_cloud_stage
+  development:
+    main: standard_cluster_local_development
+  test:
+    main: standard_cluster_local_test
+
+clusters_local_and_cloud_aws_eu_central:
+  production:
+    main: standard_cluster_cloud_aws_eu_central_production
+  stage:
+    main: standard_cluster_cloud_aws_eu_central_stage
+  development:
+    main: standard_cluster_local_development
+  test:
+    main: standard_cluster_local_test
+
+cluster_local_development:
+  type: local
+  module: redpanda 
+  change_client_id: null
+  spec: standard_cluster_spec_local
+  topic_spec_metadata: standard_topic_spec_metadata_development
+  connection: standard_connection_local_development
+  credentials: standard_credentials_default
+
+cluster_local_test:
+  type: local
+  module: redpanda 
+  change_client_id: null
+  spec: standard_cluster_spec_local_test
+  topic_spec_metadata: standard_topic_spec_metadata_test
+  connection: standard_connection_local_test
+  credentials: standard_credentials_default
+
+cluster_cloud_production:
+  type: cloud
+  change_client_id: change
+  cloud: standard_cloud
+  spec: standard_cluster_spec_cloud_production
+  topic_spec_metadata: standard_topic_spec_metadata_production
+  connection: standard_connection_cloud_production
+  credentials: standard_credentials_cloud_production
+
+cluster_cloud_stage:
+  type: cloud
+  change_client_id: change
+  cloud: standard_cloud
+  spec: standard_cluster_spec_cloud_stage
+  topic_spec_metadata: standard_topic_spec_metadata_stage
+  connection: standard_connection_cloud_stage
+  credentials: standard_credentials_cloud_stage
+
+cluster_cloud_aws_eu_central_production:
+  type: cloud
+  change_client_id: change
+  cloud: standard_cloud_aws_eu_central
+  spec: standard_cluster_spec_cloud_production
+  topic_spec_metadata: standard_topic_spec_metadata_production
+  connection: standard_connection_cloud_aws_eu_central_production
+  credentials: standard_credentials_cloud_aws_eu_central_production
+
+cluster_cloud_aws_eu_central_central_stage:
+  type: cloud
+  change_client_id: change
+  cloud: standard_cloud_aws_eu_central
+  spec: standard_cluster_spec_cloud_stage
+  topic_spec_metadata: standard_topic_spec_metadata_stage
+  connection: standard_connection_cloud_aws_eu_central_stage
+  credentials: standard_credentials_cloud_aws_eu_central_stag
+
+cloud:
+  provider: !env REDPANDA_CLOUD_PROVIDER
+  region: !ENV REDPANDA_CLOUD_REGION
+
+cloud_aws_eu_central:
+  provider: aws
+  region: 'eu-central-1'
+  
+cluster_spec_cloud_production:
+  type: cloud_multi_node
+  size: small
+  service_tier: developer_pro
+  auto_failover: true
+  auto_failover_timeout: 30
+
+cluster_spec_cloud_stage:
+  type: cloud_multi_node
+  size: small 
+  service_tier: developer_pro
+  auto_failover: true
+  auto_failover_timeout: 30
+
+cluster_spec_local:
+  type: server_single_node
+  ram: 4096
+  index_ram: 1024
+  fts_ram: 512
+
+cluster_spec_local_test:
+  type: server_single_node
+  ram: 4096
+  index_ram: 1024
+  fts_ram: 512
+
+topic_spec_metadata_production:
+  partitions: 3
+  replication_factor: 3
+
+topic_spec_metadata_stage:
+  partitions: 2
+  replication_factor: 2
+
+topic_spec_metadata_development:
+  partitions: 1
+  replication_factor: 1
+
+topic_spec_metadata_test:
+  partitions: 1
+  replication_factor: 1
+
+connection_cloud_production:
+  bootstrap_servers:
+    - host: !env REDPANDA_PRODUCTION_HOST
+      port: !env REDPANDA_PRODUCTION_PORT
+  security_protocol: SSL
+  ssl_ca_location: !env REDPANDA_PRODUCTION_SSL_CA_LOCATION
+  ssl_certificate_location: !env REDPANDA_PRODUCTION_SSL_CERTIFICATE_LOCATION
+  ssl_key_location: !env REDPANDA_PRODUCTION_SSL_CERT
+
+connection_cloud_stage:
+  bootstrap_servers:
+    - host: !env REDPANDA_STAGE_HOST
+      port: !env REDPANDA_STAGE_PORT
+  security_protocol: SSL
+  ssl_ca_location: !env REDPANDA_STAGE_SSL_CA_LOCATION
+  ssl_certificate_location: !env REDPANDA_STAGE_SSL_CERTIFICATE_LOCATION
+  ssl_key_location: !env REDPANDA_STAGE_SSL_CERT
+
+connection_local_development:
+  bootstrap_servers:
+    - host: !env REDPANDA_DEVELOPMENT_HOST
+      port: !env REDPANDA_DEVELOPMENT_PORT 
+
+connection_local_test:
+  bootstrap_servers:
+    - host: !env REDPANDA_TEST_HOST
+      port: !env REDPANDA_TEST_PORT
+
+credentials_production:
+  api:
+    security_protocol: SASL_PLAINTEXT
+    sasl_mechanism: SCRAM-SHA-256
+    sasl_plain_username: !env REDPANDA_PRODUCTION_API_USERNAME
+    sasl_plain_password: !env REDPANDA_PRODUCTION_API_PASSWORD
+  change:
+    security_protocol: SASL_PLAINTEXT
+    sasl_mechanism: SCRAM-SHA-256
+    sasl_plain_username: !env REDPANDA_PRODUCTION_CHANGE_USERNAME
+    sasl_plain_password: !env REDPANDA_PRODUCTION_CHANGE_PASSWORD
+
+credentials_stage:
+  api:
+    security_protocol: SASL_PLAINTEXT
+    sasl_mechanism: SCRAM-SHA-256
+    sasl_plain_username: !env REDPANDA_STAGE_API_USERNAME
+    sasl_plain_password: !env REDPANDA_STAGE_API_PASSWORD
+  change:
+    security_protocol: SASL_PLAINTEXT
+    sasl_mechanism: SCRAM-SHA-256
+    sasl_plain_username: !env REDPANDA_STAGE_CHANGE_USERNAME
+    sasl_plain_password: !env REDPANDA_STAGE_CHANGE_PASSWORD
+

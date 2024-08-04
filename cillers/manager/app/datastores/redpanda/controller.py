@@ -1,10 +1,13 @@
-from config import config
-from .models import init, change
-from .cluster_change_config import RedpandaClusterConfig
+from .models.model_cluster import ModelCluster
+from .config_redpanda import ConfigRedpanda
 
-def change_cluster(cluster_id: str):
-    print(f"Redpanda change operator in progress")
-    conf = config.ClusterChangeConfig('redpanda', cluster_id)
-    admin_client = init.ensure_ready_for_change(conf, 5*60)
-    change.run(conf)
+class ControllerRedpanda:
+    conf: ConfigRedpanda
 
+    def __init__(self):
+        self.conf = ConfigRedpanda()
+
+    def change(self):
+        print("Redpanda change in progress")
+        for _, cluster_conf in self.conf.clusters_in_current_env().items():
+            ModelCluster(cluster_conf).change()

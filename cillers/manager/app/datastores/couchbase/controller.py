@@ -1,8 +1,13 @@
-from .models import init, change
-from .cluster_config import CouchbaseClusterConfig
+from .models.model_cluster import ModelCluster
+from .config_couchbase import ConfigCouchbase
 
-def change_cluster(cluster_id: str):
-    print("Couchbase change operator in progress")
-    conf = CouchbaseClusterConfig(cluster_id)
-    cluster = init.ensure_ready_for_change(conf)
-    change.run(cluster, conf)
+class ControllerCouchbase:
+    conf: ConfigCouchbase
+
+    def __init__(self):
+        self.conf = ConfigCouchbase()
+
+    def change(self):
+        print("Couchbase change in progress")
+        for _, cluster_conf in self.conf.clusters_in_current_env().items():
+            ModelCluster(cluster_conf).change()
