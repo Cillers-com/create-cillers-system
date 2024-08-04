@@ -20,6 +20,7 @@ ruff = "^0.0.277"
 pytest = "^7.4.0"
 ipdb = "^0.13.13"
 ipython = "^8.15.0"
+pylint = "^3.2.6"
 
 [tool.poetry.scripts]
 app = 'app.main:main'

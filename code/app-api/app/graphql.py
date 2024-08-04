@@ -1,95 +1,34 @@
-import asyncio
-import time
-from typing import AsyncGenerator
-from functools import cached_property
-from typing import Dict
 import strawberry
-from strawberry.fastapi import BaseContext, GraphQLRouter
-from strawberry.permission import BasePermission
-from strawberry.exceptions import StrawberryGraphQLError
-from strawberry.types import Info as _Info
-from strawberry.types.info import RootValueType
+from strawberry.tools import merge_types
+from strawberry.fastapi import GraphQLRouter
 import logging
+import importlib
+import pkgutil
+from pathlib import Path
 
 from . import auth, db
+from .context import get_context
 
 logger = logging.getLogger(__name__)
 
-#### Context ####
+resolvers_path = Path(__file__).parent / "resolvers"
 
-class Context(BaseContext):
-    @cached_property
-    def user(self) -> dict | None:
-        if self.request:
-            if auth_ := self.request.headers.get("Authorization"):
-                method, token = auth_.split(" ")
-                if method == 'Bearer':
-                    if data := auth.verify_and_decode_jwt(token):
-                        return data
+classes = {
+    'Query': [],
+    'Mutation': [], 
+    'Subscription': [] 
+}
 
-async def get_context() -> Context:
-    return Context()
+for _, module_name, _ in pkgutil.iter_modules([resolvers_path]):
+    module = importlib.import_module(f"app.resolvers.{module_name}")
+    for attr_name in dir(module):
+        attr = getattr(module, attr_name)
+        if isinstance(attr, strawberry.types.types.Type) and attr_name in classes.keys():
+            classes[attr_name].append(attr)
 
-Info = _Info[Context, RootValueType]
-
-#### Auth ####
-
-class IsAuthenticated(BasePermission):
-    message = "User is not authenticated."
-    error_extensions = {"code": "UNAUTHORIZED"}
-
-    def has_permission(self, source, info: Info, **kwargs):
-        return info.context.user is not None
-
-@strawberry.type
-class Message:
-    message: str
-
-#### Mutations ####
-
-@strawberry.type
-class Mutation:
-    @strawberry.field(permission_classes=[IsAuthenticated])
-    async def add_product(self, name: str) -> db.Product:
-        return db.create_product(name)
-
-    @strawberry.field(permission_classes=[IsAuthenticated])
-    async def remove_product(self, id: str) -> None:
-        db.delete_product(id)
-
-#### Queries ####
-
-@strawberry.type
-class Query:
-    @strawberry.field
-    def products(self) -> list[db.Product]:
-        return db.list_products()
-
-    @strawberry.field(permission_classes=[IsAuthenticated])
-    def hello(self) -> Message:
-        return Message(message="Hej, hej")
-
-#### Subscriptions ####
-
-@strawberry.type
-class Subscription:
-    @strawberry.subscription(permission_classes=[IsAuthenticated])
-    async def product_added(self, info: strawberry.types.Info) -> AsyncGenerator[db.Product, None]:
-        seen = set(p.id for p in db.list_products())
-        while True:
-            current_time = int(time.time())
-            if current_time > info.context.user['exp']:
-                print("Token has expired")
-                await info.context.request.close(code=4403, reason="token_expired")
-                break
-            
-            for p in db.list_products():
-                if p.id not in seen:
-                    seen.add(p.id)
-                    yield p
-            await asyncio.sleep(0.5)
-
-#### API ####
+Query = merge_types("Query", tuple(classes['Query']))
+Mutation = merge_types("Mutation", tuple(classes['Mutation']))
+Subscription = merge_types("Subscription", tuple(classes['Subscription']))
 
 def get_app():
     return GraphQLRouter(

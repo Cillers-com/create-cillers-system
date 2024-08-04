@@ -5,8 +5,16 @@ import strawberry
 import uuid
 import logging
 from .. import couchbase as cb, env
+from ..auth import IsAuthenticated
 
 logger = logging.getLogger(__name__)
+
+def list_items():
+    result = cb.exec(
+        env.get_couchbase_conf(),
+        f"SELECT name, META().id FROM {env.get_couchbase_bucket()}._default.items"
+    )
+    return [Item(**r) for r in result]
 
 @strawberry.type
 class Item:
@@ -25,7 +33,7 @@ class Query:
 
 @strawberry.type
 class Mutation:
-    @strawberry.field
+    @strawberry.field(permission_classes=[IsAuthenticated])
     async def items_create(self, items: List[ItemCreateInput]) -> List[Item]:
         created_items = []
         for item in items:
@@ -39,7 +47,7 @@ class Mutation:
             created_items.append(created_item)
         return created_items
 
-    @strawberry.field
+    @strawberry.field(permission_classes=[IsAuthenticated])
     async def items_remove(self, ids: List[str]) -> List[str]:
         for id in ids:
             cb.remove(env.get_couchbase_conf(),
@@ -50,7 +58,7 @@ class Mutation:
 
 @strawberry.type
 class Subscription:
-    @strawberry.subscription
+    @strawberry.subscription(permission_classes=[IsAuthenticated])
     async def items_created(self, info: strawberry.types.Info) -> AsyncGenerator[Item, None]:
         seen = set(p.id for p in list_items())
         while True:
@@ -60,10 +68,3 @@ class Subscription:
                     seen.add(p.id)
                     yield p
             await asyncio.sleep(0.5)
-
-def list_items():
-    result = cb.exec(
-        env.get_couchbase_conf(),
-        f"SELECT name, META().id FROM {env.get_couchbase_bucket()}._default.items"
-    )
-    return [Item(**r) for r in result]

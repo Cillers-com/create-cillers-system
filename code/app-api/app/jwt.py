@@ -34,3 +34,4 @@ def verify_and_decode_jwt(token: str) -> Optional[dict]:
     except jwt.PyJWTError:
         logger.exception("Failed to decode JWT")
         pass
+

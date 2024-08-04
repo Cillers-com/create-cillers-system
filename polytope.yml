@@ -62,28 +62,6 @@ modules:
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
 
-  - id: app-api-couchbase-aihack
-    info: The App API
-    module: polytope/python
-    args: 
-      id: app-api-couchbase-aihack
-      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./code/couchbase-aihack/app-api }
-      cmd: ./bin/run
-      restart: { policy: on-failure }
-      services: 
-        - { id: "app-api", ports: [{protocol: http, port: 4000}] }
-      env:
-        - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
-        - { name: COUCHBASE_USERNAME, value: admin }
-        - { name: COUCHBASE_PASSWORD, value: password }
-        - { name: HTTP_PORT, value: 4000 } 
-        - { name: HTTP_DEBUG, value: false } 
-        - { name: HTTP_AUTORELOAD, value: true } 
-        - { name: HTTP_GRAPHQL_UI, value: false } 
-      mounts:
-        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
-
   - id: web-app
     info: The Web App
     module: polytope/node
@@ -97,28 +75,6 @@ modules:
         - { name: HOST, value: 0.0.0.0 } 
         - { name: REACT_APP_API_BASE_URL, value: http://localhost:8080/api } 
         - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: http://localhost:8080/oauth-agent } 
-      restart:
-        policy: on-failure
-      services:
-        - id: web-app 
-          ports: [{protocol: http, port: 3000}]
-      mounts:
-        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
-        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
-        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
-
-  - id: web-app-couchbase-aihack
-    info: The Web App
-    module: polytope/node
-    args:
-      id: web-app 
-      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: { type: host, path: ./code/couchbase-aihack/web-app }
-      cmd: ./bin/run
-      env:
-        - { name: PORT, value: 3000 } 
-        - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: http://localhost:4000/api } 
       restart:
         policy: on-failure
       services:
@@ -243,15 +199,6 @@ modules:
       username: admin
       password: password
       retries: 20
-
-  - id: init-couchbase-cluster-aihack
-    module: polytope/couchbase!init-cluster
-    args:
-      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
-      cluster: couchbase:8091
-      username: admin
-      password: password
-      retries: 20
       services: [data, index, query, fts, eventing]
 
   - id: create-couchbase-bucket
@@ -265,19 +212,6 @@ modules:
       retries: 20
 
   - id: init-couchbase-bucket
-    module: polytope/couchbase!cbq
-    args:
-      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
-      cluster: couchbase
-      username: admin
-      password: password
-      script: |
-        CREATE COLLECTION main._default.products IF NOT EXISTS;
-        CREATE PRIMARY INDEX IF NOT EXISTS ON main;
-        CREATE PRIMARY INDEX IF NOT EXISTS ON main._default.products;
-      retries: 20
-
-  - id: init-couchbase-bucket-aihack
     module: polytope/couchbase!cbq
     args:
       image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
@@ -338,16 +272,16 @@ modules:
       image: gcr.io/arched-inkwell-420116/curl:latest
       host: kafka-connect
       connectors:
-        - name: couchbase-products-sink
+        - name: couchbase-items-sink
           config:
-            name:                           couchbase-products-sink
+            name:                           couchbase-items-sink
             connector.class:                com.couchbase.connect.kafka.CouchbaseSinkConnector
             tasks.max:                      '2'
-            topics:                         products
+            topics:                         items
             couchbase.seed.nodes:           couchbase
             couchbase.bootstrap.timeout:    10s
             couchbase.bucket:               main
-            couchbase.default.collection:   _default.products
+            couchbase.default.collection:   _default.items
             couchbase.document.id:          ${/id}
             couchbase.username:             admin
             couchbase.password:             password
