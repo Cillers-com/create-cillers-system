@@ -3,7 +3,7 @@
 {
     "name": "Node.js",
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+    "image": "gcr.io/arched-inkwell-420116/node:21.7.0-slim",
 
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     //"forwardPorts": [3000],  // Typically, React apps run on port 3000

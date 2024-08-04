@@ -18,7 +18,6 @@ interface GetItemsQuery {
 
 const Items: React.FC = () => {
   const [newItemText, setNewItemText] = useState('')
-  const [pushToKafka, setPushToKafka] = useState(false)
   const { data, loading, error, subscribeToMore } = useQuery(ITEMS)
   const [addItem] = useMutation(ITEMS_CREATE, { errorPolicy: 'all' })
   const [removeItem] = useMutation(ITEMS_REMOVE)
@@ -53,24 +52,8 @@ const Items: React.FC = () => {
 
   const handleAddItem = async () => {
     if (!newItemText.trim()) return
-    if (pushToKafka) {
-      const response = await fetch('/input/add_item', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newItemText }),
-      })
-      if (response.ok) {
-        setNewItemText('')
-      } else {
-        const errorText = await response.text()
-        console.error('Failed to add item:', errorText)
-      }
-    } else {
-      await addItem({ variables: { items: [{ name: newItemText }] } })
-      setNewItemText('')
-    }
+    await addItem({ variables: { items: [{ name: newItemText }] } })
+    setNewItemText('')
   }
 
   const handleRemoveItem = async (id: string) => {
