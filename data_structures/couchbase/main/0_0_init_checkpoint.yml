@@ -1,0 +1,39 @@
+id: 0
+version: 0.0
+structure:
+  buckets:
+    main:
+      spec:
+        _default:  
+          flush_enabled: false
+          ram_quota_mb: 256
+          num_replicas: 0
+          replica_index:
+          bucket_type:
+          eviction_policy:
+          max_ttl:
+          max_expiry:
+          compression_mode:
+          minimum_durability_level: none
+          storage_backend:
+          history_retention_collection_default:
+          history_retention_bytes:
+          history_retention_duration:
+        production:
+          ram_quota_mb: 512
+          num_replicas: 1
+          minimum_durability_level: majority
+        stage:
+          ram_quota_mb: 512
+          num_replicas: 1
+          minimum_durability_level: majority
+      scopes:
+        _default:
+          collections:
+            items:
+              spec:
+                _default:
+                  max_expiry:
+                  max_ttl:
+                  history:
+

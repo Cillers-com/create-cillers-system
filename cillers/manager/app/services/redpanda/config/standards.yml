@@ -1,0 +1,164 @@
+local:
+  shared: standard.shared_local
+  clusters: standard.clusters_local
+
+local_and_cloud:
+  shared: standard.shared_local_and_cloud
+  clusters: standard.clusters_local_and_cloud
+
+local_and_cloud_aws_eu_central:
+  shared: standard.shared_local_and_cloud
+  clusters: standard.clusters_local_and_cloud_aws_eu_central
+
+shared_local:
+  metadata: standard.metadata
+  data_structures: standard.data_structures
+  services: standard.services
+
+shared_local_and_cloud:
+  metadata: standard.metadata
+  data_structures: standard.data_structures
+  services: standard.services
+
+local_and_cloud_eu:
+  shared:
+  data_structures: standard.data_structure
+  metadata: standard.metadata
+  clusters: standard.clusters_local_and_cloud_eu
+
+data_structures:
+  main:
+    type: cluster
+
+metadata:
+  prefix: cillers_metadata
+
+clusters_local:
+  development:
+    main: standard.cluster_local_development
+  test:
+    main: standard.cluster_local_test
+
+clusters_local_and_cloud:
+  production:
+    main: standard.cluster_cloud_production
+  stage:
+    main: standard.cluster_cloud_stage
+  development:
+    main: standard.cluster_local_development
+  test:
+    main: standard.cluster_local_test
+
+clusters_local_and_cloud_aws_eu_central:
+  production:
+    main: standard.cluster_cloud_aws_eu_central_production
+  stage:
+    main: standard.cluster_cloud_aws_eu_central_stage
+  development:
+    main: standard.cluster_local_development
+  test:
+    main: standard.cluster_local_test
+
+cluster_local_development:
+  type: local
+  module: redpanda 
+  change_client_id: null
+  spec: standard.cluster_spec_local
+  topic_spec_metadata: standard.topic_spec_metadata_development
+  connection: standard.connection_local_development
+  credentials: standard.credentials_default
+
+cluster_local_test:
+  type: local
+  module: redpanda 
+  change_client_id: null
+  spec: standard.cluster_spec_local_test
+  topic_spec_metadata: standard.topic_spec_metadata_test
+  connection: standard.connection_local_test
+  credentials: standard.credentials_default
+
+cluster_cloud_production:
+  type: cloud
+  change_client_id: change
+  cloud: standard.cloud
+  spec: standard.cluster_spec_cloud_production
+  topic_spec_metadata: standard.topic_spec_metadata_production
+  connection: standard.connection_cloud_production
+  credentials: standard.credentials_cloud_production
+
+cluster_cloud_stage:
+  type: cloud
+  change_client_id: change
+  cloud: standard.cloud
+  spec: standard.cluster_spec_cloud_stage
+  topic_spec_metadata: standard.topic_spec_metadata_stage
+  connection: standard.connection_cloud_stage
+  credentials: standard.credentials_cloud_stage
+
+cluster_cloud_aws_eu_central_production:
+  type: cloud
+  change_client_id: change
+  cloud: standard.cloud_aws_eu_central
+  spec: standard.cluster_spec_cloud_production
+  topic_spec_metadata: standard.topic_spec_metadata_production
+  connection: standard.connection_cloud_aws_eu_central_production
+  credentials: standard.credentials_cloud_aws_eu_central_production
+
+cluster_cloud_aws_eu_central_central_stage:
+  type: cloud
+  change_client_id: change
+  cloud: standard.cloud_aws_eu_central
+  spec: standard.cluster_spec_cloud_stage
+  topic_spec_metadata: standard.topic_spec_metadata_stage
+  connection: standard.connection_cloud_aws_eu_central_stage
+  credentials: standard.credentials_cloud_aws_eu_central_stag
+
+cloud:
+  provider: !env REDPANDA_CLOUD_PROVIDER
+  region: !ENV REDPANDA_CLOUD_REGION
+
+cloud_aws_eu_central:
+  provider: aws
+  region: 'eu-central-1'
+  
+cluster_spec_cloud_production:
+  type: cloud_multi_node
+  size: small
+  service_tier: developer_pro
+  auto_failover: true
+  auto_failover_timeout: 30
+
+cluster_spec_cloud_stage:
+  type: cloud_multi_node
+  size: small 
+  service_tier: developer_pro
+  auto_failover: true
+  auto_failover_timeout: 30
+
+cluster_spec_local:
+  type: server_single_node
+  ram: 4096
+  index_ram: 1024
+  fts_ram: 512
+
+cluster_spec_local_test:
+  type: server_single_node
+  ram: 4096
+  index_ram: 1024
+  fts_ram: 512
+
+topic_spec_metadata_production:
+  partitions: 3
+  replication_factor: 3
+
+topic_spec_metadata_stage:
+  partitions: 2
+  replication_factor: 2
+
+topic_spec_metadata_development:
+  partitions: 1
+  replication_factor: 1
+
+topic_spec_metadata_test:
+  partitions: 1
+  replication_factor: 1

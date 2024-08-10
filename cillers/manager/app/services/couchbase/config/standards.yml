@@ -1,0 +1,179 @@
+local:
+  shared: standard.shared_local
+  clusters: standard.clusters_local
+
+local_and_capella:
+  shared: standard.shared_local_and_capella
+  clusters: standard.clusters_local_and_capella
+
+local_and_capella_aws_eu_central:
+  shared: standard.shared_local_and_capella
+  clusters: standard.clusters_local_and_capella_aws_eu_central
+
+shared_local:
+  metadata: standard.metadata
+  services: standard.services
+
+shared_local_and_capella:
+  metadata: standard.metadata
+  capella_projects: standard.capella_projects
+  services: standard.services
+
+metadata:
+  bucket: main
+  scope: cillers_metadata
+
+capella_projects:
+  production: 
+    organization_id: !env CAPELLA_MAIN_ORGANIZATION_ID_PRODUCTION
+    project_id: !env CAPELLA_MAIN_PROJECT_ID_PRODUCTION
+  stage:
+    organization_id: !env CAPELLA_MAIN_ORGANIZATION_ID_STAGE
+    project_id: !env CAPELLA_MAIN_PROJECT_ID_STAGE
+
+services: 
+  - kv 
+  - n1ql
+  - index
+  - fts
+  - cbas
+  - eventing
+
+clusters_local:
+  development:
+    main: standard.cluster_local_development
+  test:
+    main: standard.cluster_local_test
+
+clusters_local_and_capella:
+  production:
+    main: standard.cluster_capella_production
+  stage:
+    main: standard.cluster_capella_stage
+  development:
+    main: standard.cluster_local_development
+  test:
+    main: standard.cluster_local_test
+
+clusters_local_and_capella_aws_eu_central:
+  production:
+    main: standard.cluster_capella_aws_eu_central_production
+  stage:
+    main: standard.cluster_capella_aws_eu_central_stage
+  development:
+    main: standard.cluster_local_development
+  test:
+    main: standard.cluster_local_test
+
+cluster_local_development:
+  type: local
+  module: couchbase
+  manager_client_id: _default
+  spec: standard.cluster_spec_local
+  connection: standard.connection_local_development
+  credentials: standard.credentials_default
+
+cluster_local_test:
+  type: local
+  module: couchbase
+  manager_client_id: _default
+  spec: standard.cluster_spec_local_test
+  connection: standard.connection_local_test
+  credentials: standard.credentials_default
+
+cluster_capella_production:
+  type: capella
+  capella_project_id: production 
+  manager_client_id: cillers_manager
+  cloud: standard.cloud
+  spec: standard.cluster_spec_capella_production
+  service_groups: standard.service_groups_production
+  connection: standard.connection_capella_production
+  credentials: standard.credentials_capella_production
+
+cluster_capella_stage:
+  type: capella
+  capella_project_id: stage 
+  manager_client_id: cillers_manager
+  cloud: standard.cloud
+  spec: standard.cluster_spec_capella_stage
+  service_groups: standard.service_groups_stage
+  connection: standard.connection_capella_stage
+  credentials: standard.credentials_capella_stage
+
+cluster_capella_aws_eu_central_production:
+  type: capella
+  capella_project_id: production 
+  manager_client_id: cillers_manager
+  cloud: standard.cloud_aws_eu_central
+  spec: standard.cluster_spec_capella_production
+  service_groups: standard.service_groups_production
+  connection: standard.connection_capella_aws_eu_central_production
+  credentials: standard.credentials_capella_aws_eu_central_production
+
+cluster_capella_aws_eu_central_central_stage:
+  type: capella
+  capella_project_id: stage 
+  manager_client_id: cillers_manager
+  cloud: standard.cloud_aws_eu_central
+  spec: standard.cluster_spec_capella_stage
+  service_groups: standard.service_groups_stage
+  connection: standard.connection_capella_aws_eu_central_stage
+  credentials: standard.credentials_capella_aws_eu_central_stage
+
+cloud:
+  provider: !env COUCHBASE_CLOUD_PROVIDER
+  region: !ENV COUCHBASE_CLOUD_REGION
+
+cloud_aws_eu_central:
+  provider: aws
+  region: 'eu-central-1'
+  
+cluster_spec_capella_production:
+  type: capella_multi_node
+  size: small
+  service_tier: developer_pro
+  auto_failover: true
+  auto_failover_timeout: 30
+
+cluster_spec_capella_stage:
+  type: capella_multi_node
+  size: small 
+  service_tier: developer_pro
+  auto_failover: true
+  auto_failover_timeout: 30
+
+cluster_spec_local:
+  type: server_single_node
+  ram: 4096
+  index_ram: 1024
+  fts_ram: 512
+
+cluster_spec_local_test:
+  type: server_single_node
+  ram: 4096
+  index_ram: 1024
+  fts_ram: 512
+
+service_groups_production:
+  main:
+    services: ['kv', 'index', 'n1ql', 'fts']
+    nodes: 3
+    cpu: 16
+    ram: 32
+    disk: 
+      storage: 50
+      type: gp3
+      iops: 3000
+
+service_groups_stage:
+  main:
+    services: ['kv', 'index', 'n1ql', 'fts']
+    nodes: 3
+    cpu: 16
+    ram: 32
+    disk: 
+      storage: 50
+      type: gp3
+      iops: 3000
+

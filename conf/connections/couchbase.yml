@@ -1,0 +1,24 @@
+production:
+  type: url_components
+  protocol: couchbases
+  host: xxx 
+  port: 18091
+
+stage:
+  type: url_components
+  protocol: couchbases
+  host: xxx 
+  port: 18091
+
+development:
+  type: url_components
+  protocol: couchbase
+  host: couchbase
+  port: 8091
+
+test:
+  type: url_components
+  protocol: couchbase
+  host: couchbase
+  port: 8092
+

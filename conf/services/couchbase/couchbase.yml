@@ -1,0 +1,97 @@
+metadata_bucket: main
+clusters:
+  development:
+    main: __spec.cluster_local_development
+
+specs:
+  capella:
+    organization_id: f43b194e-4656-4b3c-adbd-a589fde99712
+    project_id: 05df842c-2f4f-47ec-9e98-eb1091ca92cc   
+    couchbase_server:
+      version: 7.6
+    cloud_provider:
+      type: aws
+      region: eu-central-1 
+  
+  services:
+    - kv 
+    - n1ql
+    - index
+    - fts
+
+  cluster_local_development:
+    type: local
+    params: __spec.cluster_params_local
+    connection: __connections.couchbase.local_development
+    credentials: __credentials.couchbase._default
+    credentials_id_cillers_manager: _default
+
+  cluster_local_test:
+    type: local
+    params: __spec.cluster_params_local
+    connection: __connections.couchbase.local_test
+    credentials: __credentials.couchbase.default
+    credentials_id_cillers_manager: _default
+
+  cluster_capella_production:
+    type: capella
+    organization_id: __spec.capella.organization_id
+    project_id: __spec.capella.project_id 
+    params: __spec.cluster_params_capella_production
+    connection: __connections.couchbase.capella_production
+    credentials: __credentials.couchbase.capella_production
+    credentials_id_cillers_manager: cillers_manager
+
+  cluster_capella_stage:
+    type: capella
+    organization_id: __spec.capella.organization_id
+    project_id: __spec.capella.project_id 
+    params: __spec.cluster_params_capella_stage
+    connection: __connections.couchbase.capella_stage
+    credentials: __credentials.couchbase.capella_stage
+    credentials_id_cillers_manager: cillers_manager
+
+  cluster_params_local:
+    services: __spec.services
+
+  cluster_params_capella_production:
+    name: production_main
+    description: The main production cluster.
+    cloud_provider: __spec.capella.cloud_provider
+    couchbase_server: __spec.capella.server
+    availability:
+      type: single
+    support:
+      plan: pro developer 
+    service_groups:
+      - num_of_nodes: 3
+        services: __spec.services
+        node:
+          compute:
+            cpu: 4
+            ram: 16
+          disk:
+            type: gp3
+            storage: 50
+            iops: 3000
+
+  cluster_params_capella_stage:
+    name: stage_main
+    description: The main stage cluster.
+    cloud_provider: __spec.capella.cloud_provider 
+    couchbase_server: __spec.capella.server
+    availability:
+      type: single
+    support:
+      plan: pro developer
+    service_groups:
+      - num_of_nodes: 3
+        services: __spec.services
+        node:
+          compute:
+            cpu: 4
+            ram: 16
+          disk:
+            type: gp3
+            storage: 50
+            iops: 3000

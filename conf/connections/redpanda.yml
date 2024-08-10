@@ -1,0 +1,33 @@
+production:
+  type: kafka
+  bootstrap_servers:
+    - host: xxx 
+      port: 19092 
+  security_protocol: SSL
+  ssl_ca_location: xxx 
+  ssl_certificate_location: xxx 
+  ssl_key_location: xxx 
+
+stage:
+  type: kafka
+  bootstrap_servers:
+    - host: xxx 
+      port: 19092 
+  security_protocol: SSL
+  ssl_ca_location: xxx 
+  ssl_certificate_location: xxx
+  ssl_key_location: xxx
+
+development:
+  type: kafka
+  bootstrap_servers:
+    - host: redpanda 
+      port: 9092
+
+test:
+  type: kafka
+  bootstrap_servers:
+    - host: redpanda
+      port: 9092 
+
+

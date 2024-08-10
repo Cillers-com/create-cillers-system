@@ -11,12 +11,6 @@ templates:
   - kong
   - web-app 
   - app-api
-
-- id: setup
-  run:
-  - couchbase
-  - redpanda
-  - kafka-connect
   - id: couchbase-ensure-cluster-initialized-step
     module: couchbase-ensure-cluster-initialized
   - id: couchbase-bucket-create-step
@@ -38,12 +32,6 @@ templates:
   run: 
   - couchbase
   - couchbase-ensure-cluster-initialized
-
-- id: aihack
-  run:
-  - couchbase
-  - app-api-aihack
-  - web-app-aihack
 
 modules:
   - id: cillers-manager
@@ -69,42 +57,24 @@ modules:
       cmd: "#pt-clj (str \"./bin/run \" (:command params))" 
       env:
         - { name: ENVIRONMENT, value: "#pt-param environment" }
-        - { name: COUCHBASE_PRODUCTION_HOST, value: "xxx.couchbase.com" }
-        - { name: COUCHBASE_PRODUCTION_PORT, value: "18092" }
         - { name: COUCHBASE_PRODUCTION_API_USERNAME, value: "api" }
         - { name: COUCHBASE_PRODUCTION_API_PASSWORD, value: "xxx" }
         - { name: COUCHBASE_PRODUCTION_CHANGE_USERNAME, value: "change" }
         - { name: COUCHBASE_PRODUCTION_CHANGE_PASSWORD, value: "xxx" }
-        - { name: COUCHBASE_STAGE_HOST, value: "xxx.couchbase.com" }
-        - { name: COUCHBASE_STAGE_PORT, value: "18092" }
         - { name: COUCHBASE_STAGE_API_USERNAME, value: "api" }
         - { name: COUCHBASE_STAGE_API_PASSWORD, value: "xxx" }
         - { name: COUCHBASE_STAGE_CHANGE_USERNAME, value: "change" }
         - { name: COUCHBASE_STAGE_CHANGE_PASSWORD, value: "xxx" }
         - { name: COUCHBASE_DEFAULT_ADMIN_USERNAME, value: "admin" }
         - { name: COUCHBASE_DEFAULT_ADMIN_PASSWORD, value: "password" }
-        - { name: REDPANDA_PRODUCTION_HOST, value: "xxx.redpanda.com" }
-        - { name: REDPANDA_PRODUCTION_PORT, value: "19092" }
-        - { name: REDPANDA_PRODUCTION_SSL_CA_LOCATION, value: "xxx" }
-        - { name: REDPANDA_PRODUCTION_SSL_CERTIFICATE_LOCATION, value: "xxx" }
-        - { name: REDPANDA_PRODUCTION_SSL_CERT, value: "xxx" }
         - { name: REDPANDA_PRODUCTION_API_USERNAME, value: "api" }
         - { name: REDPANDA_PRODUCTION_API_PASSWORD, value: "xxx" }
         - { name: REDPANDA_PRODUCTION_CHANGE_USERNAME, value: "change" }
         - { name: REDPANDA_PRODUCTION_CHANGE_PASSWORD, value: "xxx" }
-        - { name: REDPANDA_STAGE_HOST, value: "xxx.redpanda.com" }
-        - { name: REDPANDA_STAGE_PORT, value: "19092" }
-        - { name: REDPANDA_STAGE_SSL_CA_LOCATION, value: "xxx" }
-        - { name: REDPANDA_STAGE_SSL_CERTIFICATE_LOCATION, value: "xxx" }
-        - { name: REDPANDA_STAGE_SSL_CERT, value: "xxx" }
         - { name: REDPANDA_STAGE_API_USERNAME, value: "api" }
         - { name: REDPANDA_STAGE_API_PASSWORD, value: "xxx" }
         - { name: REDPANDA_STAGE_CHANGE_USERNAME, value: "change" }
         - { name: REDPANDA_STAGE_CHANGE_PASSWORD, value: "xxx" }
-        - { name: REDPANDA_DEVELOPMENT_HOST, value: "redpanda" }
-        - { name: REDPANDA_DEVELOPMENT_PORT, value: "9092" }
-        - { name: REDPANDA_TEST_HOST, value: "redpanda" }
-        - { name: REDPANDA_TEST_PORT, value: "9092" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf, source: { type: host, path: "./conf/cillers" }} 

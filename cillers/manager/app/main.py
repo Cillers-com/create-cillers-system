@@ -2,7 +2,7 @@ import sys
 import logging
 import rich
 from .config_cillers import ConfigCillers
-from .datastores import get_controller
+from .services import get_controller_datastore
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -14,9 +14,13 @@ rich.traceback.install(show_locals=True)
 
 conf = ConfigCillers()
 
-def change():
+def provision():
+    for service_id in conf.services:
+        get_controller(service_id).provision()
+
+def upgrade_data_structures():
     for datastore_id in conf.datastores:
-        get_controller(datastore_id).change()
+        get_controller_datastore(datastore_id).upgrade_data_structue()
     sys.exit(0)
 
 def validate_config():
