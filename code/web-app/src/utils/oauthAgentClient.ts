@@ -49,7 +49,9 @@ async function fetch_data_from_agent_with_token_refresh(method: string, path: st
 export async function get_login_state(): Promise<LoginState> {
     const response = await fetch_from_agent('POST', 'login/end');
     assert_response_status(response, 200);
-    return await response.json(); 
+    const data = await response.json();
+    csrf = data.csrf;
+    return data;
 }
 
 export async function exchange_code_for_cookies(pageUrl: string): Promise<LoginState> { 
@@ -82,11 +84,9 @@ export async function login() {
     window.location.href = await get_auth_request_url(); 
 } 
 
-export async function logout(access_token_is_invalid?: boolean): Promise<void> {
-    if (!access_token_is_invalid) { 
-        const response = await fetch_from_agent('POST', 'logout');
-        assert_response_status(response, [200, 401]);
-    } 
+export async function logout(): Promise<void> {
+    const response = await fetch_from_agent('POST', 'logout');
+    assert_response_status(response, [200, 401]);
     csrf = null; 
     signalLoggedOut(); 
 } 
