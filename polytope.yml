@@ -8,34 +8,78 @@ templates:
     module: create-couchbase-bucket
     run-when:
       after: init-cb-cluster
-  - module: init-couchbase-bucket
+  - id: init-cb-bucket
+    module: init-couchbase-bucket
     run-when:
       after: create-cb-bucket
-  - curity-db
-  - oauth-agent
-  - curity
-  - kong
-  - web-app 
-  - app-api
-  - redpanda
-  - redpanda-console
-  - kafka-connect
-  - create-connectors
 
-- id: couchbase-aihack
+  - module: redpanda
+    run-when:
+      after: init-cb-bucket
+  - id: redpanda-console
+    module: redpanda-console
+    run-when:
+      after: init-cb-bucket
+  - id: kafka-connect
+    module: kafka-connect
+    run-when:
+      after: init-cb-bucket
+  - id: create-connectors
+    module: create-connectors
+    run-when:
+      after: init-cb-bucket
+
+  - module: curity-db
+    run-when:
+      after: create-connectors 
+  - module: oauth-agent
+    run-when:
+      after: create-connectors 
+  - module: curity
+    run-when:
+      after: create-connectors 
+  - module: kong
+    run-when:
+      after: create-connectors 
+  - module: web-app 
+    run-when:
+      after: create-connectors 
+  - module: app-api
+    run-when:
+      after: create-connectors 
+
+- id: stack-light
   run:
   - couchbase
-  - id: init-cb-cluster-aihack
-    module: init-couchbase-cluster-aihack
+  - id: init-cb-cluster
+    module: init-couchbase-cluster
   - id: create-cb-bucket
     module: create-couchbase-bucket
     run-when:
-      after: init-cb-cluster-aihack
-  - module: init-couchbase-bucket-aihack
+      after: init-cb-cluster
+  - id: init-cb-bucket
+    module: init-couchbase-bucket
     run-when:
       after: create-cb-bucket
-  - app-api-couchbase-aihack
-  - web-app-couchbase-aihack
+
+  - module: curity-db
+    run-when:
+      after: init-cb-bucket 
+  - module: oauth-agent
+    run-when:
+      after: init-cb-bucket 
+  - module: curity
+    run-when:
+      after: init-cb-bucket 
+  - module: kong
+    run-when:
+      after: init-cb-bucket 
+  - module: web-app 
+    run-when:
+      after: init-cb-bucket 
+  - module: app-api
+    run-when:
+      after: init-cb-bucket 
 
 modules:
   - id: app-api
