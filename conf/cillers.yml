@@ -1,11 +1,11 @@
 services:
   - couchbase
-  - redpanda
-  - kafka-connect
-  - kong
-  - curity
-  - app-api
-  - web-app
+#  - redpanda
+#  - kafka-connect
+#  - kong
+#  - curity
+#  - app-api
+#  - web-app
 
 datastores:
   - couchbase

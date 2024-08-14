@@ -1,0 +1,49 @@
+clusters:
+  development:
+    main: __specs.cluster_main_development
+
+__specs:
+  cluster_main_production:
+    type: cloud
+    connection: __connection.redpanda.production
+    credentials_cillers_manager: __credentials.redpanda.production_cillers_manager
+    topic_spec_metadata: __specs.topic_spec_metadata_production
+    cloud: __specs.cloud
+      
+  cluster_main_stage:
+    type: cloud
+    connection: __connection.redpanda_cloud_stage
+    cillers_manager_client_id: __credentials.redpanda.stage_cillers_manager
+    topic_spec_metadata: __specs.topic_spec_metadata_stage
+    cloud: __specs.cloud
+    
+  cluster_main_development:
+    type: local
+    connection: __specs.connection_local_development
+    cillers_manager_client_id: null
+    topic_spec_metadata: __specs.topic_spec_metadata_local
+    module: redpanda 
+
+  cluster_main_test:
+    type: local
+    connection: __specs.connection_local_test
+    cillers_manager_client_id: null
+    topic_spec_metadata: __specs.topic_spec_metadata_local
+    module: redpanda 
+
+  cloud:
+    provider: aws
+    region: 'eu-central-1'
+
+  topic_spec_metadata_production:
+    partitions: 3
+    replication_factor: 3
+
+  topic_spec_metadata_stage:
+    partitions: 2
+    replication_factor: 2
+
+  topic_spec_metadata_local:
+    partitions: 1
+    replication_factor: 1
+

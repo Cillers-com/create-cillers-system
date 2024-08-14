@@ -11,16 +11,17 @@ class ServiceId(Enum):
     REDPANDA = 'redpanda'
 
 controller_switch_datastores: dict[ServiceId, ControllerDatastoreUnion] = {
-    ServiceId.COUCHBASE: ControllerCouchbase,
-    ServiceId.REDPANDA: ControllerRedpanda
+    ServiceId.COUCHBASE.value: ControllerCouchbase,
+    ServiceId.REDPANDA.value: ControllerRedpanda
 }
 
 controller_switch_services: dict[ServiceId, ControllerServiceUnion] = {
-    ServiceId.COUCHBASE: ControllerCouchbase
+    ServiceId.COUCHBASE.value: ControllerCouchbase
 }
 
 def get_controller_datastore(service_id: ServiceId) -> ControllerDatastoreUnion:
     return controller_switch_datastores[service_id]()
 
 def get_controller_service(service_id: ServiceId) -> ControllerServiceUnion:
+    print(controller_switch_services)
     return controller_switch_services[service_id]()

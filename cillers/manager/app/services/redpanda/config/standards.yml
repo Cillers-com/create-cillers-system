@@ -12,23 +12,15 @@ local_and_cloud_aws_eu_central:
 
 shared_local:
   metadata: standard.metadata
-  data_structures: standard.data_structures
   services: standard.services
 
 shared_local_and_cloud:
   metadata: standard.metadata
-  data_structures: standard.data_structures
   services: standard.services
 
-local_and_cloud_eu:
-  shared:
-  data_structures: standard.data_structure
+shared_local_and_cloud_eu:
   metadata: standard.metadata
   clusters: standard.clusters_local_and_cloud_eu
-
-data_structures:
-  main:
-    type: cluster
 
 metadata:
   prefix: cillers_metadata

@@ -23,6 +23,7 @@ pylint = "^3.2.6"
 
 [tool.poetry.scripts]
 change = 'app.main:change'
+provision = 'app.main:provision'
 validate_conf = 'app.main:validate_config'
 
 [build-system]

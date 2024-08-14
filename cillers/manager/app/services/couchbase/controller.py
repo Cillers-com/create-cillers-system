@@ -11,3 +11,6 @@ class ControllerCouchbase:
         print("Couchbase change in progress")
         for _, cluster_conf in self.conf.clusters_in_current_env().items():
             ModelCluster(cluster_conf).change()
+
+    def provision(self):
+        print("Let's provision Couchbase!")

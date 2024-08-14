@@ -77,7 +77,7 @@ modules:
         - { name: REDPANDA_STAGE_CHANGE_PASSWORD, value: "xxx" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
-        - { path: /root/conf, source: { type: host, path: "./conf/cillers" }} 
+        - { path: /root/conf, source: { type: host, path: "./conf" }} 
 
   - id: cillers-change
     info: The Cillers Change Maker
@@ -90,6 +90,18 @@ modules:
     args: 
       id: cillers-change 
       command: change
+    
+  - id: cillers-provision
+    info: The Cillers Provisioner
+    module: cillers-manager
+    params:
+    - id: environment
+      info: The environment to provision
+      name: Environment
+      type: [default, str, production]
+    args:
+      id: cillers-provision
+      command: provision
 
   - id: cillers-validate-conf 
     info: The Cillers Change Maker

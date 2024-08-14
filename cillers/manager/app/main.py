@@ -1,8 +1,9 @@
 import sys
 import logging
 import rich
+import rich.traceback
 from .config_cillers import ConfigCillers
-from .services import get_controller_datastore
+from .services import get_controller_datastore, get_controller_service
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -16,7 +17,7 @@ conf = ConfigCillers()
 
 def provision():
     for service_id in conf.services:
-        get_controller(service_id).provision()
+        get_controller_service(service_id).provision()
 
 def upgrade_data_structures():
     for datastore_id in conf.datastores:
