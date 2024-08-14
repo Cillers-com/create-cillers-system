@@ -55,6 +55,7 @@
           <endpoints>token-service-session</endpoints>
           <endpoints>token-service-token</endpoints>
           <endpoints>token-service-userinfo</endpoints>
+          <endpoints>um-graphql</endpoints>
         </service-role>
       </services>
     </environment>
@@ -124,6 +125,7 @@
       <type xmlns:as="https://curity.se/ns/conf/profile/oauth">as:oauth-service</type>
       <settings>
         <authorization-server xmlns="https://curity.se/ns/conf/profile/oauth">
+          <authorization-manager>group-authz</authorization-manager>
           <authentication-service>
             <authentication-profile>authentication-service</authentication-profile>
           </authentication-service>
@@ -178,6 +180,10 @@
               <claims>website</claims>
               <claims>zoneinfo</claims>
             </scope>
+            <scope>
+              <id>user_management_admin</id>
+              <claims>groups</claims>
+            </scope>
           </scopes>
           <claims>
             <claim>
@@ -214,6 +220,12 @@
               <name>given_name</name>
               <description>OpenID Connect given_name claim</description>
               <value-provided-by>account-manager-claims-provider</value-provided-by>
+            </claim>
+            <claim>
+              <name>groups</name>
+              <transformation>
+                <value-transformation-procedure>ZnVuY3Rpb24gZ2VuZXJhdGUoKSB7CiAgICByZXR1cm4gWyJhZG1pbiJdOwp9</value-transformation-procedure>
+              </transformation>
             </claim>
             <claim>
               <name>locale</name>
@@ -281,11 +293,15 @@
                 <account-manager>
                   <id>default-account-manager</id>
                 </account-manager>
+                <map-account-to-openid-connect-claims>false</map-account-to-openid-connect-claims>
               </account-manager-claims-provider>
             </claims-value-provider>
             <claims-mappers>
               <claims-mapper>
                 <id>default</id>
+                <access_token>
+                  <claim>groups</claim>
+                </access_token>
                 <id_token>
                   <claim>address</claim>
                   <claim>birthdate</claim>
@@ -358,12 +374,13 @@
                 <id>insomnia</id>
                 <secret>$5$0zJtf8j0Kk/8gX7r$FtXkDy62Np1vcZYHzOa06rUYKMxn77stYB18u4ZXRx7</secret>
                 <redirect-uris>http://insomnia</redirect-uris>
+                <scope>user_management_admin</scope>
                 <audience>http://localhost/api</audience>
                 <user-authentication>
                 </user-authentication>
                 <capabilities>
-                  <code>
-                  </code>
+                  <code/>
+                  <client-credentials/>
                 </capabilities>
                 <validate-port-on-loopback-interfaces>true</validate-port-on-loopback-interfaces>
               </client>
@@ -444,6 +461,30 @@
         </default-token-issuer>
       </token-issuers>
     </profile>
+    <profile>
+      <id>user-management</id>
+      <type xmlns:um="https://curity.se/ns/conf/profile/user-management">um:user-management-service</type>
+      <settings>
+        <user-management-service xmlns="https://curity.se/ns/conf/profile/user-management">
+          <api-authentication>
+            <oauth-service>token-service</oauth-service>
+          </api-authentication>
+          <authorization-manager>group-authz</authorization-manager>
+          <account-manager>default-account-manager</account-manager>
+          <token-data-source>default-datasource</token-data-source>
+          <credential-management>
+            <credential-manager>default-credential-manager</credential-manager>
+          </credential-management>
+        </user-management-service>
+      </settings>
+      <endpoints>
+        <endpoint>
+          <id>um-graphql</id>
+          <uri>/um/graphql/admin</uri>
+          <endpoint-kind>um-graphql-api</endpoint-kind>
+        </endpoint>
+      </endpoints>
+    </profile>
   </profiles>
   <facilities xmlns="https://curity.se/ns/conf/base">
     <data-sources>
@@ -506,6 +547,22 @@
   </facilities>
   <processing xmlns="https://curity.se/ns/conf/base">
     <license-key>eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJDdXJpdHkgQUIgRVUiLCJzdWIiOiJQb2x5dG9wZSIsIklkIjoibkpOOWdoZzBTTzZ3Y25qV3FpQlRsclBXOWZJMU9OSGsiLCJQcm9kdWN0IjoiSWRlbnRpdHkgU2VydmVyIiwiVmVyc2lvbiI6IjQuMyIsIkZlYXR1cmUiOiJhdXRobiwgb2F1dGgsIHVzZXItbWFuYWdlbWVudCwgcGx1Z2lucywgZGFzaGJvYXJkIiwiVGllciI6IlRyaWFsIiwiR3JhY2UgUGVyaW9kIjoiMCIsIklzc3VlIERhdGUiOiIyMDI0LTAyLTIzIiwiRXhwaXJhdGlvbiBEYXRlIjoiMjAyNC0wMy0yNCIsIkVkaXRpb24iOiJFbnRlcnByaXNlIiwiR3JvdXBzIjoiMyIsIkVudmlyb25tZW50IjoiSGFja2F0aG9uIGxpY2Vuc2UiLCJUeXBlIjoiTm9uLVByb2R1Y3Rpb24iLCJGZWF0dXJlcyI6W3siZmVhdHVyZSI6ImFjdGlvbnMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJhbGFybXMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJhdXRoZW50aWNhdG9ycyIsInJlc3RyaWN0aW9ucyI6W119LHsiZmVhdHVyZSI6ImNsYWltcy1wcm92aWRlcnMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJjbHVzdGVyIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoiY3J5cHRvIiwicmVzdHJpY3Rpb25zIjpbImhzbSJdfSx7ImZlYXR1cmUiOiJkYXNoYm9hcmQiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJkYXRhLXNvdXJjZXMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJldmVudC1saXN0ZW5lcnMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJoYWFwaSIsInJlc3RyaWN0aW9ucyI6W119LHsiZmVhdHVyZSI6Im1ldHJpY3MiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJkYXRhYmFzZS1jbGllbnRzIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoiZ3JhcGhxbCIsInJlc3RyaWN0aW9ucyI6W119LHsiZmVhdHVyZSI6InRva2VuLXByb2NlZHVyZS1wbHVnaW5zIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoicHJvZmlsZXMiLCJyZXN0cmljdGlvbnMiOlsiYXV0aDphdXRoZW50aWNhdGlvbi1zZXJ2aWNlIiwiYXM6b2F1dGgtc2VydmljZSIsInVtOnVzZXItbWFuYWdlbWVudC1zZXJ2aWNlIl19XSwiaWF0IjoxNzA4NjQ2NDAwLCJuYmYiOjE3MDg2NDY0MDAsImV4cCI6MTcxMTIzODQwMH0.ki1YVHvvxwYk7-ACxQXuuwxE0-L8YQBF12s79UpWVVYRtUFXYCU7R09PBRxMPHtNrnFC80ktRFffrQExfJnp7dsCf0cCf_W-aDLv1yNfmycohPGOfVKpwOb95BEdsRtKOJu81PR09BRWl9a4aAuSKqPJU_8A0bCVH-N6NVEaMnhT6C9xDMHMLLT92efFIj0xJ9VBDaALS4_w-U5vWtj78eBYAf5R4U0E5Em13XDiyOFs5oh6nn2z5u3yaj9msP08qXKQBBf_qv1996_hhKmEj-_WkhSpj5hfBg2584Syr0lAia4B_pg3BRqhzqBcTMbsL0ZJZrCSaNzUAdUqOXRB9Q</license-key>
+    <authorization-managers>
+      <authorization-manager>
+        <id>group-authz</id>
+        <groups xmlns="https://curity.se/ns/conf/authorization-manager/group">
+          <group>
+            <name>admin</name>
+            <allows>
+              <create/>
+              <read/>
+              <update/>
+              <delete/>
+            </allows>
+          </group>
+        </groups>
+      </authorization-manager>
+    </authorization-managers>
     <account-managers>
       <account-manager>
         <id>default-account-manager</id>
