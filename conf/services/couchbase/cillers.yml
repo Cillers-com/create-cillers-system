@@ -1,13 +1,12 @@
 metadata_bucket: main
 clusters:
   development:
-    main: !ref specs.cluster_local_development
+    main: !ref cluster_local_development
 
-__imports:
-  connections: /connections/couchbase.yml
-  credentials: /credentials/couchbase.yml    
+__defs:
+  connections: !import /connections/couchbase.yml
+  credentials: !import /credentials/couchbase.yml    
 
-__specs:
   capella:
     organization_id: f43b194e-4656-4b3c-adbd-a589fde99712
     project_id: 05df842c-2f4f-47ec-9e98-eb1091ca92cc   
@@ -25,55 +24,55 @@ __specs:
 
   cluster_local_development:
     type: local
-    params: !ref specs.cluster_params_local
-    connection: __connections.local_development
-    credentials_id_cillers_manager: __credentials._default
+    params: !ref cluster_params_local
+    connection: !ref connections.local_development
+    credentials_id_cillers_manager: !ref credentials._default
 
   cluster_local_test:
     type: local
-    params: !ref specs.cluster_params_local
-    connection: __connections.local_test
-    credentials_id_cillers_manager: __credentials._default
+    params: !ref cluster_params_local
+    connection: !ref connections.local_test
+    credentials_id_cillers_manager: !ref credentials._default
 
   cluster_capella_production:
     type: capella
-    organization_id: !ref specs.capella.organization_id
-    project_id: !ref specs.capella.project_id 
-    params: !ref specs.cluster_params_capella_production
-    connection: __connections.capella_production
-    credentials_id_cillers_manager: __credentials.production_cillers_manager
+    organization_id: !ref capella.organization_id
+    project_id: !ref capella.project_id 
+    params: !ref cluster_params_capella_production
+    connection: !ref connections.capella_production
+    credentials_id_cillers_manager: !ref credentials.production_cillers_manager
 
   cluster_capella_stage:
     type: capella
-    organization_id: !ref specs.capella.organization_id
-    project_id: !ref specs.capella.project_id 
-    params: !ref specs.cluster_params_capella_stage
-    connection: __connections.capella_stage
-    credentials_id_cillers_manager: __credentials.stage_cillers_manager
+    organization_id: !ref capella.organization_id
+    project_id: !ref capella.project_id 
+    params: !ref cluster_params_capella_stage
+    connection: !ref connections.capella_stage
+    credentials_id_cillers_manager: !ref credentials.stage_cillers_manager
 
   cluster_params_local:
-    services: !ref specs.services
+    services: !ref services
 
   cluster_params_capella_production:
     name: production_main
     description: The main production cluster.
-    __**: !ref specs.cluster_params_capella_minimum
+    __**: !ref cluster_params_capella_minimum
 
   cluster_params_capella_stage:
     name: stage_main
     description: The main stage cluster.
-    __**: !ref specs.cluster_params_capella_minimum
+    __**: !ref cluster_params_capella_minimum
       
   cluster_params_capella_minimum:
-    cloud_provider: !ref specs.capella.cloud_provider 
-    couchbase_server: !ref specs.capella.server
+    cloud_provider: !ref capella.cloud_provider 
+    couchbase_server: !ref capella.server
     availability:
       type: single
     support:
       plan: pro developer
     service_groups:
       - num_of_nodes: 3
-        services: !ref specs.services
+        services: !ref services
         node:
           compute:
             cpu: 4

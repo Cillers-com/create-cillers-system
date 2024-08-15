@@ -89,15 +89,15 @@ def pop_and_load_imports(data: any, source_filepath: Path) -> dict:
         for _v in v.values():
             if not isinstance(_v, str):
                 raise ValueError("Values in the __imports section must be filepaths.")
-        process_filepaths(v)
+        process_filepaths(v, source_filepath)
         load_imports(v)
-        return v 
+        return v
     return {}
 
 def load(filepath: Path) -> any:
     with open(filepath, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
-    imports = pop_and_load_imports(data)
+    imports = pop_and_load_imports(data, filepath)
     specs = pop_specs(data)
     references = {'specs': specs, **imports}
     resolve_references(data, references)
