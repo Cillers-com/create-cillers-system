@@ -35,13 +35,13 @@
         <zones>
           <default-zone>
             <email-provider>default-email-provider</email-provider>
-            <symmetric-key>data:text/plain;aes,v:S.dW9kQzNVZ3Q5ZEFKUjM1VA==.OTPcx29bs-_QwqVPs9UNbw==.T9194-4ckSm_M7_yPf63GIFx5-1Jd3AJAApk4w1q9GnUCBqCr3BhOChd3YvpOdBiZFdcjFU2UlHaKVdoVIUvFq9WAYFwuR2v2D9DUQLsCos=.tK-Q3zNo8HMiq9hm77Tu1ozmauBLZHPMl6yxLHvcBRM=</symmetric-key>
+            <symmetric-key>data:text/plain;aes,v:S.cXJubGMwNHBqYTk4THdLRQ==.atIorKDuXNIY1qo_KlGMDw==.5jteeHXHtK9yPqXGxBx1PEnxu-7c5gVZnUdTftUmj27ZPuo7IQHLMzJrQwx3zkRvjSCnc4RYddc3pyPKP1g8--orT5HMJ1Q_cL-syQHouFI=.Qn_SJ62La_NXSZQE2ZrmPogd0r1tDWjCNU--rAaAtu4=</symmetric-key>
           </default-zone>
         </zones>
         <service-role>
           <id>default</id>
-          <protocol>https</protocol>
           <listening-port>8443</listening-port>
+          <protocol>https</protocol>
           <ssl-server-keystore>default-ssl-server-key</ssl-server-keystore>
           <webfinger/>
           <endpoints>authentication-service-anonymous</endpoints>
@@ -55,6 +55,7 @@
           <endpoints>token-service-session</endpoints>
           <endpoints>token-service-token</endpoints>
           <endpoints>token-service-userinfo</endpoints>
+          <endpoints>um-graphql</endpoints>
         </service-role>
       </services>
     </environment>
@@ -70,7 +71,7 @@
             <url>http://localhost:8080</url>
             <url>http://localhost:8080*</url>
           </redirect-url-whitelist>
-	  <logout-redirect-url>http://localhost:8080</logout-redirect-url>
+          <logout-redirect-url>http://localhost:8080</logout-redirect-url>
           <authenticators>
             <authenticator>
               <id>default-authenticator</id>
@@ -178,6 +179,11 @@
               <claims>website</claims>
               <claims>zoneinfo</claims>
             </scope>
+            <scope>
+              <id>user_management_admin</id>
+              <claims>groups</claims>
+            </scope>
+            <default-scope-claim>roles</default-scope-claim>
           </scopes>
           <claims>
             <claim>
@@ -214,6 +220,12 @@
               <name>given_name</name>
               <description>OpenID Connect given_name claim</description>
               <value-provided-by>account-manager-claims-provider</value-provided-by>
+            </claim>
+            <claim>
+              <name>groups</name>
+              <transformation>
+                <value-transformation-procedure>ZnVuY3Rpb24gZ2VuZXJhdGUoKSB7CiAgICByZXR1cm4gWyJhZG1pbiJdOwp9</value-transformation-procedure>
+              </transformation>
             </claim>
             <claim>
               <name>locale</name>
@@ -261,6 +273,14 @@
               <value-provided-by>account-manager-claims-provider</value-provided-by>
             </claim>
             <claim>
+              <name>roles</name>
+              <value-provided-by>account-manager-claims-provider</value-provided-by>
+              <transformation>
+                <input-attribute-names>roles</input-attribute-names>
+                <value-transformation-procedure>ZnVuY3Rpb24gdHJhbnNmb3JtKGF0dHJpYnV0ZXMpIHsKICAvLyBUcmFuc2Zvcm0gdGhlIGF0dHJpYnV0ZXMgYW5kIHJldHVybiB0aGUgYXBwcm9wcmlhdGUgdmFsdWUgZm9yIHRoZSBjbGFpbQogIGlmIChhdHRyaWJ1dGVzWyJyb2xlcyJdKSB7CiAgICB2YXIgcm9sZXMgPSBbXTsKICAgIGF0dHJpYnV0ZXNbInJvbGVzIl0uZm9yRWFjaChmdW5jdGlvbiAodikgeyByb2xlcy5wdXNoKHYudmFsdWUpIH0pOwogICAgcmV0dXJuIHJvbGVzOwogIH0KICByZXR1cm4gbnVsbDsKfQ==</value-transformation-procedure>
+              </transformation>
+            </claim>
+            <claim>
               <name>updated_at</name>
               <description>OpenID Connect updated_at claim</description>
               <value-provided-by>account-manager-claims-provider</value-provided-by>
@@ -281,11 +301,16 @@
                 <account-manager>
                   <id>default-account-manager</id>
                 </account-manager>
+                <map-account-to-openid-connect-claims>false</map-account-to-openid-connect-claims>
               </account-manager-claims-provider>
             </claims-value-provider>
             <claims-mappers>
               <claims-mapper>
                 <id>default</id>
+                <access_token>
+                  <claim>groups</claim>
+                  <claim>roles</claim>
+                </access_token>
                 <id_token>
                   <claim>address</claim>
                   <claim>birthdate</claim>
@@ -324,6 +349,7 @@
                   <claim>picture</claim>
                   <claim>preferred_username</claim>
                   <claim>profile</claim>
+                  <claim>roles</claim>
                   <claim>updated_at</claim>
                   <claim>website</claim>
                   <claim>zoneinfo</claim>
@@ -348,24 +374,26 @@
                 </capabilities>
               </client>
               <client>
-                <id>kong-introspection</id>
-                <secret>$5$ZDKy4Da2uY0bTQpV$YouI0YUjUZjbQnbsTMJT5rYe3siRm/Flu.6jRPZrSsA</secret>
-                <capabilities>
-                  <introspection/>
-                </capabilities>
-              </client>
-              <client>
                 <id>insomnia</id>
                 <secret>$5$0zJtf8j0Kk/8gX7r$FtXkDy62Np1vcZYHzOa06rUYKMxn77stYB18u4ZXRx7</secret>
                 <redirect-uris>http://insomnia</redirect-uris>
                 <audience>http://localhost/api</audience>
+                <scope>user_management_admin</scope>
                 <user-authentication>
                 </user-authentication>
                 <capabilities>
                   <code>
                   </code>
+                  <client-credentials/>
                 </capabilities>
                 <validate-port-on-loopback-interfaces>true</validate-port-on-loopback-interfaces>
+              </client>
+              <client>
+                <id>kong-introspection</id>
+                <secret>$5$ZDKy4Da2uY0bTQpV$YouI0YUjUZjbQnbsTMJT5rYe3siRm/Flu.6jRPZrSsA</secret>
+                <capabilities>
+                  <introspection/>
+                </capabilities>
               </client>
               <client>
                 <id>spa-client</id>
@@ -444,20 +472,44 @@
         </default-token-issuer>
       </token-issuers>
     </profile>
+    <profile>
+      <id>user-management</id>
+      <type xmlns:um="https://curity.se/ns/conf/profile/user-management">um:user-management-service</type>
+      <settings>
+        <user-management-service xmlns="https://curity.se/ns/conf/profile/user-management">
+          <api-authentication>
+            <oauth-service>token-service</oauth-service>
+          </api-authentication>
+          <authorization-manager>group-authz</authorization-manager>
+          <account-manager>default-account-manager</account-manager>
+          <token-data-source>default-datasource</token-data-source>
+          <credential-management>
+            <credential-manager>default-credential-manager</credential-manager>
+          </credential-management>
+        </user-management-service>
+      </settings>
+      <endpoints>
+        <endpoint>
+          <id>um-graphql</id>
+          <uri>/um/graphql/admin</uri>
+          <endpoint-kind>um-graphql-api</endpoint-kind>
+        </endpoint>
+      </endpoints>
+    </profile>
   </profiles>
   <facilities xmlns="https://curity.se/ns/conf/base">
     <data-sources>
       <data-source>
         <id>default-datasource</id>
         <jdbc xmlns="https://curity.se/ns/ext-conf/jdbc">
-          <connection-string>data:text/plain;aes,v:S.aGtHRzAydW9KU2RMZEhpMw==.uQ6AChgnrEq7y5BU3N5Ifw==.Wz17mEqWqjfVI2SVtIFBOl5xwhA0qyr13WIZwOXSThFmbAVAYRjyeeYSSjcW0sap.xwdYRgqMhuKtBVC36MtuD0c1NGvOJAjfL10G1KYnPRc=</connection-string>
+          <connection-string>data:text/plain;aes,v:S.UHQzRUpNSHRDRTRDVVMyRQ==.dcvzlJWACxBBDxPTTGgz0w==.CAWKToF0zKPX95hqRsiGEp6VVRYsPZgX9cn5sBi-tQXxmLZHYnHgjZy98_zJGNe8._W8m73b3v0cReNDXnZaiu627tUR5boutKfc06YFnXHg=</connection-string>
           <connection-timeout>30000</connection-timeout>
           <driver>org.postgresql.Driver</driver>
           <idle-timeout>600000</idle-timeout>
           <max-lifetime>1800000</max-lifetime>
           <max-pool-size>20</max-pool-size>
           <min-idle-pool-size>10</min-idle-pool-size>
-          <password>data:text/plain;aes,v:S.YUdMTW55VzFOUnMzdGI0Rg==.j6BO3vVPNVuEWPco0xmHeg==.VU6LN_7ICHEw1QLsbRmWzg==.4eOOLG6w85VbpVMwmEtDP45FmnQvnYYd4nCttiRlDeE=</password>
+          <password>data:text/plain;aes,v:S.YlNSYnNsZTg2MW9kZ0VRcA==.DoUkWzim_O_7zLKiWSOn-w==.6MiiUHartOUEDktkKwgr0w==.HMCl9MFak9x6QkdSqg4WcN-uxQi7Q3XGz1PVAMovygg=</password>
           <username>postgres</username>
         </jdbc>
       </data-source>
@@ -476,7 +528,7 @@
       <ssl>
         <server-keystore>
           <id>default-admin-ssl-key</id>
-          <keystore>data:application/p12;aes,v:S.dWtjRnRuTzE0MExNOW43Yw==.2AWH_DkEIzgMq_XU-x8UFQ==.2IfSWtWW5D-kWK2_zLMPV9E_Xfp-h945hA59yBi6xkKL41ogFgxWoFCvCQZnvYpwYFqLZwb43KLngSXT4pJ7uT-J7du4ays_TQHn_CuzFbd1R-2EWsAJsd07-z9ouHNRurQnD7TfSD540EJpXuLhi6kq5vHCeooERvR7kPfENsp1rZPRCEo2AUwaTQsdorR_Zp5MbdF3QaVjlyOTp0elsVAS0jg5HscBVeqK2xBe2W6szLGN6qJZeG84rC05mHqSl897Cdg-4aQWCcsKeTCv7X0vCqYrOzDQI5Z5EGa1lIjMWd-_oHei8XKdU_B0e8j4TOXBL5a38WUona-fBVr9DgEM0TEnleNKnwG8dxVKcgW8jqt8QQWKQ2VWkPdr9MmOPXeZNyKSpGxFTx5ZOH1EHrTM-0I6nyB3UTl8HOB0UUZ-SQ_arRzw-gQB_bSxZX68s9EQ14mgVDWHRrbWVrgvQrlZvYbmdQaaumXDuz2SWdc9GekonJ92wRvWQ1fRG3a_9WENZ4PyreiXh48n0-JccoGQTcNY2VDT78pJFUrBrxzuDK_MisQoac-QBJwnGZKr_mFsJ2GyH9znNNfCm4pX2jJC90dnifVR6ea9DDie1TguP4e96yX8WrKTqT-YGM8Ja1maWDzzsq7BrfGkimuWz3XmDQM0qn57j2NTEv3U47oaYydzzc-G7xC-zIlDjwKoAsWv0tOeqP9JjqpLppEB33pFiPnnZ9wTTw5ks-wX6a0mpy_nObvOCOLn34barN8Ni6XwivRqTgQbcdDDiSY1hHREIQn_fzAJmht4eyOJvBnlstxV1jFgJh0tAe2dFtEYAuISxc0EsiyFpDBhN01wIcYL03wNuaHdx-jQdZa3EY0RLytlujvrm2BQEATpY8Br6XVbV4yIQ8vfU2hbc_Ussn9xtyzPOAJUvWsmnEZ1IZoy8gU2kS5ZlLHLlP_3beYjY_n6nrsltLzrljBTkNh6DozQJ1ZizRfEXZIVPx397Tj1xLmVNkT52EDXXc5aZgLCtiRMouI5ov718Y-GMFIi2lVteOZCr5GBeLSE7FGGE4zyMzQINjvUewCIMeOAjHATf6CGLdEA3hBjYZt3I6J12x8K4gG3NxlzYxcoqZokysnrBPN0Onx36VrXskz5BE7Qcf6IOZlrM8jRlzCvHEBECmee6bxKVM0HJUzgDKildFdQ1xNWux3aH9FO53yI0UvrEksHJ4suAEMGkSgfGZ7sM0M0uJAmGGjwmvBdx_xQoZZe1f8i5O12N2cCjzYPk-zvTuAGNlNk16dUjhULvOd8lWmaCNVpLlawuOLope4VnsEv-cElIFhMSGFGXt0XTkKCpDvPAWmWMADsPLgyBiw6euYlrqyq4N2kYug9k5n8SUh3Kiet1rO9DpkWbeI_J1cYNQkxWzvQGyzYTtEYwEsp_dsT7hbXv5tA3OpXSexaehg02BCD70IrV8Qy8m9jmDlAgqdAl7i0mP909d9eWPiZQ-vJy8AwNW6I4QNVZUE8-A80dPCGDCkbHlZfFpZ2b2Z_yoVCmVHRaf8ft0S6RLO9-JVMZuIHx7Sym_Z4hDZpvFJj0-1Vg10rxTalAGUU5YOU0P5Asmerbu063Y7e2irqpvYY4e9Rxv3ZqEkSk7i3uE265a-jZOS00B_M9uD2gb3ZcNuE3htcoDXZYuBiXBGKSfrJBvm-5xKVEhCfI831cYfcemCDI9Eym7x6xxXsfvuz4Az1d8Bn4HSTGkomBZNgPDI62KpjjRuDrwjf141n-A0KXsBStLbXTE0FqD3gMqH93BV7izZEKg6cuUmStPLSU3gSEXyJI7yLCBRajlCp9qkW5X1WLV4jsupZaoRngPXvVDRtYyH4i0ACIP1kJGkvodRHem6B_mB3o1ouGfC3o8X2mS-GYE1sS4TYYCIv3VcQZCayjv0Okp0rlhOE1PcS-WGj-ZNVKinj1wHp5SJgq-qmo3BHNfPcDYL0eG32c52Lu9fQ_S7QIl8dHTvq00KV_k2eUI2HcGEblgbWTFTHhZOqoVb5QyNnc_pVfRHV2V1aR3x25ZJXKdHV7oBKt45r9Vb9UqlMasw9ct2A7lKF2xoIxYfQ9QI1dVt6o3cBY0-qptoHzSQxnwxTO1Vq-ZN7Zt41kSs8BDOKfdT_w_AEDzUd6hFHLf7GfguDc9XjCYdvXyfgd2zClQ-JPJcFkw0IRR_8VTAqMDeJwTzqeIkC1uVFnTCoYuiop3NZgPC1B6gRtGcnGxTPTkt5IcUT7Jtn0dkZ0_Abaj1yeN_MK2JFlHjqOnYo8O0UQ0CcRRLdcpA6xwAZS9loOO-YyyQ4Cl-VtjPlCrMY8J0tQ14Oe2lWEwIBerHATzdrgnJWboeAKx4VmgX3xUCAG1GdKjFXC0_OELLBirRLbGZMpSoA4lKt3ofU_iZfKffVDNalPVOL6vl9EAxj6GxUxJvpvv-yCApVeDJzmdWwN70thG4jV752snt40kEk_OwN6EkhYOPzh4aQdjPnCNgltk2qLrTFAOo_aCaqb4Jwpv5ECr-hPMruwwc3_uiE1OL3OtVIGs4c_1PvGvv-97WThhBgGqkM82nsNYFc_a5933FB9UcdL-SPplTMhOsLBfSs2PzPDo8C3-QcLeNPiGEoRzO1_SboLDTDzlYUdpqaZxAqk1j_Bp77BPpGRLj7oA5KwVYXYLrHaT5BeT4g5MdSUEr9kupvEDqrLwEVNj9QTmpIkTH1EbC5U0ngXMwF8cp4M0LxiaJfHfVfJsni3sQGEagoZsWYPIy6eFpdOi_wQzXdoT7z7r1WnhgroPtlY6tY3X9WI2xjg1Q7QPWf3I3H-A57Z9nUlLdtB_Roka1sJgOebbtzVsLAUZHJ_PEtGs4JM3mfbxGzGXFsTNUlPXCGmeieLt-fBOA_L-_9_pZymvsc3ua3fgalrAo9aDejIpYLgwT_fLgfdDePmT3wiZ-k1H_gw819SmT3rOLe_hK1zzdoRv6k28JroVM0Us6V2vbNOkF614kBEzANxakP7A6rGTn8-m5Un_3a7yhdSNfzMwJ2KSOJIQ6E71Or0hlKEQc84uCrVIaYdnfh46mCrgZfeZWS0GrYL1OMAj8H5eVXxeYhhQSCo906ppMKMrlOe73HMB2cavH3bIwJ8WF8XdC7XyITMaCrKbrH0WBe-F_NcKnpih1IZ_RmaBb_5Bd5s-w_4CiCwTp5Cr9BifRPPAK0kXQtFSUIPzPW9mDCYkvC2jQFNY6Y6Bo8aMDxDYLlQNFtUwwEdZeUe_U-MnmbpGqDZqatKbWlt6dWf9HKA50R90lVUt4yoRs5XdK0IB4Qsuh8xGrF654YB7NFnlMPNZCcjp0Y98tPiEZ1rsEsL7Flvf3A_oC989Cvu6XlDBJlCPn_JXZpySaxate-y2Awp1Lqo6Bi1p5vResM2hWmFfc8lWaJEmg5kOwUt793HsVqTWHsASqA2viTeUYO9sZqLjNCayTZ3HoY61LmileDjHc1Da3nnHj1Fr6aBV1-6uHCXQLNGP152o7hlu5XKJJu_bHaqbEEFkY0dzRjbbFT2z3bnhhW-Uu63Wo3fel1bmB7umzpbpIkCw0BwSUzMvuzmEgNIy_yhmbGasU6UJGD9xZxqtbHo7m2sysFEUXyyAMYYxMDzdNxFxo7BsHRSNqMg4igvHvl9lOwipiA_UZIxo8jOwmwfklWbJaq90Gk5FzY5SWX8dBRqKK8t8x4.RxcjFxJRSHisPUfHMM5cVf3m08wJwTwJFc56VwU8Yik=</keystore>
+          <keystore>data:application/p12;aes,v:S.dldrVkV2SVo2aGlMTjFKTA==.JcndMAmT40gUIsU3-m7qNg==.MP5owzVVMpC3gQXx4KCITdS79GfJHOdezRtO44SBG8znanoP7CnHOFjsloLa9DhE2TofK6jNNH8FQIgQD7FA844HI5wZTXlLG7DeDibaiJfJdA0jeFDn3TeFrojZnGyzo_DIzk7B_RCqY_W78MTuQBzgltMu9mR01ZNkWa9fd-_4b2yBYHzhITr_gxEVGvGigbkSvOv8ouTYwhmI1ENflMXO5Gmf2reVmpPiW36ss5cjsMFivBlKPbUT9_6fyjdWUz_hGR0CR8GpcIw3amk-iRifnH5rRwyRNtcxaizzOFLKeNN-s2u50auAQf_ajHeLG9icwa7y1r-AnutLUuCMPVjXG5ym4RcBoyicUUBykSGfZ2d7-q9etHvLvCIQChB-jvAtCi1AFD-AroZEhT1xnNRsq5SMDrmw5-gyfhgsuR6ypKOulnRgPvg8slzqaIqioIdTyB6bk_udGD5Y8_d-vP4DLY4sHU8h_r8lYNFwkh70owrwp5MeIgTthtgF3cQnOPNNlj36_O1ofVB12RW1qElydV1dm4I-gFszOQ-IQTHlw8Ddx_ksEW5UTHqEbjucNNlE78KJ_b2YnX7FMv21xaCXm6QK0gqC3XQQ4pp6KjcCvQ9M9ZXZ0-swQyP9ZVtegrpnHvvrGpbEVQ5zDjjR26u-i7poePiRd5jvRai17znFOtv__TV4FNXnYEDiTCFUlt4AssJfkTJUfdPSLvmPdaHbJXxENJQKkFjyy58d0mhZ3yjGKXqnrd6msFIFMsnfHbVB1x3BRNZsiNN5b6GuScAAKcYqGG6jflyvwoxTlYWJKcNRSAGSnPBaGCmxg3jFGh-db-OTAa4VIqgAe3c0OXzcye9lpL-KUYOibWeRzxYdEB8WETl1x9lCOluJCsXq_WTpHt7h1mRqJKejigdPsX-qlY2tiNkxpYg7_IPkp1LgJyTZc5x8qXgov93VLOWupCeU2tI2JF8n50Qh3EpccpA-ZWK3KtoGv83dsfSNWH_9gtIRHTOHOcJ9MuIcsen7S81RH7MpWLJ4AawF5uLB8gPO7DGC4586fANcyT9TQVjPJDRXLTxISoq6WTGnOY1PZYRXH3FHKXYyT7S3KxpGYGm1-0OwhyNqBxbgzabazFEHZRG4a5B1QGwsPkYWydtA5v5mrcGrlzdMKmfZ57OIwaDZJVg5e58qCzEtv9PRJDYctc_hjleptN6GYGp_RKcqLcJVM-AgCSHVeHW1mITt67h3oE0F02Hy0YzVqi1vvMw7qd-ce91lmunPgbOiqZokmmlrAwQ4n8vpT7pm5WlGgTZ-1Hv2-xHcC2S6fy_4eGXll5vqjILsptHBsmGa3HuKK5xxnfdCIau8S_M3ADU9NlnHOsw_erf6FJv2-8tyFeG_cTs6DNUNy13f1AZxdyXEk8GnpCl4QgIMRbBQQRE7peiBq9Pq5PRulg4KjonH-W3q46baTvyFl5wQFpDCiVAn2Q3PtkX_AYcWGjnJQD1QInRznFmR8vsL1icsltS5637rCI_MFaO5J0b7xDM67sIj4r5Jx4qxkcUWRztfyVoG9B6gtofrXS4hjdRYA2mldbHeFwk4flLl-lLiXqXrunhZe3XrmyyVocpzXt5zFEdNuZ6h4vYivBeTRnyjSSefTNWwGHSL2_WlHnijRyDhv-Jc3SRK2eJyfHqMAacePkAF7BTRwcaWBaufXy0H23VLwDqOH2Prjv-rKtFdyANjBEKZparz24SZHp3SZsDQLdQ0qDWbF0OXd3gb9uo1e10foZo4jj596LMfJvpY4ZSbk2pfpwEeipiS2xWsL-1QZ9Rdo0zeevU5UKTJ-zteF6hYfUJfFFYpNJWXz3FYugwD6_3XPLucoLr81mrBz04iBQld0PLM9mvxNA2W7tiHaie4tvue-BZnMzcxgAj5iH5W_KA7S5k1U1b7b8dLp2UgJ5rMnq1UZeMpYMTHmWgHNq0MWlMBophLKTb8kqsbMIk4X2YQVMbyHErq1JhXuz3oohlDErQHkCr9H4LlTqrEVyPpXwyDxmHUD70_dSikB63Vdlp0J84K557SKB0gq5i7TYK6_U5-EuD3RzM5C6uceEzdHI2cSSOBzl4wuWeIw2J8yqQ-YoZoZjJE-BA9H3gixsjYX2VSqbZYTkTjV8jPesA5si_IVXNpnXr4t5KmzQW6c9Y98iEtkyzp4Pcl7ZEFsmjCDQXoKJcaXth9rdoFX4INyr01nwIRmkdgYDI0sweDutlCqWrdF9GNHD_J5Btz9EZB5tBK9r-XrCcHSknlZBgirlT8qTqTu7mLkcobca5kQAfzCx38WlhH2Wa3lFAasjrVWe0QL4o8FHtj5UlNWjAP7bdKi505gaBXUaR-TD8hNsumG3njtMhiN_bda1pYcTHbI-PxbsFIQOB7OnKa6SqgZY03Y4-yu17OSsPIhqTsH3o4xbtDH6esVrcK4Td0DY3T-sG_Tet2UXHBCGcidnjSqDOnHBtNOBkHRqtM4aFYIVAoEI_eTUSvy5aEw9Id0vODjguLjoiUuBGCzbR09WDD1TsSUTWByYVYDFkHVU459NhLIDiALP87qBF6dBGxqK3_qTyiTMFvkYuJIIrLBoQI95PivENXx2CUiwiNo4oWsyEp7A8W733C3a0f1IcFDUixmPWpSvL7VkXV6A3RWiJqYLNEWrgZfixPMh4RSZxqaXMNS4bMraiKqdh4fjILXgJvG5KhfaZ4veVS7-bnmWGPJY8UrA0yKPmYKe-zBiXvVQm_3soZo4uJiuHOcpktddQo0oK_Lt0lFTq5IsTLEezbC3EUDHTYBsw6PLyCgpHX354YjJdZuB1DS6-jQv3jr6mZZCfepqEB7lovz_-JGolJ3389TkZVUC0hzbsHKD40H65nnneeP9KLaUEDJgslQm-RSG__jEgwJ4wRtMTOdwluTSl0E1DrgFy3z8Onb27upWe05aU9dfRyVlj56GySwhPo05_JvsNfL04IJW5M5J1WrMD9fYCMuCijAp2DHAvL0CWZzKf_RPaUaMgGzIU2TIx1RiXQgCJwfQ8f7kKg1ctwRUKq7TG33015YqPziBOSeZq78HpTUwyGQFU5nnpmXPGwouitvay8IcpRA1Zkoadd_-XHxtbak5nUk1VYzltwYf3oqTvr-2uKHe8b2a_5jwtv_-G2ucKfanXQJHqiCnY5N7s4ti_XoB4rEZ8qu5ZiGqY8XcEWrlo_G72CDP-ksJfZpNa4kPnKw-fZqARvK42LsI64q1jbc2iwPfZFtqGj2QIFw7Uvsuay6DtxLh9NUt0RjDSSgXRu05eCWeTBRH4O5LLG5lJsXQj6t-fiMRth-DJ03fL7bQ22AqAe0MGHr0_iEv8Qpn3o4pWEFuMRWES_eoS_zPjiZcsCzPRsanAuDMRC3z_jpKcaty_IsHlvXn22DPJTdJLNTPLWm32jO4zMhHL8JweUrN1m6vuPja11kFLDzXweo3r3ykkQWMcTx1tdhSPWqYeuZbr13aVAT01Gv14PyKsIdCPMhkoITbs1YK-3lt8IWQSKeSvu70qk_IcM6uHr0rFMxZODNwcWgBNNxXaQzSisPugB97MDKGDya1R0sy4inQd_3-s7d7SKwyd-pD7tPrvGOBZSbUuH0sXEqqku5vycmrzZ-A1xH2gbc7A3rMttnk280M2hBoRlG1G8Gf3-8LeimiuXolBSYR1JajZNnQ43HlOTmlgNgxgn7STs.h-NU0Bos980l33HN8-pYnt6YmBAmjHrGaThVlDAjSZM=</keystore>
         </server-keystore>
         <server-keystore>
           <id>default-ssl-server-key</id>
@@ -488,13 +540,13 @@
       <signing-keys>
         <signing-key>
           <id>default-signing-key</id>
-          <keystore>data:application/p12;aes,v:S.aFVCVm5ISmxaUUFBOHV4NQ==.MhU1eNBMf2v64paaHfxjYA==.eiWlKA5iufzb8OHI1xr3VGk4NLC2I2jNVzlVu7-XJ7v6qvO6fhk7kP8JtbamgKeF8rB3KFcpnGN7Lq8kAs-LMDBdCb0U6iWz7xptE3yp9biCHCBDg2zmISIy1MrMh4_1fjsdHeqAvhm6eKgRd4yABqtScXTT-ealgfLMf-hpgzOfhA5F2mKB5QCCob-ldPHlZrfV5RAEDgM-IaTi30KM-yVmw_agSCsyl86zLM8RCA9Dmv600qJ3hJw93SI-9DXeHiY_qjO4YMBVOGpj9MDLtLh71TqtLdp9wVULMjCVj0lQkqy7y9lbdaxPfP6WGv2apjMGV0uISQw8gl9vvDzvy-S0md6U4P1MqmhuYLqzTl0biPqhzx82TupI-QFQx5uCow78WU79uNBbaRqy2bKLcEYbJGVi9F0pwlmtmo7Fdfw0wMFQJ52-ZXHiyL5DWLXSO9f-7gZ257qmTVMaYnlh1JtMxjfi_wd3eJSoSWdM3iNo7xMannxUc2NKdxcW4moj-mvULX_9vxZLPvJXo1Uifasw4tpwuJj2E1OP2H-rGU3zHtchoXxAoTRLEARaWEEEZlqjSdSTPnNWS-tCPa8D59u-jIQg2ZwOfCzWTO_bFlDsP7IMfBQ7bP049flEGfN0Ktfbx8qxlvlU-zgeQQyANTkoQDyHTh8JvwwoA2hRnA87wRPqeAhlpUGOFG9QmUBXMl8HlimlZx765Bhkc5jOfBNa2UvwpDA2GurJjUalJ961r0c9N5Sq7pv8WHy0mAYHH3yE1_Q2jhLm9qm-yKP8ktdIraGtYhUdeO0wWvd2kJ5PlG0vS3KIW5wc-AqHHCFcYZtiIviV8VZiihh9NY7y17qKd8B6ylQt_m5mZeGfGfQZ72zEmdP6L_3Iioj0OWHEWWCB3jU0VkY2-Z0WOfPObrOjCzWmz1s5rPb31D8BR6JGpkDo2tXEfubq4aoirf-IyrsymFDf_y8tjXlKXo_-NgNTJsWfNilnQocedFNXZ3xtDdkrehEfzbNbhrI_VoDuGU4H0dzTHDKG1I7uhgSiiNNSSsMUijhbh5Ik1Q2nglYWJyX3r6Lc029BJQzD4ccCSZbSVd1PCyKsmAV3oyVlCmXWb3mDkNsnAAQ9IgZrnQtQhRSm9PicRgBqnGpSRsBXXPuDNwz89dBhwNNIgMt1IktYIC9NyH5hHLlSYryuawkXjsI0ZVAnMJxB5JNSG1q4jQNKqnmapAOWPtKAxJor6UQIp5trY9WbfSQqUhkJhajInsLIrq6zmjSJl3tFwydsDS9fHwrSn5l0CFZtwXo3gaPD5nWzjyHWC_4UC9Gxr3Pwg2e_Va_soTU0MX_m10q2dQLHUsEcFTS25_LY-4atp-0MFROkXFLSC85Z4RvRnute2Z_o1BhXoVheXOCltbStmQ8VrMjD7D8ULOJ8XftN0oo4ganjvTBPM7gdvAYq4Cp9dIlJGRSt7wnLb9-XBTHcQoVqOSo1UDtvBFyXMiQGlLot2C3DUHh3dlZGnmLjYTyu0wWjfwSvN7FP5s4PSYcLjEfYQSw0y_fUyunHKSjYTkx1QxUCT7jFPdoAAZ0Tr_UyxeiJPZgde12hNHVpTWR8oQrADsJJYg2hzPTJk5-9Q-gq68QVB52-PHjYSFGjXSc3MXodvvg-5E5qUuBmPFe1hbbCA2f-wTlgWb0bvJXnpjLUvqm5LNJepPB_ueH3VxUGW_c8Mwoer31pSvGSiea7930GcMQwCFZxiM8xazqkbmN80nXzqK7BO-ppcfFIZk7WrydLngwRFlTiBaehblg4g4E9aZf3pPt6EiafaWiuUG4HNDDMsY6wTcKKcxPaWd-EvJUpQi0gih4-zgw6n3Pid4ld0kbb3QTH2HOzN_fYoSa6b1ZhkbX74JpU7OTFXtYfMI8ltC1MHCEG4lHFv8VMcEN8jaSvSc77afmvvkvFM3zKfaRsAcMl1eVb4opS4ONXiAteayWM7Svn_hQVLLK9H2fDs4IVFdLbBP-yr6jsJU2fcKyl2-xInEFnj_Lsg2fjVdM9xz3NXctcanZKK7TYxHVNuAvuqywZhsn_i6GEXET8yNOeT_VwjCd5Cz0IZzSg8c2bh3gC8s7V1pu4Szwl33Jfcvj2lJYL6g9tnahWV2VP4xoyLI6u3w8SNb3dQo29tDKHUBhI2Ng7mZo5WBtm9wzUScA-maLhfjRakHVuGfKfzcPpIBF2Fz_LvB1juYliPjfg-6qZEAqmQsT58NnLoR68BhjPO1q2gu2VGuAqnlIVfaxUU2R0xKq5Km0JyYAj4a6RYqaocTLe0q9QHTmdwAPMZsQnE3seqaeA32foGObquC9D1zJq_CeLkcAaxuSzl_FN_TNFIeZhOxgkS87V7hj3Ou_O6Ywqrq53FJvGZBpS8707ORTGoeIPn0n8w2wEzgzywo2NXDECNsgNvc-_F9mK3bI8gE0qo2Vxg6EokBHjbbuI40CcC1LVBB-MfRjzTfFBdXCIZ8MDb3pcw9eMcvz7mMjuFUuTqXtu5hCq6Wdm4HxAxNGH8xAGSTRFipj0tt7KsKVgFJnXshyQtLLPpqBxkDbqy1UbXaP-Q7Imevhr7yihrM2FeKf2YqHZCbalcYtNNy9kHhm6wIc3XREEJ6gHYBd41GPC_Gm6AdsuK9OVf1P9XuyxiJurVNjPgGXn3DnwLSAJk7_zxgIM1F8VVdn2DspMraupMLvKs_Hn__J6KbGdeJPM8s5tX829mkVF_GhTmRAtrGDo_pRKZ-jn49nZ2toMU2iWOHFo4yXjcaHwKJupUqb0719dM-H-icSszmSHoY4DpLtfZlZbkfnoirQhyGLM4806u5w5G-o9DmXKgF2D0aO6pylv2DbIxDaoy8fPdGlRfaOU3bra3Qp0qSyopuQ-9qislxbmfTZeWr4XuQWkvLWbggtm62iZFQnu5vUYuauT5L1XSp8Bcqfbj4eSAnVi9H0Cqd4lnUKYNTB9JycNpGOvHVn_ImkogIx_tS10GknExzlwC6fas55vX06nLSWvGc6SkXB54O28B8yV6nFf9JZw94Fy017dWv-Sl2BfBz6liZT_3UnX9mD9ov95Gh1rPvl9vd0LfGuLTzOyJwH4Z3WQZO_OtlLa2SbHlHeQBlPeTKbkd4AZTkUZluzooBcIkBCV2hJRp0STT148jhgXtmZT1oQu62c-P_sEMZizsjr_f-70uSNCGIFczqqMzISQEybQf02JiETqxNxLwPFamJ208GDYrGSDHE-zsKrE8QetugVpaUsHgDaguXzbQwQZI1TkmyO3zpyGNNNI-ezAkWptiGq7en9iZ_JyF6AJes1kdrFs2v_T44NPPDlbDTSbj7cUJjf--rkQQHL1a-axs7VVDL341UnB1qgY7D9916Dy_J2JcXNJAcz9usGzpPQ-T5zAQoJAcjiRmhKxgLDctvA8rNGhhUrwYgTeBW-GAcNyXSrAmazJhBRN7ylt6z9wzoP24TghqjhHyDqFQPYF71rhQPYJ52RS7VOHMXlKnC16N3pbtBhlOx4oDUmP60ObL4Cvm-v2W9k6rWX-Hchx0nuS-OOacSxnCIBMP1qTg697U0C1w_20PJRpgV7MaZzHqN9uZsSpHtPzrVPrRrZ1n-nItYfeD1oOuhy_cCDuVkY1drs5ErUg0GDqdN2PdPFJnsqsCrTuY4kZ9cNgj7ZEgEVx53hT9Y0aMnT1X8wcaem8m2qCUxxgSwNz.dLXQ-SlQ6Br7KaWkZ8RaeJCRX7vj1uIbVwhns7Kgctg=</keystore>
+          <keystore>data:application/p12;aes,v:S.SVY5dTBtSURRTHM0ZGpyeQ==.ez5p8tzdgGFG-s-0GAcbHg==.I3i23vGr2RQPfvbHLcuoU6XlOsRTrv9zWjcd0X6d3bAsnIU6wbke9zOJxt5ajavxZi8Xa5oeg-0pJvHODEbWe89EkFNJ_b127_oacFJJv6giEbJze2e2BnLAYbrtTIU-FSyGtZ22XsWWo1s4MWwPU1JCU1HrLOuYPFO6DnSm_y7o4D0vBoQ96nNafzKooFJjzrlyJAuWjBflyRKWh46Styee3oWJvYMSoA-kT4OLaGazRSb0srLAj1kFnmebFkuzoRIhgGtxrly_XMQQZQ3ajNaheffAgnmO7_BvTT8F5S0SA8BZWRGbB16GE7zLeFbFvrgbjfpZ9zmzkoAlx3KKK1LZN6Iw64rvQ4qOs2weJE1pNCM7gEjgre5ZGHZqGGIIfkyamdbav6BzCIyfUb2QdCpdxqSwYIVRnvptV2j5OBQQy3cwLSJCTARnCmO9ToBoMyTUso8pe9hxZE2t48J15c1e3L3h7Jn3GJLMD176m1NEzQS9KrVjwgMURKn9nTchXQYIIe7MjBq2rT3LGEdovQ55v9ON3Ed_VCXMHfUR4dzJ3r3guEjFTlPgC2zNTtgDqfPSCIRskO8dH6E4E7D37SLY08Ymzz3cI-euocpOa4qseOUpZOWphYshHJ5NcACaflZh3YItINYgN8U3kYJPIbekUNn7VS1hxINtxWWaGP4vKUtVZH4oL3kAH1mk1AWvTuad-FSywxW6egJvQ9aoyWhhsZEWbdK2_WqSa9OzdW1xADxEXNrfF7K-7tM18O5i9c5xQjDVNXWGOpGwkihfZGxH8r2U-khf914PCCLa6Qy1SXf1XnsfOwkCxj7gzO9eVIVz9AAEKKpRJDPgds7uRvYOEo4i3uGqQhtaFeXeL4F4V4PVrRGeMVaj3YFlrenl0n3RA3So4Unz13l6BT4zevvebHfLSkmMqbObfDGlcjsz6-n2cghfA4NtR7FV4Gh8Cp_Y618VU3JVfUg-eWLNwcgED-xX2P8OgMb1KnF6_iQ03VLDTNhVHr8bAL6gUmV9E3EII6mQ8X9q8Qknz-N03bNcPFigzCnqEHsa5LeHLeCqi4TR6DNjqtvEWw7eoPAGnU3sA3a9612r_vgcPf-44sw30B49X5zlqbnfX3gHFxpiqmPRCGdpq6cTSF4cMnffn_3mw0zcLPvx-Wcwdp2tp-AX6JNChkWD_WE4-J3KgHBxOVFCFNbyz9UVSmllfkQGs-2xF0EtyVptaYnPZGqp350I492LiCpD1iy-5joLc80jvrNaBrcBT560Bw61xDWK77t00qR14Eh8qm1Bs9_xKuRbMZXVQjIliLPEs8JuVBbHkjEjxlsT0D7trjVL52hcM0WcOIFD5ih_u14_I705Gt8ij_d87aGyVbZfEITK1lDwUmmuKjIQOnn_UkzgjBSm69sOpFpdKDrAwLkE-hldiVejnbQsnbCtMuD85xaFrGP--oasVYcDUfTnu7marclcngtdqcfr6OZVGho595WBVF0YxiAWBX6XSdByGFpVF03z0pRMfiNthwa3WHP5Selgd6NUTUBdD75GMiamzHfP3Mnku9r1QIO6SEDwhUYXsJ6htvJtTnMzJ_qiHq1Mev5wEGLhOx9FzhMFzCUhYB-66Oyxizn7D5jcResdZrx4d0JWlaCYifg4EQq6sA7yGd4tfFoexuQHNPJPsWyErj_dOAfjLswM48AuOKtLEbNJ_sEbOFHIEbGb7-YJWok807CWh-wwC3gxi8fvFLPp2EGvx6fgGnPzLLbmXvJZStpQkBH1RxyO8eISfUULWU5Qy188a_qgDOCbLtFKMxhXge9ndMzrUy_zdHbZn9EnSWOdNR-zi6dnkcfUTuEnnj-6a8v9baynfIhiyqUu1HHdbziFl32gyq-ClAJa0RPb0ghXS0RRNFwNF5sPmPZ29y6uCXw4p30FnCg29qF0rfiynkr2eogVdBimNXUSFyiewMWZlYpXuF-l5dhecMVsrGXzoPUTFonolvQoUHzHiNlxfgowBOaP5DAYs3VHw8yjkGOjCmIRyjZnX49xPJwZcHgRL-No5uKbRWR-BVo7oJshPuYktqr2AmtDj9_LQ6W7dZTIo-CF34FN_WLrjbUQlNlyQh72E1jKmFhe6-_SWWy3bLnRvmunQCahcE0Qyw08wdg1-0SrMbPQUA9ZBhzmc2NdmNBM3WBw5uLDrVqPLERq-0peaduumE8qx3tevlS7-bNjlMdFT9tln7ZSH69kufGD0ZntlNLPo3IsbIBtxLNN_sOd0x_UkbfhgCOZDRiRib3iaPd56vxSr2x3BwtDzk8OXoDroax7Ba4eI5WRcjLphdknyLuk_WQTKiwDLrAnAs4KTLD7cXjci6dSFpS39TmChQlzoZ5-hv0LteQ1VGTgdbspjKuqDk1JIidV4WdF28eAC3G5UXp8Wy19xCt-_FlZtZcuydcTe984uRav6NX6j22wwxvg1TcZfx2_lY7cesYpQXm5hnrIiUSzbbk0twWB7Z6lIEC-eKCHETKp5ZSHI2M9zkAsjEoC19WcPpbGeEvv-CpK6tK7KRn7HBRJUZf5_e4C0g311DJ2OOLf2pCPwAxZnRlLk61NmHEKH14gQ0iGrXWKtaoSa7bVNJnbNmXSYQvRCvtV_5jj1V0PozsbQJ1kuC3NgxDulyv4SnBmFSF9CloFW7p3jWU7DhyeolY4kH0c5rEejZgMMMKH1o8zOYSydvc7u6t81Bl0wUEPYhnziLXMIe7L4NEEMEFz9xXH7nEv1fQbD1FArXWoRrvad8zR95s0WO232RW2BVNsOGKvtEYioSWqU2zHh2vKyDj5vTlXRXz-x2ohU_Ot0ZGd2IdiF6ZcnbJWyt3Ak0nzR7X6X_Usjp9nmup8xtOyzFG4EVu3FQrXOJtAykdtnOZ6a4CYciZ3_5NsSiNMUfCKRymgpo0-Vih1aV1AsMOCg43prtGR1aNEAzBtM2GiDbJCBxYdT--u24ShV6D9tDXQ8nH8DDk1mWagf0y-g6Crfl-2JTwvKb-pNh9QRyhRnAJRsRmk7uReHUngSvltF0YxlRmGXe2IhuLyaCiJM15JkDS9R1CXLuTOEi1kx9uMzfAmC0ClPk1j6OIrLooqNcqjXQoQaMn8bTZMRqwUNZqACWQvNku5UexpdAdsOCu3QeKkTLE4Z-Sc380ld-PmY72-24w0pwxIRiZFok_7iv7nwCpq3Km1avp2r4f0MqQGRp1Qu3YfIVxbaXYx0Z-FsZu3aqQtIbJsDK_OBkIgGrA2cGhvZ_0E_1RLszCjXB7kCHeC3CW0taqsYWR45JUjCpzXbMyGdXGYN8gCViqTLEN_q9f4MwObgqIkfUpr4lz1uf_blnJgZmoEtxNJENaEDdTCRIm0g5f0v-OUeDjwBWnVx_T2PY0IsQQ9N20Ou5py6Xd6IeLkt5t6GnPBll2-qMrXKvQx9WoMwgmhCUcsmtqBiE3SgQs8pCJ5xDAG-8QYZ2-oJAcSZitHHd0at-jJ8WZjr9W2Uyky25KCuYI-fCsK81pFQWerQgSI1NZ5flXrgA4wlFX5lpsoe1WXMSDyYPXnmsyZ_sVs3D-Y7a2Po3Ykqz33roglILRWw7XaOIGMYQ0uN94QRdYZbd5T1owcINnFyHXqm2-pE4tic12iaQiRSli8VY1mO1hcOdV5tz6mVObLme5Nk4OSBVN2zhQL3RgjgUz0zTTehVmvfv30reU5kmAoOqt2.ZfaFEFT2ACrltbXe1_8BWwdDy0KVYQiZA1XuwADBlBg=</keystore>
         </signing-key>
       </signing-keys>
       <signature-verification-keys>
         <signature-verification-key>
           <id>default-signature-verification-key</id>
-          <keystore>data:application/pem;aes,v:S.alprNVA4bGNKU2xDOXRzcQ==.EsLNArr8WAGtN5guI1Rj8g==.lI6OJB38jIozLNBfZUFiBDwUxKqcSIZJMtqsvLVzJ7Oj8pF_sAMLeeCdNQnNj3_5i-m_aHyVKkX6DFViOaIKl7hdQBplCJ7Tua9gLAoO-GtReQ-AozI8bMoyZlYdWa7nfiD5X72_a5N1dwxA3nbFYqNOndCY7bHTOXRxaT3CW4vivu2Ch7OssqAYotejCu9YPaVtf2xYNyFpxj5xBFcUw53AUuf82dblBG1cZVo4bxugDXdmk6TW3HzWsp2GRzPo41cR8dbVViKjoXnokf3lF7mE0qI1KognDtQGfXg5jFTHo57e2fJwO4RL0cFfZu305Yr5XZUJKlSDmljniQZ2vtyu6aiZ5xoNvg7XslZHBsWhnydKdi0Php95qQbokYPzBjgi2gt1tXymEUcN1hqpcqVjNDjJm53V6ZswP9-FpXyF6wNd5t9prBhrMwGzvg2ynPWR1jr4lt7SqTzTAGA_MjJLx9SOAuoOFKO_U6IvRtPOw5bhrifMB0OxTQsRG2DrOgnAb-LoOKfkwcUIkMq21tK4mv6bjxBt8R4Ai7Xi0PZUNI9_-0NnZE6m-7R7Mao8QJZOvR0Ot42CDhHR1SlllaYhoUQ0LEo8Wm_IPtQH-J27mcTTJ5xcTY-ceZJy8ys51slhqXfNr33_gzv1OE8E2DumfWpM-9f5zNLUZm3WN0qkZB_Lncr-paYFYnROPPL1MezqTmQ5guYK_kla_ieAM1inSksUKXfddi6XJXnkRwbYumvRTDkhI2Go1p28dsZIHTIsiC49IZxnrTivqeoUybCQWBb0HvtPsAkBTAD9MVwdaPTexPh0igx8aE7-Z6YV_AyXZjyFhkrwl3YCXYvVmx3l3ZKZcZ80gdYxSBCgIfxb4ZUmtDORjtNyyp37u1ps8GBsS0_DE9ypItvTpMdpSf-c_7dNRvGC5L19V6QNArQVQ34Q71j-J4gHG9AdVIft4tuuu-3L08GE3-xu7-B6ZBu8OWPgk29sHVi3SoD-OM1014CM0Pa7tPQ3snvhxfMSeJG3mXm-zt-Pzio0F3p79Vh9o8evDtX9ysm8oxSR9wWf18Kle6aIBXRn2R8g2gk7jBYNo-2ePzNYzbO4g8VFIu2S2BGDtTEJdzXlGM4epnTY3EkG-zoOFx7E6wgkTKAYxpV610014jrM_WcFVJsbzOLs8FyrZslz4oQiMqQnmFF0erMPi92_CsNG56lRuLQY_D9d9Ndzoz3yyE_tbMphsC2LvgpEZgR6E_fnnGjCBZBe39rNB2-h0fDYQVqQNfbfBPOgMUpS3o1Qy8f0669jcbPQSm0P3OWjnz3rxw8x7e3Fe_zn8ooVjhDn2g7A6BKjZISzBTAJgPwWBW_7xWWIULDO71HVV7yipdajIgX5efhuf2GCiZhv5mQNPzIZazCRQl-OoStQeNQUVPGzIeq_-ybXmisA-dmaMHSs_k-tKy9axFUgHIxVErCfR0wVLpHmxHdnD9WE3HvR_Z9Zv0rEGhm7B007BbrKJcbIGnPGT6kiMUM9UIhH1Rb8ouWjd_k7T5Kv9WW1c9l3Cv5l6uXDsxoNb0o5c1V-1n66u59JScCr5uVxd3vuk3NPQxvMaQpz2B09vakH7b8EZo3YmpFPO3gRl1MRXYteWz2gbcICzUxJxUgSRFYJK6eueas7QwMBzJtkrnRyeV4JcNu-xiKzGgs22t09Rq3OqaGXYK8OZKnt0ECeSAgCDNdy5_AJSrhT4FGxuwdpO-Z0Xad0TNxH9w4p5hhylyZe4K-LmNlrp7E=.xpmw2AFR4xc8ojkeNduke4CM_7mxhW4CFdNbj-4pOGQ=</keystore>
+          <keystore>data:application/pem;aes,v:S.S3RkTlNqQmpWbXNYUVl2WQ==.Uxcd7Qscj7U_yI-h2BOz3g==.C4sCg_yPZC1UFwRhBIrvcfNmv2mJszpVan43tcimIR47RRIAAxiUhefbj2AiUY6sk3i8HGiLc3gSeH7wq9c2qpUZvq9xpoTDBjwfbc3hYQacvS6fH9erXgdNo6SdVMJYn8Wa4TQY8H2JLFdtKZMPikH36soAhHv4BVcncTBoZouUr-nsrJ3MT-e59RVy4a4RbcuST46eGe5XCN7n0CkMI1kPMUj7BB5XGEbzLoor8XPG_YkdofpiQNpmRTXHaQmRZodBnDVF8IFNlIeDwOquqzQPNKNDm_6rYTM1OzJDTeYC9WYGLXgZekYOeCjVIJbWY6j-ZEw5TbWB7_YJq2G2ag4G4uk9RLS67fjTglpnm4JcZ9k166mMjpiaJVnUVnVzn9yzUGULdCREwTfzKUq49fdsAi83rvwVitsq5NLw98dyf4StU8ggyHvGkvicgHXEx1fWrmP6XY-C2UTsvoASeuFVUHcGvb2pvxGPRQ2iGLiirmotC8T41hGSIKbLAJTMpKhQ-uYuuRR9IqgB1FGIe9-nBuHNKm4ggzybAPhkygWwDf9i47APG3d_Uq-9aHNGlNMDs60kGoFpPW-CBPaohsTEgo-f_aHPWExJ-6rfiwvKyCMTEZYpooDiAyPY1mCdcxLfGCsKiryx0oLnlL66w0GuZ5P_8KWUcu7eW-jJP4RTBUvQo3H-3T4elqIKShiHeDrrpCqB6aGxLUmesLw9XHmd6GXrbCaJU80Tk0OjtWe1mJb4CTZltNwo82enB7ViNJPnchF9XUuU8tNSbw1zwbOemeknp7Xm8P8GN_sYDdJVs-npGehx2MlnpoofvCkMYq1gO1t_Vi7PDgTk-y0Obe9Md9njzpce_WUKPj9sm1HyKFVFMZUDpi1-35reNjQu5Ma8L-Cv4n6CSn2V7A7mYq9UN20hbr2FBdQHpExFJYUvf3guks7BsrBm8mXtMG_ZZQ_Pr3qJ8vg9kh6YtgWDzkwDvag2L8PoJjDFHQMat1JtIoaDh1fsoBfzSTBb3y5tpBJcdhAdU3Ll5LFUTZ-6Dd9-VgechNDLWy5tJtUmcH7ws0Gfbd64zPgjrf96EpWSAAAUJ4BO6IJpx9P7m6RYgvvgGD2xr8vrJLi4xD4F__KeJjJG9YLFvUspg7Bpon5Z0uUfmaILMLeUUw7LxktNks3X86JOvc634Tsf_uaR1XLqL9p0LWyHmIT0bIzardeYzQ9-nK4l4pvmilj7C-cK9EqKR6-S-jb5Zr5yNA0D_rghSQQNEShmE-lzBiM5disOHRxn6CC5hO_-A--wW9vG2kQCPXLb-yYoM5_0epiqCX-HBZYV_88U91SusPjknPJoOy1_R5J1p6IYHDY9dddVW-HfnQ-EDCCe75iGg4A641wjjv8B_hXrS6NPzE2SUbQvQLbZ_2QiOoW2_PnMl2Q6pZ_ns19Mt3S0x4x5iTUBoDhGQGQbt3-vys5JZ-78LE-FS43BwaFFtuAdgNgJOZAzomPSAehH1Ix4MVFbpJfMdbmoryDtQ0z3_5E5FyBQlEU33aXDR-QOC7zFA2SvJCdZx_nH-r1bCEQZyjpQZzgvU9Mlqgv17u-vgfvL4GEG_wDQvkbeA4ctLCRtMDCP7UAlTZ1PHWEARTvu4y9R06MiA6EJNCVFcMPe-hFXbAz_Un2WYi4n6fBBN7DTY9lCLIuGgimhnA7duXQYRJO6aIR2YMUJ9fIbvQ8wDpt0akDPs8IjvLQYhbEfO9HDOjx1dw6Mx7uEqDlp5ZErzYvMB4aY3VE=.yfpoyliK7hYcCVem3P2IziT8XFqsqVubwtf2DWK-Cho=</keystore>
         </signature-verification-key>
       </signature-verification-keys>
     </crypto>
@@ -505,13 +557,28 @@
     </caching-services>
   </facilities>
   <processing xmlns="https://curity.se/ns/conf/base">
-    <license-key>eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJDdXJpdHkgQUIgRVUiLCJzdWIiOiJQb2x5dG9wZSIsIklkIjoibkpOOWdoZzBTTzZ3Y25qV3FpQlRsclBXOWZJMU9OSGsiLCJQcm9kdWN0IjoiSWRlbnRpdHkgU2VydmVyIiwiVmVyc2lvbiI6IjQuMyIsIkZlYXR1cmUiOiJhdXRobiwgb2F1dGgsIHVzZXItbWFuYWdlbWVudCwgcGx1Z2lucywgZGFzaGJvYXJkIiwiVGllciI6IlRyaWFsIiwiR3JhY2UgUGVyaW9kIjoiMCIsIklzc3VlIERhdGUiOiIyMDI0LTAyLTIzIiwiRXhwaXJhdGlvbiBEYXRlIjoiMjAyNC0wMy0yNCIsIkVkaXRpb24iOiJFbnRlcnByaXNlIiwiR3JvdXBzIjoiMyIsIkVudmlyb25tZW50IjoiSGFja2F0aG9uIGxpY2Vuc2UiLCJUeXBlIjoiTm9uLVByb2R1Y3Rpb24iLCJGZWF0dXJlcyI6W3siZmVhdHVyZSI6ImFjdGlvbnMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJhbGFybXMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJhdXRoZW50aWNhdG9ycyIsInJlc3RyaWN0aW9ucyI6W119LHsiZmVhdHVyZSI6ImNsYWltcy1wcm92aWRlcnMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJjbHVzdGVyIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoiY3J5cHRvIiwicmVzdHJpY3Rpb25zIjpbImhzbSJdfSx7ImZlYXR1cmUiOiJkYXNoYm9hcmQiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJkYXRhLXNvdXJjZXMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJldmVudC1saXN0ZW5lcnMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJoYWFwaSIsInJlc3RyaWN0aW9ucyI6W119LHsiZmVhdHVyZSI6Im1ldHJpY3MiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJkYXRhYmFzZS1jbGllbnRzIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoiZ3JhcGhxbCIsInJlc3RyaWN0aW9ucyI6W119LHsiZmVhdHVyZSI6InRva2VuLXByb2NlZHVyZS1wbHVnaW5zIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoicHJvZmlsZXMiLCJyZXN0cmljdGlvbnMiOlsiYXV0aDphdXRoZW50aWNhdGlvbi1zZXJ2aWNlIiwiYXM6b2F1dGgtc2VydmljZSIsInVtOnVzZXItbWFuYWdlbWVudC1zZXJ2aWNlIl19XSwiaWF0IjoxNzA4NjQ2NDAwLCJuYmYiOjE3MDg2NDY0MDAsImV4cCI6MTcxMTIzODQwMH0.ki1YVHvvxwYk7-ACxQXuuwxE0-L8YQBF12s79UpWVVYRtUFXYCU7R09PBRxMPHtNrnFC80ktRFffrQExfJnp7dsCf0cCf_W-aDLv1yNfmycohPGOfVKpwOb95BEdsRtKOJu81PR09BRWl9a4aAuSKqPJU_8A0bCVH-N6NVEaMnhT6C9xDMHMLLT92efFIj0xJ9VBDaALS4_w-U5vWtj78eBYAf5R4U0E5Em13XDiyOFs5oh6nn2z5u3yaj9msP08qXKQBBf_qv1996_hhKmEj-_WkhSpj5hfBg2584Syr0lAia4B_pg3BRqhzqBcTMbsL0ZJZrCSaNzUAdUqOXRB9Q</license-key>
+    <license-key>eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJDdXJpdHkgQUIgRVUiLCJzdWIiOiJjaWxsZXJzLmNvbSIsIklkIjoiVE5vWm91U1NkYzVPaEVEd0VBTzZud3V2VTRyQUcyNWoiLCJQcm9kdWN0IjoiSWRlbnRpdHkgU2VydmVyIiwiVmVyc2lvbiI6IjQuMyIsIkZlYXR1cmUiOiJhdXRobiwgb2F1dGgsIHVzZXItbWFuYWdlbWVudCIsIlRpZXIiOiJUcmlhbCIsIkdyYWNlIFBlcmlvZCI6IjAiLCJJc3N1ZSBEYXRlIjoiMjAyNC0wOC0xNCIsIkV4cGlyYXRpb24gRGF0ZSI6IjIwMjQtMTItMzEiLCJFZGl0aW9uIjoiQ3VzdG9tIiwiR3JvdXBzIjoiMSIsIkVudmlyb25tZW50IjoiSGFja2F0aG9ucyB3LyBHcmFwaFFMIGFjY291bnRzIiwiVHlwZSI6Ik5vbi1Qcm9kdWN0aW9uIiwiRmVhdHVyZXMiOlt7ImZlYXR1cmUiOiJhbGFybXMiLCJyZXN0cmljdGlvbnMiOltdfSx7ImZlYXR1cmUiOiJhdXRoZW50aWNhdG9ycyIsInJlc3RyaWN0aW9ucyI6WyJmYWNlYm9vayIsImdvb2dsZTo6YmFzaWMiLCJodG1sLWZvcm0iLCJzaWduLWluLXdpdGgtYXBwbGUiLCJ0d2l0dGVyIl19LHsiZmVhdHVyZSI6ImFjdGlvbnMiLCJyZXN0cmljdGlvbnMiOlsiYWxsb3ctZGVueS1jb3VudHJ5IiwiYXR0cmlidXRlLXByb21wdCIsImF1dG8tY3JlYXRlLWFjY291bnQiLCJhdXRvLWxpbmstYWNjb3VudCIsImJ1bmRsZSIsImNoYW5nZWQtY291bnRyeSIsImNvcHktYXR0cmlidXRlIiwiZGF0YS1zb3VyY2UtdHJhbnNmb3JtZXIiLCJkYXRlLXRpbWUtZGVueSIsImRlYnVnLWF0dHJpYnV0ZSIsImRlbnkiLCJpbXBvc3NpYmxlLWpvdXJuZXkiLCJsb29rdXAtYWNjb3VudCIsImxvb2t1cC1saW5rZWQtYWNjb3VudHMtdHJhbnNmb3JtZXIiLCJtdWx0aS1mYWN0b3ItY29uZGl0aW9uIiwibmV3LWNvdW50cnkiLCJvcHQtaW4tbWZhIiwicmVnZXgtdHJhbnNmb3JtZXIiLCJyZW1vdmUtYXR0cmlidXRlLXRyYW5zZm9ybWVyIiwicmVxdWVzdC1hY2tub3dsZWRnZW1lbnQiLCJyZXNldC1wYXNzd29yZCIsInJlc29sdmUtbGlua2VkLWFjY291bnQtdHJhbnNmb3JtZXIiLCJyZXN0YXJ0IiwicmVxdWlyZS1hY3RpdmUtYWNjb3VudCIsInNjcmlwdC10cmFuc2Zvcm1lciIsInNlbGVjdG9yIiwic2VuZC1lbWFpbCIsInNlcXVlbmNlIiwic2V0LWF0dHJpYnV0ZSIsInNpZ251cCIsInN3aXRjaCIsInRpbWUtZGVueSIsInVwZGF0ZS1hY2NvdW50Iiwiem9uZS10cmFuc2ZlciJdfSx7ImZlYXR1cmUiOiJjbGFpbXMtcHJvdmlkZXJzIiwicmVzdHJpY3Rpb25zIjpbImFjY291bnQtbWFuYWdlci1jbGFpbXMtcHJvdmlkZXIiLCJhdXRoZW50aWNhdGlvbi1jb250ZXh0LWNsYWltcy1wcm92aWRlciIsImF1dGhlbnRpY2F0aW9uLXN1YmplY3QtY2xhaW1zLXByb3ZpZGVyIiwiY2xpZW50LWNlcnRpZmljYXRlLWNsYWltcy1wcm92aWRlciIsImNvbnNlbnQtY2xhaW1zLXByb3ZpZGVyIiwiZGF0YS1zb3VyY2UtY2xhaW1zLXByb3ZpZGVyIiwic2NyaXB0LWNsYWltcy1wcm92aWRlciIsInN5c3RlbS1pbmZvcm1hdGlvbi1jbGFpbXMtcHJvdmlkZXIiXX0seyJmZWF0dXJlIjoiZXZlbnQtbGlzdGVuZXJzIiwicmVzdHJpY3Rpb25zIjpbXX0seyJmZWF0dXJlIjoiZGF0YS1zb3VyY2VzIiwicmVzdHJpY3Rpb25zIjpbImpkYmNbMV0iXX0seyJmZWF0dXJlIjoiZ3JhcGhxbCIsInJlc3RyaWN0aW9ucyI6WyJhY2NvdW50cyJdfSx7ImZlYXR1cmUiOiJwcm9maWxlcyIsInJlc3RyaWN0aW9ucyI6WyJhdXRoOmF1dGhlbnRpY2F0aW9uLXNlcnZpY2UiLCJhczpvYXV0aC1zZXJ2aWNlIiwidW06dXNlci1tYW5hZ2VtZW50LXNlcnZpY2UiXX1dLCJpYXQiOjE3MjM1OTM2MDAsIm5iZiI6MTcyMzU5MzYwMCwiZXhwIjoxNzM1NjAzMjAwfQ.LVlt23D7bxlyvkiAFsZ5zoMx3GFbI9LMVoF0VQqgx7JuPFyRCZbwUyqOYCnxG_DgQsqPdwSGBSpjS_-8uWG1835kSKm2t7rPKcuobHkFCqDQsBbqDna5bIywWlRrNUHQrmvMtbbDP2O83Mf0yQlWocjYSZUJVWIjHqLf9KZtodG-dL3nqnTQnER1JnbmU6ZiRdc8R2WerRs9_LC1kcf1sZ2FFBVVfsZKTjdzusbZfKONQezEpfMd9b5vL9buXEXVzKLuzjQ3mM08VUi8qMrGamyST5WTYOoOAo7pMzSxQYSnFyVNjyHsIe1I1eGCTDRTPqCUpReAG6rROl5u6fgYkg</license-key>
+    <authorization-managers>
+      <authorization-manager>
+        <id>group-authz</id>
+        <groups xmlns="https://curity.se/ns/conf/authorization-manager/group">
+          <group>
+            <name>admin</name>
+            <allows>
+              <create/>
+              <read/>
+              <update/>
+              <delete/>
+            </allows>
+          </group>
+        </groups>
+      </authorization-manager>
+    </authorization-managers>
     <account-managers>
       <account-manager>
         <id>default-account-manager</id>
         <enable-registration>
           <account-verification-method>no-verification</account-verification-method>
-          <email-provider>default-email-provider</email-provider>
         </enable-registration>
         <account-data-source>default-datasource</account-data-source>
       </account-manager>

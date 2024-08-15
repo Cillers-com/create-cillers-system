@@ -12,6 +12,7 @@ class Context(BaseContext):
                 method, token = auth_.split(" ")
                 if method == 'Bearer':
                     if data := jwt.verify_and_decode_jwt(token):
+                        print(data)
                         return data
 
 async def get_context() -> Context:

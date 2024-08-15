@@ -1,7 +1,7 @@
 import React from 'react'; 
 import { ApolloProvider } from '@apollo/client';
 import create_api_client from '../utils/apolloClient';
-import Products from './Items';
+import Items from './Items';
 
 interface AuthenticatedProps {
   userInfo: Record<string, any>; 
@@ -22,7 +22,7 @@ const Authenticated: React.FC<AuthenticatedProps> = ({ userInfo, logout, csrf })
             <button onClick={logout}>
                 Logout
             </button>
-            <Products />
+            <Items />
         </ApolloProvider>
     )
 } 

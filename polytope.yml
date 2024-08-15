@@ -48,6 +48,30 @@ templates:
     run-when:
       after: create-connectors 
 
+- id: stack-fast
+  run:
+  - couchbase
+  - id: init-cb-cluster
+    module: init-couchbase-cluster
+  - id: create-cb-bucket
+    module: create-couchbase-bucket
+    run-when:
+      after: init-cb-cluster
+  - id: init-cb-bucket
+    module: init-couchbase-bucket
+    run-when:
+      after: create-cb-bucket
+  - module: redpanda
+  - module: redpanda-console
+  - module: kafka-connect
+  - module: create-connectors
+  - module: curity-db
+  - module: oauth-agent
+  - module: curity
+  - module: kong
+  - module: web-app 
+  - module: app-api
+
 - id: stack-light
   run:
   - couchbase
@@ -207,14 +231,86 @@ modules:
       - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 8080 }]}
 
   - id: curity
-    module: polytope/curity
+    module: curity-base
     args:
       image: gcr.io/arched-inkwell-420116/idsvr:9.0.1
-      password: password
       # log-level: DEBUG  # NOTE: uncomment when developing against curity
-      license-file: { type: host, path: ./conf/curity-license.json }
       config-file: { type: host, path: ./conf/curity-config.xml }
       restart: { policy: always }
+      env:
+        - { name: ADMIN, value: true }
+
+  - id: curity-base
+    info: Runs a Curity ID server container.
+    default?: true
+    params:
+    - id: image
+      info: The container image to run.
+      name: Image
+      type: [default, str, 'curity.azurecr.io/curity/idsvr:9.0.1-slim']
+    - id: id
+      info: The ID to use for the container.
+      name: ID
+      type: [default, str, curity-idsvr]
+    - id: cmd
+      info: The command to run in the container. If unspecified, runs the ID server.
+      name: Command
+      type:
+      - maybe
+      - - either
+        - str
+        - - [maybe, str]
+    - id: env
+      info: Environment variables to pass to the server.
+      name: Environment variables
+      type:
+      - maybe
+      - [env-var]
+    - id: config-file
+      info: The XML config file to use.
+      name: Config file
+      type: [maybe, mount-source]
+    - id: mounts
+      info: Code or files to mount into the container.
+      name: Mounts
+      type:
+      - maybe
+      - - {source: mount-source, path: absolute-path}
+    - id: restart
+      info: What policy to apply on restarting containers that fail.
+      name: Restart policy
+      type:
+      - maybe
+      - policy: [enum, always, on-failure]
+        max-restarts: [maybe, int]
+    - id: log-level
+      info: The log level for the ID server.
+      name: Log level
+      type: [default, str, INFO]
+    module: polytope/container
+    args:
+      image: '#pt-clj (:image params)'
+      id: '#pt-clj (:id params)'
+      env: |-
+        #pt-clj (concat
+         [(when (:log-level params)
+           {:name  "LOGGING_LEVEL"
+            :value (:log-level params)})]
+         (:env params))
+      mounts: |-
+        #pt-clj (->>
+         [(when-let [f (:config-file params)]
+           {:path   "/opt/idsvr/etc/init/config.xml"
+            :source f})]
+         (concat (:mounts params))
+         (remove nil?))
+      services:
+      - id: curity
+        ports:
+        - {port: 6749, protocol: https, label: admin}
+        - {port: 8443, protocol: https, label: api}
+      restart: '#pt-clj (:restart params)'
+      cmd: '#pt-clj (:cmd params)'
 
   - id: curity-db
     module: polytope/postgres
