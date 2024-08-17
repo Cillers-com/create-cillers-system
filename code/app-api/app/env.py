@@ -1,5 +1,6 @@
 import os
 import logging
+from pathlib import Path
 
 from . import couchbase, http_server
 
@@ -83,3 +84,17 @@ def validate():
         logger.error('COUCHBASE_PASSWORD is not set')
         ok = False
     return ok
+
+def load_dotenv(filepath: Path):
+    if os.path.exists(filepath):
+        with open(filepath) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                key, value = line.split('=', 1)
+                if key and value:
+                    os.environ[key] = value
+
+env_file_path = Path('/root/conf/.env')
+load_dotenv(env_file_path)

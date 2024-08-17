@@ -129,6 +129,7 @@ modules:
         - { name: AUTH_OIDC_JWK_URL, value: https://curity:8443/oauth/v2/oauth-anonymous/jwks }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf }}
 
   - id: web-app
     info: The Web App
