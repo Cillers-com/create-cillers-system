@@ -1,3 +1,4 @@
+from typing import TypeAlias
 from functools import cached_property
 from strawberry.fastapi import BaseContext
 from strawberry.types.info import RootValueType
@@ -12,9 +13,10 @@ class Context(BaseContext):
                 method, token = auth_.split(" ")
                 if method == 'Bearer':
                     if data := jwt.verify_and_decode_jwt(token):
+                        print(data)
                         return data
 
 async def get_context() -> Context:
     return Context()
 
-Info = _Info[Context, RootValueType]
+Info: TypeAlias = _Info[Context, RootValueType]

@@ -35,7 +35,7 @@
         <zones>
           <default-zone>
             <email-provider>default-email-provider</email-provider>
-            <symmetric-key>data:text/plain;aes,v:S.cXJubGMwNHBqYTk4THdLRQ==.atIorKDuXNIY1qo_KlGMDw==.5jteeHXHtK9yPqXGxBx1PEnxu-7c5gVZnUdTftUmj27ZPuo7IQHLMzJrQwx3zkRvjSCnc4RYddc3pyPKP1g8--orT5HMJ1Q_cL-syQHouFI=.Qn_SJ62La_NXSZQE2ZrmPogd0r1tDWjCNU--rAaAtu4=</symmetric-key>
+            <symmetric-key>data:text/plain;aes,v:S.b2lwRWwzVFFwRmtDVHlUSA==.u0oSk8o_Xzw32EYHihJmlA==.m9JYNkowTRHuejY3TZW1fvInvaCSjJPdxTdXf7ttXJAoHdtgRBx1DN01_obWfF2UW42UT-GRh8Ty5wcdb4xNvNWCSuV4yGR1t4zFT_rxLt0=.g_ZV6xA6iGkk1aOUaZ95WJ63Mete-yyS1zZZVlAnGh4=</symmetric-key>
           </default-zone>
         </zones>
         <service-role>
@@ -154,6 +154,7 @@
             <scope>
               <id>openid</id>
               <description>Standard OpenID Connect scope</description>
+              <claims>email</claims>
             </scope>
             <scope>
               <id>phone</id>
@@ -183,6 +184,7 @@
               <id>user_management_admin</id>
               <claims>groups</claims>
             </scope>
+            <default-scope-claim>email</default-scope-claim>
             <default-scope-claim>roles</default-scope-claim>
           </scopes>
           <claims>
@@ -200,6 +202,9 @@
               <name>email</name>
               <description>OpenID Connect email claim</description>
               <value-provided-by>account-manager-claims-provider</value-provided-by>
+              <transformation>
+                <input-attribute-names>emails</input-attribute-names>
+              </transformation>
             </claim>
             <claim>
               <name>email_verified</name>
@@ -308,6 +313,7 @@
               <claims-mapper>
                 <id>default</id>
                 <access_token>
+                  <claim>email</claim>
                   <claim>groups</claim>
                   <claim>roles</claim>
                 </access_token>
@@ -502,14 +508,14 @@
       <data-source>
         <id>default-datasource</id>
         <jdbc xmlns="https://curity.se/ns/ext-conf/jdbc">
-          <connection-string>data:text/plain;aes,v:S.UHQzRUpNSHRDRTRDVVMyRQ==.dcvzlJWACxBBDxPTTGgz0w==.CAWKToF0zKPX95hqRsiGEp6VVRYsPZgX9cn5sBi-tQXxmLZHYnHgjZy98_zJGNe8._W8m73b3v0cReNDXnZaiu627tUR5boutKfc06YFnXHg=</connection-string>
+          <connection-string>data:text/plain;aes,v:S.MEhFclRWTXJhOHR6NW02Yw==.6le0dXu2umlsLgQ1fIPREQ==.BraRewa-_yNhtWSR5lASJsXrYAhxaYnRFSQtizIgpimnxe7mENAOSqMt_Rfab12x.8V8C5zxqSAl9Pv8iDCpKktVOVhSVF5w3iI-57sHbXpE=</connection-string>
           <connection-timeout>30000</connection-timeout>
           <driver>org.postgresql.Driver</driver>
           <idle-timeout>600000</idle-timeout>
           <max-lifetime>1800000</max-lifetime>
           <max-pool-size>20</max-pool-size>
           <min-idle-pool-size>10</min-idle-pool-size>
-          <password>data:text/plain;aes,v:S.YlNSYnNsZTg2MW9kZ0VRcA==.DoUkWzim_O_7zLKiWSOn-w==.6MiiUHartOUEDktkKwgr0w==.HMCl9MFak9x6QkdSqg4WcN-uxQi7Q3XGz1PVAMovygg=</password>
+          <password>data:text/plain;aes,v:S.NVRXRDFrQ2hMYm9zalhLTg==.q0pVJwCIexTanW-yNXCFCw==.c1PHFxXbfDKQfI73KJxIYQ==.9wIC3H27NWeyAthQj6GfhgpuUqGlGZ91vyBP2n-EXNA=</password>
           <username>postgres</username>
         </jdbc>
       </data-source>

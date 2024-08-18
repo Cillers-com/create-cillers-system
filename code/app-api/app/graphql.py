@@ -5,8 +5,6 @@ import logging
 import importlib
 import pkgutil
 from pathlib import Path
-
-from . import auth, db
 from .context import get_context
 
 logger = logging.getLogger(__name__)

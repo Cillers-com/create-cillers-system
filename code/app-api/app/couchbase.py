@@ -1,6 +1,6 @@
 import json
 from datetime import timedelta
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any, Dict, TypeAlias
 import logging
 
 from couchbase.auth import PasswordAuthenticator
@@ -14,12 +14,12 @@ logger = logging.getLogger(__name__)
 
 #### Types ####
 
-CouchbaseUrl = Annotated[
+CouchbaseUrl: TypeAlias = Annotated[
     Url,
     UrlConstraints(max_length=2083, allowed_schemes=["couchbase", "couchbases"]),
 ]
 
-Username = Annotated[str, StringConstraints(pattern=r'^[a-zA-Z0-9._-]+$')]
+Username: TypeAlias = Annotated[str, StringConstraints(pattern=r'^[a-zA-Z0-9._-]+$')]
 
 class ConnectionConf(BaseModel):
     url: CouchbaseUrl
