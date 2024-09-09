@@ -163,11 +163,11 @@ modules:
       env:
         - { name: PORT, value: 3001 }
         - { name: TRUSTED_WEB_ORIGIN, value: 'http://localhost:8080' }
-        - { name: ISSUER, value: 'https://localhost:8443/oauth/v2/oauth-anonymous' }
-        - { name: AUTHORIZE_ENDPOINT, value: 'https://localhost:8443/oauth/v2/oauth-authorize' }
-        - { name: TOKEN_ENDPOINT, value: 'https://curity:8443/oauth/v2/oauth-token' }
-        - { name: USERINFO_ENDPOINT, value: 'https://curity:8443/oauth/v2/oauth-userinfo' }
-        - { name: LOGOUT_ENDPOINT, value: 'https://localhost:8443/oauth/v2/oauth-session/logout' }
+        - { name: ISSUER, value: 'http://localhost:8443/oauth/v2/oauth-anonymous' }
+        - { name: AUTHORIZE_ENDPOINT, value: 'http://localhost:8443/oauth/v2/oauth-authorize' }
+        - { name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token' }
+        - { name: USERINFO_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-userinfo' }
+        - { name: LOGOUT_ENDPOINT, value: 'http://localhost:8443/oauth/v2/oauth-session/logout' }
         - { name: CLIENT_ID, value: 'spa-client' }
         - { name: CLIENT_SECRET, value: 'Password1' }
         - { name: REDIRECT_URI, value: 'http://localhost:8080/auth/callback' }
@@ -240,6 +240,9 @@ modules:
       restart: { policy: always }
       env:
         - { name: ADMIN, value: true }
+      mounts:
+        - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./curity/post-commit-cli-scripts }}
+        - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/curity-users.xml }}
 
   - id: curity-base
     info: Runs a Curity ID server container.
@@ -375,7 +378,7 @@ modules:
 
   - id: redpanda-console
     info: Runs the Redpanda Console service
-    module: polytope/redpanda!console
+    module: redpanda-console-base
     args: 
       image: docker.redpanda.com/redpandadata/console:v2.4.5
       container-id: redpanda-console
@@ -383,6 +386,68 @@ modules:
       log-level: info
       port: 8079
       restart: { policy: always }
+
+  - id: redpanda-console-base
+    info: Runs the Redpanda console.
+    params:
+    - id: image
+      info: The image to use.
+      name: Image
+      type: [default, str, 'docker.redpanda.com/redpandadata/console:v2.4.5']
+    - id: container-id
+      info: The ID to give the spawned container.
+      name: Container ID
+      type: [default, str, redpanda-console]
+    - id: brokers
+      info: List of host-port pairs to use to connect to the Kafka/Redpanda cluster.
+      name: Brokers
+      type:
+      - default
+      - - {host: str, port: int}
+      - - {host: redpanda, port: 9092}
+    - id: schema-registry-url
+      info: Schema Registry to connect to.
+      name: Schema Registry URL
+      type: [maybe, str]
+    - id: admin-url
+      info: Redpanda admin URL to connect to.
+      name: Redpanda admin URL
+      type: [maybe, str]
+    - id: log-level
+      info: The log level.
+      name: Log level
+      type:
+      - default
+      - [enum, debug, info, warn, error, fatal]
+      - info
+    - id: port
+      info: The console HTTP port.
+      name: HTTP Port
+      type: [default, int, 8079]
+    - id: restart
+      info: Restart policy for the container.
+      name: Restart policy
+      type:
+      - default
+      - policy: [enum, always, on-failure]
+        max-restarts: [maybe, int]
+      - {policy: always, max-restarts: null}
+    module: polytope/container
+    args:
+      image: '#pt-clj (:image params)'
+      id: '#pt-clj (:container-id params)'
+      env:
+      - {name: CONFIG_FILEPATH, value: /etc/redpanda-console-config.yaml}
+      mounts:
+      - path: /etc/redpanda-console-config.yaml
+        source:
+          type: host
+          path: ./conf/redpanda-console.yml 
+      restart: '#pt-clj (:restart params)'
+      services:
+      - id: redpanda-console
+        ports:
+        - {port: '#pt-clj (:port params)', protocol: http}
 
   - id: kafka-connect
     info: Runs the Kafka connect service
@@ -429,4 +494,5 @@ modules:
             key.converter:                  org.apache.kafka.connect.storage.StringConverter
             value.converter:                org.apache.kafka.connect.json.JsonConverter
             value.converter.schemas.enable: 'false'
+
 

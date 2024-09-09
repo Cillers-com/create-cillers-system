@@ -1,0 +1,12 @@
+kafka:
+  brokers: ["redpanda:9092"]
+server:
+  listenPort: 8079
+logger:
+  level: info
+connect:
+  enabled: true
+  clusters:
+    - name: cillers_kafka_connect
+      url: http://kafka-connect:8083
+

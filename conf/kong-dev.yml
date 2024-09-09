@@ -44,7 +44,7 @@ services:
 
     - name: phantom-token
       config:
-        introspection_endpoint: https://curity:8443/oauth/v2/oauth-introspect
+        introspection_endpoint: http://curity:8443/oauth/v2/oauth-introspect
         client_id: kong-introspection 
         client_secret: Password1
         token_cache_seconds: 900

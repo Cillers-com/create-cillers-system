@@ -1,10 +1,10 @@
 <config xmlns="http://tail-f.com/ns/config/1.0">
   <environments xmlns="https://curity.se/ns/conf/base">
     <environment>
-      <base-url>https://localhost:8443</base-url>
+      <name>Cillers 2</name>
+      <base-url>http://localhost:8443</base-url>
       <admin-service>
         <http>
-          <ssl-server-keystore>default-admin-ssl-key</ssl-server-keystore>
           <web-ui>
             <ui-modes>
               <normal-mode>
@@ -14,8 +14,7 @@
               </normal-mode>
             </ui-modes>
           </web-ui>
-          <restconf>
-          </restconf>
+          <restconf/>
         </http>
       </admin-service>
       <themes>
@@ -35,14 +34,13 @@
         <zones>
           <default-zone>
             <email-provider>default-email-provider</email-provider>
-            <symmetric-key>data:text/plain;aes,v:S.b2lwRWwzVFFwRmtDVHlUSA==.u0oSk8o_Xzw32EYHihJmlA==.m9JYNkowTRHuejY3TZW1fvInvaCSjJPdxTdXf7ttXJAoHdtgRBx1DN01_obWfF2UW42UT-GRh8Ty5wcdb4xNvNWCSuV4yGR1t4zFT_rxLt0=.g_ZV6xA6iGkk1aOUaZ95WJ63Mete-yyS1zZZVlAnGh4=</symmetric-key>
+            <symmetric-key>data:text/plain;aes,v:S.TGlXWmh5WXU3eUxhVzk1Rw==.lQAOKu9UZkEDJBvT22jz9Q==.Jdip0tnHsJkQ4ImyZDlyCaYDpInB_jheajqEDxWun9GYp31Mzj_TDIGvqN5XYVAOQLztkpasnzlNiGenZ7xd7Cd-6Quyqj_j4pKj4yMRvSA=.0FqBqdd_JVQ6_YgbpjJstIePFBF9UcLRgz_lsbLjQ2s=</symmetric-key>
           </default-zone>
         </zones>
         <service-role>
           <id>default</id>
           <listening-port>8443</listening-port>
-          <protocol>https</protocol>
-          <ssl-server-keystore>default-ssl-server-key</ssl-server-keystore>
+          <protocol>http</protocol>
           <webfinger/>
           <endpoints>authentication-service-anonymous</endpoints>
           <endpoints>authentication-service-authentication</endpoints>
@@ -129,8 +127,7 @@
             <authentication-profile>authentication-service</authentication-profile>
           </authentication-service>
           <client-capabilities>
-            <code>
-            </code>
+            <code/>
             <implicit/>
             <resource-owner-password-credentials>
               <credential-manager>default-credential-manager</credential-manager>
@@ -365,8 +362,7 @@
             </claims-mappers>
           </claims>
           <openid-connect>
-            <expose-metadata>
-            </expose-metadata>
+            <expose-metadata/>
             <id-token-ttl>36000</id-token-ttl>
           </openid-connect>
           <client-store>
@@ -385,11 +381,9 @@
                 <redirect-uris>http://insomnia</redirect-uris>
                 <audience>http://localhost/api</audience>
                 <scope>user_management_admin</scope>
-                <user-authentication>
-                </user-authentication>
+                <user-authentication/>
                 <capabilities>
-                  <code>
-                  </code>
+                  <code/>
                   <client-credentials/>
                 </capabilities>
                 <validate-port-on-loopback-interfaces>true</validate-port-on-loopback-interfaces>
@@ -418,8 +412,7 @@
                 </user-authentication>
                 <allowed-origins>http://localhost:8080</allowed-origins>
                 <capabilities>
-                  <code>
-                  </code>
+                  <code/>
                 </capabilities>
                 <validate-port-on-loopback-interfaces>true</validate-port-on-loopback-interfaces>
               </client>
@@ -508,14 +501,14 @@
       <data-source>
         <id>default-datasource</id>
         <jdbc xmlns="https://curity.se/ns/ext-conf/jdbc">
-          <connection-string>data:text/plain;aes,v:S.MEhFclRWTXJhOHR6NW02Yw==.6le0dXu2umlsLgQ1fIPREQ==.BraRewa-_yNhtWSR5lASJsXrYAhxaYnRFSQtizIgpimnxe7mENAOSqMt_Rfab12x.8V8C5zxqSAl9Pv8iDCpKktVOVhSVF5w3iI-57sHbXpE=</connection-string>
+          <connection-string>data:text/plain;aes,v:S.UFdCYWhVcTBZZGUzWlJDMQ==.WfnzcrKOTul5Pp1jVeMRiw==.L50UlAr7oZdZ9AoHxWrNlZ9JTsaC39QI7B8RH8w9YJAHzR3BVxZi6jloLmWjbdc6.g2XvQdAz7jJ5cEs6C0diplStmId5eFAxaZgR70ioprI=</connection-string>
           <connection-timeout>30000</connection-timeout>
           <driver>org.postgresql.Driver</driver>
           <idle-timeout>600000</idle-timeout>
           <max-lifetime>1800000</max-lifetime>
           <max-pool-size>20</max-pool-size>
           <min-idle-pool-size>10</min-idle-pool-size>
-          <password>data:text/plain;aes,v:S.NVRXRDFrQ2hMYm9zalhLTg==.q0pVJwCIexTanW-yNXCFCw==.c1PHFxXbfDKQfI73KJxIYQ==.9wIC3H27NWeyAthQj6GfhgpuUqGlGZ91vyBP2n-EXNA=</password>
+          <password>data:text/plain;aes,v:S.bVk4NkJLWFhzU2FDQU9JUQ==.vEchMPnTTLXXmylRQ2l3kQ==.o4s9z3ORChHypEflg5rwGA==.vVfRdKUK0iVsX0oZ4-5HupMqOQq31YZwR3wAx7KlXXY=</password>
           <username>postgres</username>
         </jdbc>
       </data-source>
@@ -592,8 +585,7 @@
     <credential-managers>
       <credential-manager>
         <id>default-credential-manager</id>
-        <BCrypt>
-        </BCrypt>
+        <BCrypt/>
         <data-source-backed>
           <data-source-id>default-datasource</data-source-id>
         </data-source-backed>
@@ -608,100 +600,4 @@
       </credential-policy>
     </credential-policies>
   </processing>
-  <nacm xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-acm">
-    <write-default>permit</write-default>
-    <groups>
-      <group>
-        <name>admin</name>
-        <user-name>admin</user-name>
-      </group>
-    </groups>
-    <rule-list>
-      <name>admin</name>
-      <group>admin</group>
-      <rule>
-        <name>any-access</name>
-        <action>permit</action>
-      </rule>
-    </rule-list>
-    <rule-list>
-      <name>any-group</name>
-      <group>*</group>
-      <rule>
-        <name>tailf-aaa-authentication</name>
-        <module-name>tailf-aaa</module-name>
-        <path>/aaa/authentication/users/user[name='$USER']</path>
-        <access-operations>read update</access-operations>
-        <action>permit</action>
-      </rule>
-      <rule>
-        <name>tailf-aaa-user</name>
-        <module-name>tailf-aaa</module-name>
-        <path>/user[name='$USER']</path>
-        <access-operations>create read update delete</access-operations>
-        <action>permit</action>
-      </rule>
-      <rule>
-        <name>tailf-webui-user</name>
-        <module-name>tailf-webui</module-name>
-        <path>/webui/data-stores/user-profile[username='$USER']</path>
-        <access-operations>create read update delete</access-operations>
-        <action>permit</action>
-      </rule>
-    </rule-list>
-  </nacm>
-  <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
-    <authentication>
-      <users>
-        <user>
-          <name>admin</name>
-          <uid>0</uid>
-          <gid>0</gid>
-          <password>$5$M9HqTLJD$Bi5wjITmi0lNaC8JKbAPNfuGpaOXcQmorsBWbOJtInD</password>
-          <ssh_keydir>/opt/idsvr/home/admin/.ssh</ssh_keydir>
-          <homedir>/opt/idsvr/home/admin</homedir>
-        </user>
-      </users>
-    </authentication>
-    <ios>
-      <level>
-        <nr>0</nr>
-        <prompt>\h> </prompt>
-      </level>
-      <level>
-        <nr>15</nr>
-        <prompt>\h# </prompt>
-      </level>
-      <privilege>
-        <mode>exec</mode>
-        <level>
-          <nr>0</nr>
-          <command>
-            <name>action</name>
-          </command>
-          <command>
-            <name>autowizard</name>
-          </command>
-          <command>
-            <name>enable</name>
-          </command>
-          <command>
-            <name>exit</name>
-          </command>
-          <command>
-            <name>help</name>
-          </command>
-          <command>
-            <name>startup</name>
-          </command>
-        </level>
-        <level>
-          <nr>15</nr>
-          <command>
-            <name>configure</name>
-          </command>
-        </level>
-      </privilege>
-    </ios>
-  </aaa>
 </config>
