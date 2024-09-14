@@ -68,6 +68,8 @@
           <redirect-url-whitelist>
             <url>http://localhost:8080</url>
             <url>http://localhost:8080*</url>
+            <url>http://localhost:11001</url>
+            <url>http://localhost:11001*</url>
           </redirect-url-whitelist>
           <logout-redirect-url>http://localhost:8080</logout-redirect-url>
           <authenticators>
@@ -411,6 +413,27 @@
                   <force-authn>true</force-authn>
                 </user-authentication>
                 <allowed-origins>http://localhost:8080</allowed-origins>
+                <capabilities>
+                  <code/>
+                </capabilities>
+                <validate-port-on-loopback-interfaces>true</validate-port-on-loopback-interfaces>
+              </client>
+              <client>
+                <id>graphql-ui-client</id>
+                <secret>$5$RbiJ8E3azxUdOZx8$jpj3y0vsGVOILRAQV.6CGFLchJcEbpPvU33PnAetvQ3</secret>
+                <redirect-uris>http://localhost:11001/auth/callback</redirect-uris>
+                <application-url>http://localhost:11001</application-url>
+                <access-token-ttl>3600</access-token-ttl>
+                <refresh-token-ttl>57600</refresh-token-ttl>
+                <refresh-token-max-rolling-lifetime>57600</refresh-token-max-rolling-lifetime>
+                <audience>http://localhost/api</audience>
+                <audience>graphql-ui-client</audience>
+                <scope>openid</scope>
+                <scope>profile</scope>
+                <user-authentication>
+                  <force-authn>true</force-authn>
+                </user-authentication>
+                <allowed-origins>http://localhost:11001</allowed-origins>
                 <capabilities>
                   <code/>
                 </capabilities>

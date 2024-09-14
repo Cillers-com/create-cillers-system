@@ -9,14 +9,6 @@ services:
     paths:
     - /
 
-- name: ingest-api
-  url: http://ingest-api:3002
-  routes:
-  - name: ingets-api-route
-    strip_path: false
-    paths:
-    - /ingest-api
-
 - name: oauth-agent
   url: http://oauth-agent:3001/oauth-agent
   routes:
@@ -24,6 +16,32 @@ services:
     paths:
     - /oauth-agent
  
+- name: oauth-agent2
+  url: http://oauth-agent2:3002/oauth-agent
+  routes:
+  - name: oauth-agent2-route
+    paths:
+    - /oauth-agent2
+
+  plugins:
+  - name: cors
+    config:
+      origins:
+      - http://localhost:11001
+      methods:
+      - GET
+      - POST
+      - OPTIONS
+      headers:
+      - Accept
+      - Authorization
+      - Content-Type
+      - x-curity-csrf
+      exposed_headers:
+      - Authorization
+      credentials: true
+      preflight_continue: false
+    
 - name: app-api
   url: http://app-api:4000
   routes:
@@ -39,7 +57,8 @@ services:
         encryption_key: fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe
         trusted_web_origins:
         - http://localhost:8080
-        cors_enabled: true
+        - http://localhost:11001
+        cors_enabled: true 
         allow_tokens: true
 
     - name: phantom-token
@@ -50,12 +69,22 @@ services:
         token_cache_seconds: 900
         verify_ssl: false
 
-    - name: response-transformer
+    - name: cors
       config:
-        remove:
-          headers:
-          - Access-Control-Allow-Origin
-        append:
-          headers:
-          - "Access-Control-Allow-Origin:http://localhost:8080"
+        origins:
+        - http://localhost:8080
+        - http://localhost:11001
+        methods:
+        - GET
+        - POST
+        - OPTIONS
+        headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - x-curity-csrf
+        exposed_headers:
+        - Authorization
+        credentials: true
+        preflight_continue: false 
 

@@ -47,6 +47,15 @@ templates:
   - module: app-api
     run-when:
       after: create-connectors 
+  - module: jupyter
+    run-when:
+      after: create-connectors 
+  - module: graphql-client-ui
+    run-when:
+      after: create-connectors 
+  - module: oauth-agent2
+    run-when:
+      after: create-connectors 
 
 - id: stack-fast
   run:
@@ -61,16 +70,19 @@ templates:
     module: init-couchbase-bucket
     run-when:
       after: create-cb-bucket
-  - module: redpanda
-  - module: redpanda-console
-  - module: kafka-connect
-  - module: create-connectors
-  - module: curity-db
-  - module: oauth-agent
-  - module: curity
-  - module: kong
-  - module: web-app 
-  - module: app-api
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - create-connectors
+  - curity-db
+  - curity
+  - kong
+  - web-app 
+  - oauth-agent
+  - app-api
+  - jupyter
+  - graphql-client-ui
+  - oauth-agent2
 
 - id: stack-light
   run:
@@ -104,6 +116,15 @@ templates:
   - module: app-api
     run-when:
       after: init-cb-bucket 
+  - module: jupyter
+    run-when:
+      after: init-cb-bucket 
+  - module: graphql-client-ui
+    run-when:
+      after: init-cb-bucket 
+  - module: oauth-agent2
+    run-when:
+      after: init-cb-bucket 
 
 modules:
   - id: app-api
@@ -126,7 +147,7 @@ modules:
         - { name: HTTP_AUTORELOAD, value: true } 
         - { name: HTTP_GRAPHQL_UI, value: false } 
         - { name: AUTH_OIDC_AUDIENCE, value: http://localhost/api }
-        - { name: AUTH_OIDC_JWK_URL, value: https://curity:8443/oauth/v2/oauth-anonymous/jwks }
+        - { name: AUTH_OIDC_JWK_URL, value: http://curity:8443/oauth/v2/oauth-anonymous/jwks }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf }}
@@ -182,6 +203,34 @@ modules:
       services: 
         - { id: oauth-agent, ports: [{protocol: http, port: 3001}]}
 
+  - id: oauth-agent2
+    info: The OAuth Agent
+    module: polytope/container
+    args: 
+      id: oauth-agent2 
+      image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
+      env:
+        - { name: PORT, value: 3002 }
+        - { name: TRUSTED_WEB_ORIGIN, value: 'http://localhost:11001' }
+        - { name: ISSUER, value: 'http://localhost:8443/oauth/v2/oauth-anonymous' }
+        - { name: AUTHORIZE_ENDPOINT, value: 'http://localhost:8443/oauth/v2/oauth-authorize' }
+        - { name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token' }
+        - { name: USERINFO_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-userinfo' }
+        - { name: LOGOUT_ENDPOINT, value: 'http://localhost:8443/oauth/v2/oauth-session/logout' }
+        - { name: CLIENT_ID, value: 'graphql-ui-client' }
+        - { name: CLIENT_SECRET, value: 'Password1' }
+        - { name: REDIRECT_URI, value: 'http://localhost:11001/auth/callback' }
+        - { name: POST_LOGOUT_REDIRECT_URI, value: 'http://localhost:11001/' }
+        - { name: SCOPE, value: 'openid profile' }
+        - { name: COOKIE_DOMAIN, value: 'localhost' }
+        - { name: COOKIE_NAME_PREFIX, value: 'curity' }
+        - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
+        - { name: CORS_ENABLED, value: 'true' }
+        - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
+      restart: { policy: on-failure }
+      services: 
+        - { id: oauth-agent2, ports: [{protocol: http, port: 3002}]}
+
   - id: oauth-agent-code
     info: The OAuth Agent, running local code
     module: polytope/node
@@ -193,11 +242,11 @@ modules:
       env:
         - { name: PORT, value: 3001 }
         - { name: TRUSTED_WEB_ORIGIN, value: 'http://localhost:8080' }
-        - { name: ISSUER, value: 'https://localhost:8443/oauth/v2/oauth-anonymous' }
-        - { name: AUTHORIZE_ENDPOINT, value: 'https://localhost:8443/oauth/v2/oauth-authorize' }
-        - { name: TOKEN_ENDPOINT, value: 'https://curity:8443/oauth/v2/oauth-token' }
-        - { name: USERINFO_ENDPOINT, value: 'https://curity:8443/oauth/v2/oauth-userinfo' }
-        - { name: LOGOUT_ENDPOINT, value: 'https://localhost:8443/oauth/v2/oauth-session/logout' }
+        - { name: ISSUER, value: 'http://localhost:8443/oauth/v2/oauth-anonymous' }
+        - { name: AUTHORIZE_ENDPOINT, value: 'http://localhost:8443/oauth/v2/oauth-authorize' }
+        - { name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token' }
+        - { name: USERINFO_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-userinfo' }
+        - { name: LOGOUT_ENDPOINT, value: 'http://localhost:8443/oauth/v2/oauth-session/logout' }
         - { name: CLIENT_ID, value: 'spa-client' }
         - { name: CLIENT_SECRET, value: 'Password1' }
         - { name: REDIRECT_URI, value: 'http://localhost:8080/auth/callback' }
@@ -241,7 +290,7 @@ modules:
       env:
         - { name: ADMIN, value: true }
       mounts:
-        - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./curity/post-commit-cli-scripts }}
+        - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./cillers/curity/post-commit-cli-scripts }}
         - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/curity-users.xml }}
 
   - id: curity-base
@@ -311,8 +360,8 @@ modules:
       services:
       - id: curity
         ports:
-        - {port: 6749, protocol: https, label: admin}
-        - {port: 8443, protocol: https, label: api}
+        - {port: 6749, protocol: http, label: admin}
+        - {port: 8443, protocol: http, label: api}
       restart: '#pt-clj (:restart params)'
       cmd: '#pt-clj (:cmd params)'
 
@@ -495,4 +544,46 @@ modules:
             value.converter:                org.apache.kafka.connect.json.JsonConverter
             value.converter.schemas.enable: 'false'
 
+  - id: jupyter
+    info: "Runs a Jupyter notebook hooked up to the Cillers stack."
+    module: polytope/jupyter
+    args:
+      mounts:
+      - source: # mounta in libs
+          path: ./cillers/jupyter/lib
+          type: host
+        path: /home/jovyan/lib
+      - path: /home/jovyan/.cache/
+        source: # Cache för dependencies
+          type: volume
+          scope: project
+          id: dependency-cache
+      - source: # Notebooks för persistent state
+          path: ./cillers/jupyter/notebooks
+          type: host
+        path: /home/jovyan/notebooks
+
+
+  - id: graphql-client-ui 
+    info: A GraphQL Client UI 
+    module: polytope/node
+    args:
+      id: graphql-client-ui 
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./cillers/graphql-client-ui }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11001 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: http://localhost:8080/api } 
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: http://localhost:8080/oauth-agent2 }
+      restart:
+        policy: on-failure
+      services:
+        - id: graphql-client-ui 
+          ports: [{protocol: http, port: 11001}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-graphql-client-ui }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-graphql-client-ui }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-graphql-client-ui }}
 
