@@ -62,6 +62,7 @@ fi
 pt run \
   couchbase \
   init-couchbase-cluster \
+  create-couchbase-bucket \
   init-couchbase-bucket \
   redpanda \
   redpanda-console \
