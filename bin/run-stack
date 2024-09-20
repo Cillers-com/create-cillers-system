@@ -5,6 +5,20 @@ print_usage() {
   echo "Usage: $0 [--help] [--public-url <url>] [--curity-url <url>]"
 }
 
+split_args=()
+while [[ $# -gt 0 ]]; do
+  if [[ "$1" == *=* ]]; then
+    param="${1%%=*}"
+    value="${1#*=}"
+    split_args+=("$param" "$value")
+  else
+    split_args+=("$1")
+  fi
+  shift
+done
+
+set -- "${split_args[@]}"
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help)
