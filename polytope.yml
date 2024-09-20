@@ -12,6 +12,33 @@ templates:
     module: init-couchbase-bucket
     run-when:
       after: create-cb-bucket
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - create-connectors
+  - curity-db
+  - curity
+  - kong
+  - web-app 
+  - oauth-agent
+  - app-api
+  - jupyter
+  - graphql-client-ui
+  - oauth-agent2
+
+- id: stack-low-memory
+  run:
+  - couchbase
+  - id: init-cb-cluster
+    module: init-couchbase-cluster
+  - id: create-cb-bucket
+    module: create-couchbase-bucket
+    run-when:
+      after: init-cb-cluster
+  - id: init-cb-bucket
+    module: init-couchbase-bucket
+    run-when:
+      after: create-cb-bucket
 
   - module: redpanda
     run-when:
@@ -57,34 +84,7 @@ templates:
     run-when:
       after: create-connectors 
 
-- id: stack-fast
-  run:
-  - couchbase
-  - id: init-cb-cluster
-    module: init-couchbase-cluster
-  - id: create-cb-bucket
-    module: create-couchbase-bucket
-    run-when:
-      after: init-cb-cluster
-  - id: init-cb-bucket
-    module: init-couchbase-bucket
-    run-when:
-      after: create-cb-bucket
-  - redpanda
-  - redpanda-console
-  - kafka-connect
-  - create-connectors
-  - curity-db
-  - curity
-  - kong
-  - web-app 
-  - oauth-agent
-  - app-api
-  - jupyter
-  - graphql-client-ui
-  - oauth-agent2
-
-- id: stack-light
+- id: stack-without-events
   run:
   - couchbase
   - id: init-cb-cluster
@@ -549,20 +549,19 @@ modules:
     module: polytope/jupyter
     args:
       mounts:
-      - source: # mounta in libs
-          path: ./cillers/jupyter/lib
-          type: host
-        path: /home/jovyan/lib
       - path: /home/jovyan/.cache/
-        source: # Cache för dependencies
+        source:
           type: volume
           scope: project
           id: dependency-cache
-      - source: # Notebooks för persistent state
-          path: ./cillers/jupyter/notebooks
+      - source:
+          path: ./cillers/jupyter/tutorials
           type: host
-        path: /home/jovyan/notebooks
-
+        path: /home/jovyan/tutorials
+      env:
+      - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
+      - { name: COUCHBASE_USERNAME, value: admin }
+      - { name: COUCHBASE_PASSWORD, value: password }
 
   - id: graphql-client-ui 
     info: A GraphQL Client UI 
