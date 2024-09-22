@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -o errexit
+
+print_usage() {
+  echo "Usage: $0 [--help] [--public-url <url>] [--curity-url <url>]"
+}
+
+split_args=()
+while [[ $# -gt 0 ]]; do
+  if [[ "$1" == *=* ]]; then
+    param="${1%%=*}"
+    value="${1#*=}"
+    split_args+=("$param" "$value")
+  else
+    split_args+=("$1")
+  fi
+  shift
+done
+
+set -- "${split_args[@]}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --help)
+      print_usage
+      exit 1
+      ;;
+    --curity-url)
+      if [[ -z "$2" || "$2" == --* ]]; then
+        echo "Error: --curity-url requires a URL argument"
+        print_usage
+        exit 1
+      fi
+      curity_arg="curity-url: '$2'"
+      shift 2
+      ;;
+    --public-url)
+      if [[ -z "$2" || "$2" == --* ]]; then
+        echo "Error: --public-url requires a URL argument"
+        print_usage
+        exit 1
+      fi
+      public_arg="public-url: '$2'"
+      shift 2
+      ;;
+    *)
+      echo "Error: Invalid flag '$1'"
+      print_usage
+      exit 1
+  esac
+done
+
+if [[ -z "$curity_arg" ]]; then
+  args=$public_arg
+  app_args=$public_arg
+elif [[ -z "$public_arg" ]]; then
+  args=$curity_arg
+else
+  args="$curity_arg, $public_arg"
+  app_args=$public_arg
+fi
+pt run \
+  couchbase \
+  init-couchbase-cluster \
+  create-couchbase-bucket \
+  init-couchbase-bucket \
+  redpanda \
+  redpanda-console \
+  kafka-connect \
+  create-connectors \
+  curity-db \
+  oauth-agent"{$args}" \
+  curity \
+  kong \
+  web-app"{$app_args}" \
+  app-api \
+  jupyter \
+  graphql-client-ui \
+  oauth-agent2"{$args}"
