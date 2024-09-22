@@ -554,14 +554,18 @@ modules:
           type: volume
           scope: project
           id: dependency-cache
-      - source:
+      - path: /home/jovyan/config
+        source:
+          path: ./conf/jupyter
+          type: host
+      - path: /home/jovyan/tutorials
+        source:
           path: ./cillers/jupyter/tutorials
           type: host
-        path: /home/jovyan/tutorials
-      env:
-      - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
-      - { name: COUCHBASE_USERNAME, value: admin }
-      - { name: COUCHBASE_PASSWORD, value: password }
+      - path: /home/jovyan/work
+        source:
+          path: ./cillers/jupyter/work
+          type: host
 
   - id: graphql-client-ui 
     info: A GraphQL Client UI 

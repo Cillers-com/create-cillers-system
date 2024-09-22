@@ -1,0 +1,5 @@
+couchbase:
+  bucket_name: main
+  url: couchbase://couchbase
+redpanda:
+  bootstrap_servers: redpanda:9092
