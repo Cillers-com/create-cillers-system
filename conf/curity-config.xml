@@ -66,12 +66,12 @@
       <settings>
         <authentication-service xmlns="https://curity.se/ns/conf/profile/authentication">
           <redirect-url-whitelist>
-            <url>http://localhost:8080</url>
-            <url>http://localhost:8080*</url>
-            <url>http://localhost:11001</url>
-            <url>http://localhost:11001*</url>
+            <url>#{WEB_APP_URL}</url>
+            <url>#{WEB_APP_URL}*</url>
+            <url>#{GRAPHQL_CLIENT_UI_URL}</url>
+            <url>#{GRAPHQL_CLIENT_UI_URL}*</url>
           </redirect-url-whitelist>
-          <logout-redirect-url>http://localhost:8080</logout-redirect-url>
+          <logout-redirect-url>#{WEB_APP_URL}</logout-redirect-url>
           <authenticators>
             <authenticator>
               <id>default-authenticator</id>
@@ -400,8 +400,8 @@
               <client>
                 <id>spa-client</id>
                 <secret>$5$RbiJ8E3azxUdOZx8$jpj3y0vsGVOILRAQV.6CGFLchJcEbpPvU33PnAetvQ3</secret>
-                <redirect-uris>http://localhost:8080/auth/callback</redirect-uris>
-                <application-url>http://localhost:8080</application-url>
+                <redirect-uris>#{WEB_APP_URL}/auth/callback</redirect-uris>
+                <application-url>#{WEB_APP_URL}</application-url>
                 <access-token-ttl>3600</access-token-ttl>
                 <refresh-token-ttl>57600</refresh-token-ttl>
                 <refresh-token-max-rolling-lifetime>57600</refresh-token-max-rolling-lifetime>
@@ -412,7 +412,7 @@
                 <user-authentication>
                   <force-authn>true</force-authn>
                 </user-authentication>
-                <allowed-origins>http://localhost:8080</allowed-origins>
+                <allowed-origins>#{WEB_APP_URL}</allowed-origins>
                 <capabilities>
                   <code/>
                 </capabilities>
@@ -421,8 +421,8 @@
               <client>
                 <id>graphql-ui-client</id>
                 <secret>$5$RbiJ8E3azxUdOZx8$jpj3y0vsGVOILRAQV.6CGFLchJcEbpPvU33PnAetvQ3</secret>
-                <redirect-uris>http://localhost:11001/auth/callback</redirect-uris>
-                <application-url>http://localhost:11001</application-url>
+                <redirect-uris>#{GRAPHQL_CLIENT_UI_URL}/auth/callback</redirect-uris>
+                <application-url>#{GRAPHQL_CLIENT_UI_URL}</application-url>
                 <access-token-ttl>3600</access-token-ttl>
                 <refresh-token-ttl>57600</refresh-token-ttl>
                 <refresh-token-max-rolling-lifetime>57600</refresh-token-max-rolling-lifetime>
@@ -433,7 +433,7 @@
                 <user-authentication>
                   <force-authn>true</force-authn>
                 </user-authentication>
-                <allowed-origins>http://localhost:11001</allowed-origins>
+                <allowed-origins>#{GRAPHQL_CLIENT_UI_URL}</allowed-origins>
                 <capabilities>
                   <code/>
                 </capabilities>
