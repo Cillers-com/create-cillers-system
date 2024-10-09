@@ -9,7 +9,7 @@ from .context import get_context
 
 logger = logging.getLogger(__name__)
 
-resolvers_path = Path(__file__).parent / "resolvers"
+resolvers_path = Path(__file__).parent / "graphql_resolvers"
 
 classes = {
     'Query': [],
@@ -18,7 +18,7 @@ classes = {
 }
 
 for _, module_name, _ in pkgutil.iter_modules([resolvers_path]):
-    module = importlib.import_module(f"app.resolvers.{module_name}")
+    module = importlib.import_module(f"app.graphql_resolvers.{module_name}")
     for attr_name in dir(module):
         attr = getattr(module, attr_name)
         if isinstance(attr, strawberry.types.types.Type) and attr_name in classes.keys():

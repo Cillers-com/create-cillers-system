@@ -1,0 +1,17 @@
+stack:
+  - couchbase
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - kong
+  - oauth-agent
+  - oauth-agent2
+  - curity
+  - curity-db
+  - app-api
+  - jupyter
+  - web-app
+  - graphql-client-ui
+  - couchbase-init
+  - create-connectors
+

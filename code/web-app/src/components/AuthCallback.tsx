@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
-import { exchange_code_for_cookies } from '../utils/oauthAgentClient'; 
+import { exchange_code_for_cookies } from '../auth/oauth_agent_client'; 
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();

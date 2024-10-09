@@ -2,7 +2,7 @@
   <environments xmlns="https://curity.se/ns/conf/base">
     <environment>
       <name>Cillers 2</name>
-      <base-url>http://localhost:8443</base-url>
+      <base-url>#{CURITY_BASE_URL}</base-url>
       <admin-service>
         <http>
           <web-ui>

@@ -48,6 +48,15 @@ async function fetch_data_from_agent_with_token_refresh(method: string, path: st
 
 export async function get_login_state(): Promise<LoginState> {
     const response = await fetch_from_agent('POST', 'login/end');
+    // Workaround to handle inconsistent states that causes and error in oauth-agent 
+    if (response.status === 500) { 
+        logout();
+        return {
+            isLoggedIn: false, 
+            isHandled: false,
+            csrf: ""
+        };
+    }
     assert_response_status(response, 200);
     const data = await response.json();
     csrf = data.csrf;

@@ -1,5 +1,5 @@
 import React from 'react';
-import useAuth, { login, logout } from '../utils/useAuth';
+import useAuth, { login, logout } from '../auth/useAuth';
 import Authenticated from './Authenticated';
 import Anonymous from './Anonymous';
 
@@ -25,7 +25,7 @@ const Main: React.FC = () => {
         if (!userInfo) return <LoadingUserInfo />;
 
         if (!csrf) throw new Error("No csrf!"); 
-        return <Authenticated logout={logout} userInfo={userInfo} csrf={csrf} />;
+        return <Authenticated logout={logout} user_info={userInfo} csrf={csrf} />;
     })();  
 
     return component;     

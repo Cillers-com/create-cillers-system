@@ -2,26 +2,39 @@ _format_version: '2.1'
 _transform: true
 
 services:
-- name: web-app 
-  url: http://web-app:3000
-  routes:
-  - name: web-app-route
-    paths:
-    - /
 
-- name: oauth-agent
-  url: http://oauth-agent:3001/oauth-agent
+- name: oauth-agent-web-app
+  url: http://oauth-agent-web-app:3001/oauth-agent
   routes:
-  - name: oauth-agent-route
+  - name: oauth-agent-web-app-route
     paths:
-    - /oauth-agent
+    - /oauth-agent-web-app
  
-- name: oauth-agent2
-  url: http://oauth-agent2:3002/oauth-agent
+  plugins:
+  - name: cors
+    config:
+      origins:
+      - http://localhost:11000
+      methods:
+      - GET
+      - POST
+      - OPTIONS
+      headers:
+      - Accept
+      - Authorization
+      - Content-Type
+      - x-curity-csrf
+      exposed_headers:
+      - Authorization
+      credentials: true
+      preflight_continue: false
+
+- name: oauth-agent-api-client
+  url: http://oauth-agent-api-client:3002/oauth-agent
   routes:
-  - name: oauth-agent2-route
+  - name: oauth-agent-api-client-route
     paths:
-    - /oauth-agent2
+    - /oauth-agent-api-client
 
   plugins:
   - name: cors
@@ -56,7 +69,7 @@ services:
         cookie_name_prefix: curity
         encryption_key: fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe
         trusted_web_origins:
-        - http://localhost:8080
+        - http://localhost:11000
         - http://localhost:11001
         cors_enabled: true 
         allow_tokens: true
@@ -72,7 +85,7 @@ services:
     - name: cors
       config:
         origins:
-        - http://localhost:8080
+        - http://localhost:11000
         - http://localhost:11001
         methods:
         - GET

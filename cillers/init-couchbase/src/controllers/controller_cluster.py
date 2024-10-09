@@ -45,10 +45,10 @@ class ControllerCluster:
             self.params_cluster_init()['url'],
             data=encoded_data,
             method='POST')
-        max_retries = 30
+        max_retries = 100
         for attempt in range(max_retries):
             try:
-                with urllib.request.urlopen(request, timeout=5*60) as response:
+                with urllib.request.urlopen(request, timeout=10*60) as response:
                     response_body = response.read().decode()
                     print(response_body)
                     print(f"Cluster initialization successful.")

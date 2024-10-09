@@ -6,7 +6,7 @@ import {
     login,
     UserInfo,
     LoginState
-} from './oauthAgentClient'
+} from './oauth_agent_client'
 
 export { logout, login }; 
 

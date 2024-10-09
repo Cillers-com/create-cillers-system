@@ -1,4 +1,22 @@
 templates:
+- id: cillers 
+  run:
+  - couchbase
+  - couchbase-init
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - create-connectors
+  - curity-db
+  - curity
+  - kong
+  - web-app 
+  - oauth-agent-web-app
+  - app-api
+  - jupyter
+  - api-client
+  - oauth-agent-api-client
+
 - id: stack
   run:
   - couchbase
@@ -11,17 +29,17 @@ templates:
   - curity
   - kong
   - web-app 
-  - oauth-agent
+  - oauth-agent-web-app
   - app-api
   - jupyter
-  - graphql-client-ui
-  - oauth-agent2
+  - api-client
+  - oauth-agent-api-client
 
 - id: stack-vm
   params:
     - id: web-app-url
       type: [default, str, http://localhost:8080]
-    - id: graphql-client-ui-url
+    - id: api-client-url
       type: [default, str, http://localhost:11001]
     - id: app-api-protocol-and-host 
       type: [default, str, http://localhost:8080]
@@ -46,26 +64,27 @@ templates:
       module: curity
       args:
         web-app-url: "#pt-param web-app-url"
-        graphql-client-ui-url: "#pt-param graphql-client-ui-url"
+        api-client-url: "#pt-param api-client-url"
+        curity-base-url: "#pt-param curity-base-url"
     - id: kong
       module: kong
     - id: web-app 
       module: web-app 
       args:
         app-api-protocol-and-host: "#pt-param app-api-protocol-and-host"
-    - id: graphql-client-ui
-      module: graphql-client-ui
+    - id: api-client
+      module: api-client
       args:
         app-api-protocol-and-host: "#pt-param app-api-protocol-and-host"
-    - id: oauth-agent
-      module: oauth-agent
+    - id: oauth-agent-web-app
+      module: oauth-agent-web-app
       args:
         web-app-url: "#pt-param web-app-url"
         curity-base-url: "#pt-param curity-base-url"
-    - id: oauth-agent2
-      module: oauth-agent2
+    - id: oauth-agent-api-client
+      module: oauth-agent-api-client
       args:
-        graphql-client-ui-url: "#pt-param graphql-client-ui-url" 
+        api-client-url: "#pt-param api-client-url" 
         curity-base-url: "#pt-param curity-base-url" 
     - id: app-api
       module: app-api
@@ -97,7 +116,7 @@ templates:
     - module: curity-db
       run-when:
         after: create-connectors 
-    - module: oauth-agent
+    - module: oauth-agent-web-app
       run-when:
         after: create-connectors 
     - module: curity
@@ -115,10 +134,10 @@ templates:
     - module: jupyter
       run-when:
         after: create-connectors 
-    - module: graphql-client-ui
+    - module: api-client
       run-when:
         after: create-connectors 
-    - module: oauth-agent2
+    - module: oauth-agent-api-client
       run-when:
         after: create-connectors 
 
@@ -131,7 +150,7 @@ templates:
     - module: curity-db
       run-when:
         after: cb-init 
-    - module: oauth-agent
+    - module: oauth-agent-web-app
       run-when:
         after: cb-init 
     - module: curity
@@ -149,10 +168,10 @@ templates:
     - module: jupyter
       run-when:
         after: cb-init 
-    - module: graphql-client-ui
+    - module: api-client
       run-when:
         after: cb-init 
-    - module: oauth-agent2
+    - module: oauth-agent-api-client
       run-when:
         after: cb-init 
 
@@ -167,7 +186,7 @@ modules:
       cmd: ./bin/run
       restart: { policy: on-failure }
       services: 
-        - { id: "app-api", ports: [{protocol: http, port: 4000}] }
+      - { id: "app-api", ports: [{protocol: http, port: 4000}] }
       env:
         - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
         - { name: COUCHBASE_USERNAME, value: admin }
@@ -186,6 +205,8 @@ modules:
     info: "Runs a Jupyter notebook hooked up to the Cillers stack."
     module: polytope/jupyter
     args:
+      services: 
+      - { id: "jupyter", ports: [{protocol: http, port: 8888, expose-as: 11002}] }
       mounts:
       - path: /home/jovyan/.cache/
         source:
@@ -194,7 +215,7 @@ modules:
           id: dependency-cache
       - path: /home/jovyan/config
         source:
-          path: ./conf/jupyter
+          path: ./conf/components/jupyter
           type: host
       - path: /home/jovyan/tutorials
         source:
@@ -210,62 +231,62 @@ modules:
     module: polytope/node
     params:
       - id: app-api-protocol-and-host 
-        type: [default, str, http://localhost:8080]
+        type: [default, str, http://localhost:11100]
     args:
       id: web-app 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
       code: { type: host, path: ./code/web-app }
       cmd: ./bin/run
       env:
-        - { name: PORT, value: 3000 } 
+        - { name: PORT, value: 11000 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/api'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/oauth-agent'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/oauth-agent-web-app'" }
       restart:
         policy: on-failure
       services:
         - id: web-app 
-          ports: [{protocol: http, port: 3000}]
+          ports: [{protocol: http, port: 11000}]
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
         - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
-  - id: graphql-client-ui 
-    info: A GraphQL Client UI 
+  - id: api-client 
+    info: An API Client
     module: polytope/node
     params:
       - id: app-api-protocol-and-host
-        type: [default, str, http://localhost:8080]
+        type: [default, str, http://localhost:11100]
     args:
-      id: graphql-client-ui 
+      id: api-client 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: { type: host, path: ./cillers/graphql-client-ui }
+      code: { type: host, path: ./cillers/api-client }
       cmd: ./bin/run
       env:
         - { name: PORT, value: 11001 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/api'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/oauth-agent2'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/oauth-agent-api-client'" }
       restart:
         policy: on-failure
       services:
-        - id: graphql-client-ui 
+        - id: api-client 
           ports: [{protocol: http, port: 11001}]
       mounts:
-        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-graphql-client-ui }}
-        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-graphql-client-ui }} 
-        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-graphql-client-ui }}
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client }}
 
-  - id: oauth-agent
+  - id: oauth-agent-web-app
     module: polytope/container
     params:
       - id: web-app-url
-        type: [default, str, http://localhost:8080]
+        type: [default, str, http://localhost:11000]
       - id: curity-base-url
         type: [default, str, http://localhost:8443]
     args: 
-      id: oauth-agent 
+      id: oauth-agent-web-app
       image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
       env:
         - { name: PORT, value: 3001 }
@@ -287,21 +308,21 @@ modules:
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
       restart: { policy: on-failure }
       services: 
-        - { id: oauth-agent, ports: [{protocol: http, port: 3001}]}
+      - { id: oauth-agent-web-app, ports: [{protocol: http, port: 3001}]}
 
-  - id: oauth-agent2
+  - id: oauth-agent-api-client
     module: polytope/container
     params:
-      - id: graphql-client-ui-url
+      - id: api-client-url
         type: [default, str, http://localhost:11001]
       - id: curity-base-url
         type: [default, str, http://localhost:8443]
     args: 
-      id: oauth-agent2 
+      id: oauth-agent-api-client 
       image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
       env:
         - { name: PORT, value: 3002 }
-        - { name: TRUSTED_WEB_ORIGIN, value: "#pt-param graphql-client-ui-url" }
+        - { name: TRUSTED_WEB_ORIGIN, value: "#pt-param api-client-url" }
         - { name: ISSUER, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-anonymous'" }
         - { name: AUTHORIZE_ENDPOINT, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-authorize'" }
         - { name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token' }
@@ -309,8 +330,8 @@ modules:
         - { name: LOGOUT_ENDPOINT, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-session/logout'" }
         - { name: CLIENT_ID, value: 'graphql-ui-client' }
         - { name: CLIENT_SECRET, value: 'Password1' }
-        - { name: REDIRECT_URI, value: "#pt-js params['graphqlClientUiUrl'] + '/auth/callback'" }
-        - { name: POST_LOGOUT_REDIRECT_URI, value: '#pt-param graphql-client-ui-url' }
+        - { name: REDIRECT_URI, value: "#pt-js params['apiClientUrl'] + '/auth/callback'" }
+        - { name: POST_LOGOUT_REDIRECT_URI, value: '#pt-param api-client-url' }
         - { name: SCOPE, value: 'openid profile' }
         - { name: COOKIE_DOMAIN, value: 'localhost' }
         - { name: COOKIE_NAME_PREFIX, value: 'curity' }
@@ -319,7 +340,7 @@ modules:
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
       restart: { policy: on-failure }
       services: 
-        - { id: oauth-agent2, ports: [{protocol: http, port: 3002}]}
+      - { id: oauth-agent-api-client, ports: [{protocol: http, port: 3002}]}
 
   - id: kong
     module: polytope/kong!simple
@@ -331,30 +352,33 @@ modules:
       plugins: 
         - { name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0 }
         - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
-      config-file: { type: host, path: ./conf/kong-dev.yml }
+      config-file: { type: host, path: ./conf/components/kong/dev.yml }
       autoreload: true
       services:
-      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 8080 }]}
+      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100}]}
 
   - id: curity
     params:
+    - id: curity-base-url
+      type: [default, str, http://localhost:8443]
     - id: web-app-url
-      type: [default, str, http://localhost:8080]
-    - id: graphql-client-ui-url
+      type: [default, str, http://localhost:11000]
+    - id: api-client-url
       type: [default, str, http://localhost:11001]   
     module: curity-base
     args:
       image: gcr.io/arched-inkwell-420116/idsvr:9.0.1
       # log-level: DEBUG  # NOTE: uncomment when developing against curity
-      config-file: { type: host, path: ./conf/curity-config.xml }
+      config-file: { type: host, path: ./conf/components/curity/config.xml }
       restart: { policy: always }
       env:
         - { name: ADMIN, value: true }
+        - { name: CURITY_BASE_URL, value: "#pt-param curity-base-url" }
         - { name: WEB_APP_URL, value: "#pt-param web-app-url" }
-        - { name: GRAPHQL_CLIENT_UI_URL, value: "#pt-param graphql-client-ui-url" }
+        - { name: GRAPHQL_CLIENT_UI_URL, value: "#pt-param api-client-url" }
       mounts:
         - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./cillers/curity/post-commit-cli-scripts }}
-        - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/curity-users.xml }}
+        - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/components/curity/users.xml }}
 
   - id: curity-base
     info: Runs a Curity ID server container.
@@ -438,7 +462,7 @@ modules:
         - { name: POSTGRES_HOST_AUTH_METHOD, value: trust }
         - { name: POSTGRES_DB, value: idsvr }
       scripts:
-        - { type: host, path: ./conf/curity-db.sql }
+        - { type: host, path: ./conf/components/curity/db.sql }
       restart: { policy: on-failure }
 
   - id: couchbase
@@ -461,7 +485,7 @@ modules:
         - { name: COUCHBASE_MAIN_BUCKET_NAME, value: main }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
-        - { path: /root/conf/, source: { type: host, path: ./conf }}
+        - { path: /root/conf/, source: { type: host, path: ./conf/components/couchbase }}
 
   - id: redpanda
     info: Runs the Redpanda server in dev mode
@@ -537,7 +561,7 @@ modules:
       - path: /etc/redpanda-console-config.yaml
         source:
           type: host
-          path: ./conf/redpanda-console.yml 
+          path: ./conf/components/redpanda/console.yml 
       restart: '#pt-clj (:restart params)'
       services:
       - id: redpanda-console

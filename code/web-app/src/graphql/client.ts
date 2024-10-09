@@ -14,7 +14,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import config from '../config';
-import { refresh_token } from './oauthAgentClient'; 
+import { refresh_token } from '../auth/token_refresher'; 
 
 function replace_http_with_ws (url: string) : string {
     console.log(url.replace('http', 'ws'));
@@ -27,6 +27,7 @@ function replace_http_with_ws (url: string) : string {
 function create_http_link(): HttpLink {
     return new HttpLink({
         uri: config.api_base_url,
+        credentials: 'include'
     });
 }
 
@@ -56,7 +57,7 @@ function create_csrf_link (csrf: string): ApolloLink {
         return {
             headers: {
                 ...headers, 
-                "x-curity-csrf": csrf,
+                "x-curity-csrf": csrf
             } 
         };
     });
@@ -114,6 +115,7 @@ function create_api_client (csrf: string, on_error: Function) : ApolloClient<Nor
     return new ApolloClient({
         link: split_link,
         cache: new InMemoryCache(),
+        credentials: 'include',
         defaultOptions: {
             watchQuery: {
                 errorPolicy: 'all'

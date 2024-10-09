@@ -22,6 +22,7 @@ def load():
         '../config/config-shared.yml')
 
     os.environ['GOOGLE_API_KEY'] = secrets.get('google', {}).get('api_key', '')
+    os.environ['GEMINI_API_KEY'] = secrets.get('google', {}).get('api_key', '')
     os.environ['COUCHBASE_USERNAME'] = secrets.get('couchbase', {}).get('username', '')
     os.environ['COUCHBASE_PASSWORD'] = secrets.get('couchbase', {}).get('password', '')
     os.environ['COUCHBASE_BUCKET_NAME'] = config.get('couchbase', {}).get('bucket_name', '')
