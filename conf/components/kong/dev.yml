@@ -29,18 +29,44 @@ services:
       credentials: true
       preflight_continue: false
 
-- name: oauth-agent-api-client
-  url: http://oauth-agent-api-client:3002/oauth-agent
+- name: oauth-agent-api-client-graphql
+  url: http://oauth-agent-api-client-graphql:3002/oauth-agent
   routes:
-  - name: oauth-agent-api-client-route
+  - name: oauth-agent-api-client-graphql-route
     paths:
-    - /oauth-agent-api-client
+    - /oauth-agent-api-client-graphql
 
   plugins:
   - name: cors
     config:
       origins:
       - http://localhost:11001
+      methods:
+      - GET
+      - POST
+      - OPTIONS
+      headers:
+      - Accept
+      - Authorization
+      - Content-Type
+      - x-curity-csrf
+      exposed_headers:
+      - Authorization
+      credentials: true
+      preflight_continue: false
+        
+- name: oauth-agent-api-client-rest
+  url: http://oauth-agent-api-client-rest:3003/oauth-agent
+  routes:
+  - name: oauth-agent-api-client-rest-route
+    paths:
+    - /oauth-agent-api-client-rest
+
+  plugins:
+  - name: cors
+    config:
+      origins:
+      - http://localhost:11002
       methods:
       - GET
       - POST
@@ -71,6 +97,7 @@ services:
         trusted_web_origins:
         - http://localhost:11000
         - http://localhost:11001
+        - http://localhost:11002
         cors_enabled: true 
         allow_tokens: true
 
@@ -87,6 +114,7 @@ services:
         origins:
         - http://localhost:11000
         - http://localhost:11001
+        - http://localhost:11002
         methods:
         - GET
         - POST

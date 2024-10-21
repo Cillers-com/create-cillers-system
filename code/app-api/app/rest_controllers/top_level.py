@@ -2,6 +2,8 @@ from ..rest_base import RestControllerBase, RestEndpoint
 from ..auth import is_authenticated, is_admin
 
 class TopLevelController(RestControllerBase):
+    root_level = True  # Set this to True to add routes at the root level
+
     @RestEndpoint("GET", "/hello", auth=is_authenticated)
     async def hello(self):
         user_name = self.context.user.get('name', 'User') if self.context.user else 'User'

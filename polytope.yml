@@ -1,4 +1,22 @@
 templates:
+- id: rest 
+  run:
+  - couchbase
+  - couchbase-init
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - create-connectors
+  - curity-db
+  - curity
+  - kong
+  - web-app 
+  - oauth-agent-web-app
+  - api-python-rest
+  - jupyter
+  - api-client-rest
+  - oauth-agent-api-client-rest
+
 - id: cillers 
   run:
   - couchbase
@@ -14,8 +32,10 @@ templates:
   - oauth-agent-web-app
   - app-api
   - jupyter
-  - api-client
-  - oauth-agent-api-client
+  - api-client-graphql
+  - api-client-rest
+  - oauth-agent-api-client-graphql
+  - oauth-agent-api-client-rest
 
 - id: stack
   run:
@@ -32,16 +52,20 @@ templates:
   - oauth-agent-web-app
   - app-api
   - jupyter
-  - api-client
-  - oauth-agent-api-client
+  - api-client-graphql
+  - api-client-rest
+  - oauth-agent-api-client-graphql
+  - oauth-agent-api-client-rest
 
 - id: stack-vm
   params:
     - id: web-app-url
       type: [default, str, http://localhost:8080]
-    - id: api-client-url
+    - id: api-client-graphql-url
       type: [default, str, http://localhost:11001]
-    - id: app-api-protocol-and-host 
+    - id: api-client-rest-url
+      type: [default, str, http://localhost:11002]
+    - id: app-api-protocol-host-port
       type: [default, str, http://localhost:8080]
     - id: curity-base-url
       type: [default, str, http://localhost:8443]
@@ -64,28 +88,38 @@ templates:
       module: curity
       args:
         web-app-url: "#pt-param web-app-url"
-        api-client-url: "#pt-param api-client-url"
+        api-client-graphql-url: "#pt-param api-client-graphql-url"
+        api-client-rest-url: "#pt-param api-client-rest-url"
         curity-base-url: "#pt-param curity-base-url"
     - id: kong
       module: kong
     - id: web-app 
       module: web-app 
       args:
-        app-api-protocol-and-host: "#pt-param app-api-protocol-and-host"
-    - id: api-client
-      module: api-client
+        app-api-protocol-host-port: "#pt-param app-api-protocol-host-port"
+    - id: api-client-graphql
+      module: api-client-graphql
       args:
-        app-api-protocol-and-host: "#pt-param app-api-protocol-and-host"
+        app-api-protocol-host-port: "#pt-param app-api-protocol-host-port"
+    - id: api-client-rest
+      module: api-client-rest
+      args:
+        app-api-protocol-host-port: "#pt-param app-api-protocol-host-port"
     - id: oauth-agent-web-app
       module: oauth-agent-web-app
       args:
         web-app-url: "#pt-param web-app-url"
         curity-base-url: "#pt-param curity-base-url"
-    - id: oauth-agent-api-client
-      module: oauth-agent-api-client
+    - id: oauth-agent-api-client-graphql
+      module: oauth-agent-api-client-graphql
       args:
-        api-client-url: "#pt-param api-client-url" 
+        api-client-graphql-url: "#pt-param api-client-graphql-url" 
         curity-base-url: "#pt-param curity-base-url" 
+    - id: oauth-agent-api-client-rest
+      module: oauth-agent-api-client-rest
+      args:
+        api-client-rest-url: "#pt-param api-client-rest-url" 
+        curity-base-url: "#pt-param curity-base-rest-url" 
     - id: app-api
       module: app-api
     - id: jupyter
@@ -134,10 +168,10 @@ templates:
     - module: jupyter
       run-when:
         after: create-connectors 
-    - module: api-client
+    - module: api-client-graphql
       run-when:
         after: create-connectors 
-    - module: oauth-agent-api-client
+    - module: oauth-agent-api-client-graphql
       run-when:
         after: create-connectors 
 
@@ -168,10 +202,10 @@ templates:
     - module: jupyter
       run-when:
         after: cb-init 
-    - module: api-client
+    - module: api-client-graphql
       run-when:
         after: cb-init 
-    - module: oauth-agent-api-client
+    - module: oauth-agent-api-client-graphql
       run-when:
         after: cb-init 
 
@@ -179,6 +213,9 @@ modules:
   - id: app-api
     info: The App API
     module: polytope/python
+    params:
+      - id: app-api-protocol-host-port 
+        type: [default, str, http://localhost:11100]
     args: 
       id: app-api
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
@@ -192,11 +229,46 @@ modules:
         - { name: COUCHBASE_USERNAME, value: admin }
         - { name: COUCHBASE_PASSWORD, value: password }
         - { name: HTTP_PORT, value: 4000 } 
+        - { name: APP_PROTOCOL_HOST_PORT, value: "#pt-param app-api-protocol-host-port" }
         - { name: HTTP_DEBUG, value: false } 
         - { name: HTTP_AUTORELOAD, value: true } 
         - { name: HTTP_GRAPHQL_UI, value: false } 
         - { name: AUTH_OIDC_AUDIENCE, value: http://localhost/api }
         - { name: AUTH_OIDC_JWK_URL, value: http://curity:8443/oauth/v2/oauth-anonymous/jwks }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf }}
+
+  - id: api-python-rest
+    module: polytope/python
+    params:
+      - { id: couchbase-protocol, type: [default, str, couchbase] }
+      - { id: couchbase-host, type: [default, str, couchbase] }
+      - { id: couchbase-username, type: [default, str, admin] }
+      - { id: couchbase-password, type: [default, str, password] }
+      - { id: api-port, type: [default, int, 4000] }
+      - { id: api-reload, type: [default, str, 'true'] }
+      - { id: api-url-for-apps, type: [default, str, http://localhost:11100] }
+      - { id: jwt-oidc-audience, type: [default, str, http://localhost/api] }
+      - { id: jwt-oidc-jwks-url, type: [default, str, http://curity:8443/oauth/v2/oauth-anonymous/jwks] }
+    args: 
+      id: app-api
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./code/api-python-rest }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      services: 
+      - { id: "app-api", ports: [{protocol: http, port: "#pt-param api-port"}] }
+      env:
+        - { name: COUCHBASE_PROTOCOL, value: "#pt-param couchbase-protocol" }
+        - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
+        - { name: COUCHBASE_USERNAME, value: "#pt-param couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-param couchbase-password" }
+        - { name: API_PORT, value: "#pt-param api-port" }
+        - { name: API_RELOAD, value: "#pt-param api-reload" }
+        - { name: API_URL_FOR_APPS, value: "#pt-param api-url-for-apps" }
+        - { name: JWT_OIDC_AUDIENCE, value: "#pt-param jwt-oidc-audience" }
+        - { name: JWT_OIDC_JWKS_URL, value: "#pt-param jwt-oidc-jwks-url" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf }}
@@ -230,7 +302,7 @@ modules:
     info: The Web App
     module: polytope/node
     params:
-      - id: app-api-protocol-and-host 
+      - id: app-api-protocol-host-port 
         type: [default, str, http://localhost:11100]
     args:
       id: web-app 
@@ -240,8 +312,8 @@ modules:
       env:
         - { name: PORT, value: 11000 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/api/graphql'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/oauth-agent-web-app'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/oauth-agent-web-app'" }
       restart:
         policy: on-failure
       services:
@@ -252,31 +324,57 @@ modules:
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
         - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
 
-  - id: api-client 
+  - id: api-client-graphql
     info: An API Client
     module: polytope/node
     params:
-      - id: app-api-protocol-and-host
+      - id: app-api-protocol-host-port
         type: [default, str, http://localhost:11100]
     args:
-      id: api-client 
+      id: api-client-graphql
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: { type: host, path: ./cillers/api-client }
+      code: { type: host, path: ./cillers/api-client-graphql }
       cmd: ./bin/run
       env:
         - { name: PORT, value: 11001 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/api/graphql'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolAndHost'] + '/oauth-agent-api-client'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/oauth-agent-api-client-graphql'" }
+      restart:
+        policy: on-failure
+      services:
+        - id: api-client-graphql
+          ports: [{protocol: http, port: 11001}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-graphql}}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client-graphql }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client-graphql }}
+
+  - id: api-client-rest
+    info: An API Client For REST
+    module: polytope/node
+    params:
+      - id: app-api-protocol-host-port
+        type: [default, str, http://localhost:11100]
+    args:
+      id: api-client-rest
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./cillers/api-client-rest }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11002 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/api'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/oauth-agent-api-client-rest'" }
       restart:
         policy: on-failure
       services:
         - id: api-client 
-          ports: [{protocol: http, port: 11001}]
+          ports: [{protocol: http, port: 11002}]
       mounts:
-        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client }}
-        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client }} 
-        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client }}
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-rest }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client-rest }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client-rest }}
 
   - id: oauth-agent-web-app
     module: polytope/container
@@ -310,28 +408,28 @@ modules:
       services: 
       - { id: oauth-agent-web-app, ports: [{protocol: http, port: 3001}]}
 
-  - id: oauth-agent-api-client
+  - id: oauth-agent-api-client-graphql
     module: polytope/container
     params:
-      - id: api-client-url
+      - id: api-client-graphql-url
         type: [default, str, http://localhost:11001]
       - id: curity-base-url
         type: [default, str, http://localhost:8443]
     args: 
-      id: oauth-agent-api-client 
+      id: oauth-agent-api-client-graphql
       image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
       env:
         - { name: PORT, value: 3002 }
-        - { name: TRUSTED_WEB_ORIGIN, value: "#pt-param api-client-url" }
+        - { name: TRUSTED_WEB_ORIGIN, value: "#pt-param api-client-graphql-url" }
         - { name: ISSUER, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-anonymous'" }
         - { name: AUTHORIZE_ENDPOINT, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-authorize'" }
         - { name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token' }
         - { name: USERINFO_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-userinfo' }
         - { name: LOGOUT_ENDPOINT, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-session/logout'" }
-        - { name: CLIENT_ID, value: 'graphql-ui-client' }
+        - { name: CLIENT_ID, value: 'api-client-graphql' }
         - { name: CLIENT_SECRET, value: 'Password1' }
-        - { name: REDIRECT_URI, value: "#pt-js params['apiClientUrl'] + '/auth/callback'" }
-        - { name: POST_LOGOUT_REDIRECT_URI, value: '#pt-param api-client-url' }
+        - { name: REDIRECT_URI, value: "#pt-js params['apiClientGraphqlUrl'] + '/auth/callback'" }
+        - { name: POST_LOGOUT_REDIRECT_URI, value: '#pt-param api-client-graphql-url' }
         - { name: SCOPE, value: 'openid profile' }
         - { name: COOKIE_DOMAIN, value: 'localhost' }
         - { name: COOKIE_NAME_PREFIX, value: 'curity' }
@@ -340,7 +438,39 @@ modules:
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
       restart: { policy: on-failure }
       services: 
-      - { id: oauth-agent-api-client, ports: [{protocol: http, port: 3002}]}
+      - { id: oauth-agent-api-client-graphql, ports: [{protocol: http, port: 3002}]}
+
+  - id: oauth-agent-api-client-rest
+    module: polytope/container
+    params:
+      - id: api-client-rest-url
+        type: [default, str, http://localhost:11002]
+      - id: curity-base-url
+        type: [default, str, http://localhost:8443]
+    args: 
+      id: oauth-agent-api-client-rest
+      image: gcr.io/arched-inkwell-420116/oauthagent:1.0.0 
+      env:
+        - { name: PORT, value: 3003 }
+        - { name: TRUSTED_WEB_ORIGIN, value: "#pt-param api-client-rest-url" }
+        - { name: ISSUER, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-anonymous'" }
+        - { name: AUTHORIZE_ENDPOINT, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-authorize'" }
+        - { name: TOKEN_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-token' }
+        - { name: USERINFO_ENDPOINT, value: 'http://curity:8443/oauth/v2/oauth-userinfo' }
+        - { name: LOGOUT_ENDPOINT, value: "#pt-js params['curityBaseUrl'] + '/oauth/v2/oauth-session/logout'" }
+        - { name: CLIENT_ID, value: 'api-client-rest' }
+        - { name: CLIENT_SECRET, value: 'Password1' }
+        - { name: REDIRECT_URI, value: "#pt-js params['apiClientRestUrl'] + '/auth/callback'" }
+        - { name: POST_LOGOUT_REDIRECT_URI, value: '#pt-param api-client-rest-url' }
+        - { name: SCOPE, value: 'openid profile' }
+        - { name: COOKIE_DOMAIN, value: 'localhost' }
+        - { name: COOKIE_NAME_PREFIX, value: 'curity' }
+        - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
+        - { name: CORS_ENABLED, value: 'true' }
+        - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
+      restart: { policy: on-failure }
+      services: 
+      - { id: oauth-agent-api-client-rest, ports: [{protocol: http, port: 3003}]}
 
   - id: kong
     module: polytope/kong!simple
@@ -363,8 +493,10 @@ modules:
       type: [default, str, http://localhost:8443]
     - id: web-app-url
       type: [default, str, http://localhost:11000]
-    - id: api-client-url
+    - id: api-client-graphql-url
       type: [default, str, http://localhost:11001]   
+    - id: api-client-rest-url
+      type: [default, str, http://localhost:11002]   
     module: curity-base
     args:
       image: gcr.io/arched-inkwell-420116/idsvr:9.0.1
@@ -375,7 +507,8 @@ modules:
         - { name: ADMIN, value: true }
         - { name: CURITY_BASE_URL, value: "#pt-param curity-base-url" }
         - { name: WEB_APP_URL, value: "#pt-param web-app-url" }
-        - { name: GRAPHQL_CLIENT_UI_URL, value: "#pt-param api-client-url" }
+        - { name: API_CLIENT_GRAPHQL_URL, value: "#pt-param api-client-graphql-url" }
+        - { name: API_CLIENT_REST_URL, value: "#pt-param api-client-rest-url" }
       mounts:
         - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./cillers/curity/post-commit-cli-scripts }}
         - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/components/curity/users.xml }}

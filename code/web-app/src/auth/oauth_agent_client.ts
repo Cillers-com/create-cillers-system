@@ -33,7 +33,7 @@ async function fetch_data_from_agent_with_token_refresh(method: string, path: st
     const response: Response = await fetch_from_agent(method, path, body);
     assert_response_status(response, [200, 401]); 
     const data = await response.json(); 
-    if (response.status === 200) { 
+    if (response.status === 200) {
         return data;
     }
     assert(data.code === "token_expired", `Unexpected code: ${data.code}`); 

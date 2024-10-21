@@ -5,3 +5,4 @@ __pycache__
 .DS_Store
 conf/.env
 .ipynb_checkpoints
+**/secrets_and_local_config

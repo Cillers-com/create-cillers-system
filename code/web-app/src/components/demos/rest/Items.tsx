@@ -6,46 +6,59 @@ interface ItemsProps {
     client: ApiClientRest
 }
 
+interface ApiResponse {
+    items: Item[]
+}
+
 const Items: React.FC<ItemsProps> = ({ client }) => {
     const [items, setItems] = useState<Item[]>([])
-    const [new_item_text, set_new_item_text] = useState('')
+    const [newItemText, setNewItemText] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const fetch_items = useCallback(async () => {
+    const fetchItems = useCallback(async () => {
         try {
-            const data = await client.items.list()
-            setItems(data)
+            const response = await client.items.list()
+            
+            if (typeof response === 'object' && response !== null && 'items' in response) {
+                const data = response as ApiResponse
+                setItems(data.items)
+            } else {
+                throw new Error('Unexpected response format')
+            }
             setLoading(false)
         } catch (err) {
-            setError('Error fetching items')
+            setError('Error fetching items: ' + (err instanceof Error ? err.message : String(err)))
             setLoading(false)
         }
     }, [client.items])
 
     useEffect(() => {
-        fetch_items()
-    }, [fetch_items])
+        fetchItems()
+    }, [fetchItems])
 
-    const handle_add_item = async () => {
-        if (!new_item_text.trim()) return
+    const handleAddItem = async () => {
+        if (!newItemText.trim()) return
         try {
-            const new_items = await client.items.create([{ name: new_item_text }])
-            if (new_items && new_items.length > 0) {
-                setItems([...items, ...new_items])
-                set_new_item_text('')
+            const response = await client.items.create([{ name: newItemText }])
+            if (typeof response === 'object' && response !== null && 'items' in response) {
+                const data = response as ApiResponse
+                setItems(prevItems => [...prevItems, ...data.items])
+                setNewItemText('')
+            } else {
+                throw new Error('Unexpected response format when creating item')
             }
         } catch (err) {
-            setError('Error adding item')
+            setError('Error adding item: ' + (err instanceof Error ? err.message : String(err)))
         }
     }
 
-    const handle_remove_item = async (id: string) => {
+    const handleRemoveItem = async (id: string) => {
         try {
             await client.items.remove(id)
-            setItems(items.filter(item => item.id !== id))
+            setItems(prevItems => prevItems.filter(item => item.id !== id))
         } catch (err) {
-            setError('Error removing item')
+            setError('Error removing item: ' + (err instanceof Error ? err.message : String(err)))
         }
     }
 
@@ -58,7 +71,7 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
                 </button>
             </div>
         )
-    if (error) return <p>{'Error: ' + error}</p>
+    if (error) return <p className="text-error p-4">{'Error: ' + error}</p>
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -82,12 +95,12 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
                                     type="text"
                                     placeholder="Add new item..."
                                     className="join-item flex-grow input input-bordered input-md input-primary"
-                                    value={new_item_text}
-                                    onChange={(e) => set_new_item_text(e.target.value)}
+                                    value={newItemText}
+                                    onChange={(e) => setNewItemText(e.target.value)}
                                 />
                                 <button
                                     className="join-item btn btn-square btn-md btn-primary"
-                                    onClick={handle_add_item}
+                                    onClick={handleAddItem}
                                 >
                                     Add
                                 </button>
@@ -104,7 +117,7 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
                                             <span>{name}</span>
                                             <button
                                                 className="btn btn-xs btn-circle btn-error"
-                                                onClick={() => handle_remove_item(id)}
+                                                onClick={() => handleRemoveItem(id)}
                                             >
                                                 x
                                             </button>
