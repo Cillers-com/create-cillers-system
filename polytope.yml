@@ -1,4 +1,3 @@
-# Test commit
 templates:
 - id: rest 
   run:
