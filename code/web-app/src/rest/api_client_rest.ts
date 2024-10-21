@@ -31,7 +31,7 @@ export class ApiClientRest implements ApiClientInterface {
         url: string, 
         on_error: (messages: string[]) => void, 
         data?: any
-    ): Promise<T> {
+    ): Promise<T | null> {
         const full_url = new URL(url, config.api_base_url).toString();
         const headers: Record<string, string> = {
             'Accept': 'application/json',
@@ -68,6 +68,10 @@ export class ApiClientRest implements ApiClientInterface {
                 on_error([error_data.detail || 'Not authorized']);
                 throw new Error('Not authorized');
             }
+            if (response.status === 204) {
+                // Handle 204 No Content
+                return null;
+            }
             if (!response.ok) {
                 const error_data = await response.json();
                 on_error([error_data.detail || `HTTP error! status: ${response.status}`]);
@@ -81,18 +85,18 @@ export class ApiClientRest implements ApiClientInterface {
     }
 
     public get<T>(url: string, on_error: (messages: string[]) => void): Promise<T> {
-        return this.request<T>('GET', url, on_error);
+        return this.request<T>('GET', url, on_error) as Promise<T>;
     }
 
     public post<T>(url: string, on_error: (messages: string[]) => void, data: any): Promise<T> {
-        return this.request<T>('POST', url, on_error, data);
+        return this.request<T>('POST', url, on_error, data) as Promise<T>;
     }
 
     public put<T>(url: string, on_error: (messages: string[]) => void, data: any): Promise<T> {
-        return this.request<T>('PUT', url, on_error, data);
+        return this.request<T>('PUT', url, on_error, data) as Promise<T>;
     }
 
-    public delete<T>(url: string, on_error: (messages: string[]) => void): Promise<T> {
-        return this.request<T>('DELETE', url, on_error);
+    public delete(url: string, on_error: (messages: string[]) => void): Promise<null> {
+        return this.request<null>('DELETE', url, on_error);
     }
 }

@@ -6,32 +6,28 @@ interface ItemsProps {
     client: ApiClientRest
 }
 
-interface ApiResponse {
-    items: Item[]
-}
-
 const Items: React.FC<ItemsProps> = ({ client }) => {
     const [items, setItems] = useState<Item[]>([])
     const [newItemText, setNewItemText] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    const handleError = useCallback((message: string, details?: any) => {
+        console.error(`Error: ${message}`, details)
+        setError(`${message}${details ? `: ${JSON.stringify(details)}` : ''}`)
+    }, [])
+
     const fetchItems = useCallback(async () => {
         try {
             const response = await client.items.list()
-            
-            if (typeof response === 'object' && response !== null && 'items' in response) {
-                const data = response as ApiResponse
-                setItems(data.items)
-            } else {
-                throw new Error('Unexpected response format')
-            }
+            const data = response as Item[]
+            setItems(data)
             setLoading(false)
         } catch (err) {
-            setError('Error fetching items: ' + (err instanceof Error ? err.message : String(err)))
+            handleError('Error fetching items', err)
             setLoading(false)
         }
-    }, [client.items])
+    }, [client.items, handleError])
 
     useEffect(() => {
         fetchItems()
@@ -40,16 +36,15 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
     const handleAddItem = async () => {
         if (!newItemText.trim()) return
         try {
-            const response = await client.items.create([{ name: newItemText }])
-            if (typeof response === 'object' && response !== null && 'items' in response) {
-                const data = response as ApiResponse
-                setItems(prevItems => [...prevItems, ...data.items])
+            const response = await client.items.create({ name: newItemText })
+            if ('id' in response && 'name' in response) {
+                setItems(prevItems => [...prevItems, response])
                 setNewItemText('')
             } else {
                 throw new Error('Unexpected response format when creating item')
             }
         } catch (err) {
-            setError('Error adding item: ' + (err instanceof Error ? err.message : String(err)))
+            handleError('Error adding item', err)
         }
     }
 
@@ -58,7 +53,7 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
             await client.items.remove(id)
             setItems(prevItems => prevItems.filter(item => item.id !== id))
         } catch (err) {
-            setError('Error removing item: ' + (err instanceof Error ? err.message : String(err)))
+            handleError('Error removing item', err)
         }
     }
 

@@ -1,21 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from src.context import get_rest_context, RestContext
+from src.models import items
 
 router = APIRouter()
 
 class HelloResponse(BaseModel):
     message: str
 
-class Item(BaseModel):
-    id: int
+class ItemCreateInput(BaseModel):
     name: str
-
-class ItemResponse(BaseModel):
-    items: list[Item]
-
-class MessageResponse(BaseModel):
-    message: str
 
 def get_current_user(request: Request, context: RestContext = Depends(get_rest_context)):
     if "Authorization" not in request.headers:
@@ -27,14 +21,17 @@ def get_current_user(request: Request, context: RestContext = Depends(get_rest_c
 async def hello(user: dict = Depends(get_current_user)) -> HelloResponse:
     return HelloResponse(message=f"Hello, {user.get('name', 'User')}!")
 
-@router.get("/items", response_model=ItemResponse, description="Returns a list of items for the authenticated user.")
-async def get_items(user: dict = Depends(get_current_user)) -> ItemResponse:
-    return ItemResponse(items=[Item(id=1, name="Sample Item")])
+@router.get("/items", response_model=list[items.Item], description="Returns a list of items for the authenticated user.")
+async def get_items(user: dict = Depends(get_current_user)) -> list[items.Item]:
+    return items.get_items()
 
-@router.post("/items", response_model=MessageResponse, description="Creates a new item for the authenticated user.")
-async def create_item(item: Item, user: dict = Depends(get_current_user)) -> MessageResponse:
-    return MessageResponse(message=f"Item '{item.name}' created successfully")
+@router.post("/items", response_model=items.Item, status_code=status.HTTP_201_CREATED, description="Creates a new item for the authenticated user.")
+async def create_item(item: ItemCreateInput, user: dict = Depends(get_current_user)) -> items.Item:
+    return items.create_item(item.name)
 
-@router.delete("/items/{id}", response_model=MessageResponse, description="Deletes a specific item for the authenticated user.")
-async def delete_item(id: str, user: dict = Depends(get_current_user)) -> MessageResponse:
-    return MessageResponse(message=f"Item with id {id} deleted successfully")
+@router.delete("/items/{id}", status_code=status.HTTP_204_NO_CONTENT, description="Deletes a specific item for the authenticated user.")
+async def delete_item(id: int, user: dict = Depends(get_current_user)):
+    if items.delete_item(id):
+        return None
+    else:
+        raise HTTPException(status_code=404, detail="Item not found")
