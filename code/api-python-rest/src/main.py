@@ -2,8 +2,8 @@ import os
 import uvicorn
 from fastapi import FastAPI, Depends, APIRouter
 from fastapi.openapi.utils import get_openapi
-from src.context import get_rest_context, RestContext
-from src.routes import router
+from context import get_rest_context, RestContext
+from routes import router
 import sys
 
 # Environment variable validation

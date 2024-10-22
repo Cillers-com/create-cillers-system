@@ -21,6 +21,7 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
         try {
             const response = await client.items.list()
             const data = response as Item[]
+            console.log(data)
             setItems(data)
             setLoading(false)
         } catch (err) {
@@ -34,12 +35,13 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
     }, [fetchItems])
 
     const handleAddItem = async () => {
-        if (!newItemText.trim()) return
+        const name = newItemText.trim();
+        setNewItemText('')
+        if (!name) return
         try {
-            const response = await client.items.create({ name: newItemText })
-            if ('id' in response && 'name' in response) {
-                setItems(prevItems => [...prevItems, response])
-                setNewItemText('')
+            const response = await client.items.create({ name: name })
+            if ('id' in response) {
+                setItems(prevItems => [...prevItems, {id: response.id, data: {name: name}}])
             } else {
                 throw new Error('Unexpected response format when creating item')
             }
@@ -102,14 +104,14 @@ const Items: React.FC<ItemsProps> = ({ client }) => {
                             </div>
                         </div>
                         <div className="space-y-2 w-full">
-                            {items.map(({ name, id }: Item) => (
+                            {items.map(({ data, id }: Item) => (
                                 <div
                                     key={id}
                                     className="card card-compact w-full bg-base-200 flex-row items-center justify-between"
                                 >
                                     <div className="card-body">
                                         <div className="flex justify-between items-center w-full">
-                                            <span>{name}</span>
+                                            <span>{data.name}</span>
                                             <button
                                                 className="btn btn-xs btn-circle btn-error"
                                                 onClick={() => handleRemoveItem(id)}

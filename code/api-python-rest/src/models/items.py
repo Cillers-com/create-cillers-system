@@ -1,18 +1,18 @@
-from typing import List
-from pydantic import BaseModel
+from couchbase.exceptions import DocumentNotFoundException
+from clients import couchbase as couchbase_client
+from data_types.items import Item, ItemData, ItemCreated
 
-class Item(BaseModel):
-    id: int
-    name: str
+keyspace = couchbase_client.get_keyspace('items')
 
-def get_items() -> List[Item]:
-    # TODO: Implement actual logic to fetch items from the database
-    return [Item(id=1, name="Sample Item")]
+def get_items() -> list[Item]:
+    result = keyspace.list()
+    print(result)
+    return [Item.from_couchbase_row(row) for row in result]
 
-def create_item(name: str) -> Item:
-    # TODO: Implement actual logic to create an item in the database
-    return Item(id=1, name=name)
+def create_item(data: ItemData) -> ItemCreated:
+    result = keyspace.insert(data.model_dump())
+    return ItemCreated.from_couchbase_mutation_result(result) 
 
-def delete_item(id: int) -> bool:
-    # TODO: Implement actual logic to delete an item from the database
-    return True
+def delete_item(_id: str) -> int:
+    return keyspace.remove(_id)
+

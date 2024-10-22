@@ -2,6 +2,10 @@ import { ApiClientInterface } from '../types';
 
 export interface Item {
     id: string;
+    data: ItemData;
+}
+
+export interface ItemData {
     name: string;
 }
 

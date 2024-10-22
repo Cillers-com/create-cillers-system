@@ -1,5 +1,29 @@
 <task>
-    Change the item operations in the routes.py file so they follow standard REST resource return values.
+    Fix the following problem:
+
+■ app-api stdout  Traceback (most recent call last):                                                                                                                                                 ▐ ││
+││                     File "<string>", line 1, in <module>                                                                                                                                             ▐ ││
+││                     File "/usr/local/lib/python3.11/multiprocessing/spawn.py", line 122, in spawn_main                                                                                               ▐ ││
+││ ■ app-api stdout      exitcode = _main(fd, parent_sentinel)                                                                                                                                          ▐ ││
+││                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^                                                                                                                                          ▐ ││
+││                     File "/usr/local/lib/python3.11/multiprocessing/spawn.py", line 131, in _main                                                                                                    ▐ ││
+││                       prepare(preparation_data)                                                                                                                                                      ▐ ││
+││                     File "/usr/local/lib/python3.11/multiprocessing/spawn.py", line 246, in prepare                                                                                                  ▐ ││
+││                       _fixup_main_from_path(data['init_main_from_path'])                                                                                                                             ▐ ││
+││                     File "/usr/local/lib/python3.11/multiprocessing/spawn.py", line 297, in _fixup_main_from_path                                                                                    ▐ ││
+││ ■ app-api stdout      main_content = runpy.run_path(main_path,                                                                                                                                       ▐ ││
+││                                      ^^^^^^^^^^^^^^^^^^^^^^^^^                                                                                                                                       ▐ ││
+││                     File "<frozen runpy>", line 291, in run_path                                                                                                                                     ▐ ││
+││                     File "<frozen runpy>", line 98, in _run_module_code                                                                                                                              ▐ ││
+││                     File "<frozen runpy>", line 88, in _run_code                                                                                                                                     ▐ ││
+││                     File "/app/src/main.py", line 6, in <module>                                                                                                                                     ▐ ││
+││                       from src.routes import router                                                                                                                                                  ▐ ││
+││                     File "/app/src/routes.py", line 4, in <module>                                                                                                                                   ▐ ││
+││                       from src.models import items                                                                                                                                                   ▐ ││
+││                     File "/app/src/models/items.py", line 1, in <module>                                                                                                                             ▐ ││
+││                       from couchbase.items import get_items, create_item, delete_item                                                                                                                ▐ ││
+││                   ModuleNotFoundError: No module named 'couchbase.items'
+
 </task>
 <restrictions>
     <restriction>

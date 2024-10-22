@@ -246,6 +246,7 @@ modules:
       - { id: couchbase-host, type: [default, str, couchbase] }
       - { id: couchbase-username, type: [default, str, admin] }
       - { id: couchbase-password, type: [default, str, password] }
+      - { id: couchbase-default-bucket-name, type: [default, str, main] }
       - { id: api-port, type: [default, int, 4000] }
       - { id: api-reload, type: [default, str, 'true'] }
       - { id: api-url-for-apps, type: [default, str, http://localhost:11100] }
@@ -264,6 +265,7 @@ modules:
         - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
         - { name: COUCHBASE_USERNAME, value: "#pt-param couchbase-username" }
         - { name: COUCHBASE_PASSWORD, value: "#pt-param couchbase-password" }
+        - { name: COUCHBASE_DEFAULT_BUCKET_NAME, value: "#pt-param couchbase-default-bucket-name" }
         - { name: API_PORT, value: "#pt-param api-port" }
         - { name: API_RELOAD, value: "#pt-param api-reload" }
         - { name: API_URL_FOR_APPS, value: "#pt-param api-url-for-apps" }
