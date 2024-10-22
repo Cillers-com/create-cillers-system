@@ -1,22 +1,4 @@
 templates:
-- id: rest 
-  run:
-  - couchbase
-  - couchbase-init
-  - redpanda
-  - redpanda-console
-  - kafka-connect
-  - create-connectors
-  - curity-db
-  - curity
-  - kong
-  - web-app 
-  - oauth-agent-web-app
-  - api-python-rest
-  - jupyter
-  - api-client-rest
-  - oauth-agent-api-client-rest
-
 - id: cillers 
   run:
   - couchbase
@@ -28,13 +10,29 @@ templates:
   - curity-db
   - curity
   - kong
-  - web-app 
+  - web-app-react-graphql
   - oauth-agent-web-app
-  - app-api
+  - api-python-graphql
   - jupyter
   - api-client-graphql
-  - api-client-rest
   - oauth-agent-api-client-graphql
+
+- id: cillers-rest 
+  run:
+  - couchbase
+  - couchbase-init
+  - redpanda
+  - redpanda-console
+  - kafka-connect
+  - create-connectors
+  - curity-db
+  - curity
+  - kong
+  - web-app-react-rest 
+  - oauth-agent-web-app
+  - api-python-rest
+  - jupyter
+  - api-client-rest
   - oauth-agent-api-client-rest
 
 - id: stack
@@ -48,9 +46,9 @@ templates:
   - curity-db
   - curity
   - kong
-  - web-app 
+  - web-app-reach-graphql
   - oauth-agent-web-app
-  - app-api
+  - api-python-graphql
   - jupyter
   - api-client-graphql
   - api-client-rest
@@ -65,7 +63,7 @@ templates:
       type: [default, str, http://localhost:11001]
     - id: api-client-rest-url
       type: [default, str, http://localhost:11002]
-    - id: app-api-protocol-host-port
+    - id: api-protocol-host-port
       type: [default, str, http://localhost:8080]
     - id: curity-base-url
       type: [default, str, http://localhost:8443]
@@ -93,18 +91,18 @@ templates:
         curity-base-url: "#pt-param curity-base-url"
     - id: kong
       module: kong
-    - id: web-app 
-      module: web-app 
+    - id: web-app-graphql 
+      module: web-app-graphql 
       args:
-        app-api-protocol-host-port: "#pt-param app-api-protocol-host-port"
+        api-protocol-host-port: "#pt-param api-protocol-host-port"
     - id: api-client-graphql
       module: api-client-graphql
       args:
-        app-api-protocol-host-port: "#pt-param app-api-protocol-host-port"
+        api-protocol-host-port: "#pt-param api-protocol-host-port"
     - id: api-client-rest
       module: api-client-rest
       args:
-        app-api-protocol-host-port: "#pt-param app-api-protocol-host-port"
+        api-protocol-host-port: "#pt-param api-protocol-host-port"
     - id: oauth-agent-web-app
       module: oauth-agent-web-app
       args:
@@ -120,8 +118,8 @@ templates:
       args:
         api-client-rest-url: "#pt-param api-client-rest-url" 
         curity-base-url: "#pt-param curity-base-rest-url" 
-    - id: app-api
-      module: app-api
+    - id: api-python-graphql
+      module: api-python-graphql
     - id: jupyter
       module: jupyter
 
@@ -159,10 +157,10 @@ templates:
     - module: kong
       run-when:
         after: create-connectors 
-    - module: web-app 
+    - module: web-app-react-graphql 
       run-when:
         after: create-connectors 
-    - module: app-api
+    - module: api-python-graphql
       run-when:
         after: create-connectors 
     - module: jupyter
@@ -193,10 +191,10 @@ templates:
     - module: kong
       run-when:
         after: cb-init 
-    - module: web-app 
+    - module: web-app-react-graphql
       run-when:
         after: cb-init 
-    - module: app-api
+    - module: api-python-graphql
       run-when:
         after: cb-init 
     - module: jupyter
@@ -210,26 +208,26 @@ templates:
         after: cb-init 
 
 modules:
-  - id: app-api
+  - id: api-python-graphql
     info: The App API
     module: polytope/python
     params:
-      - id: app-api-protocol-host-port 
+      - id: api-protocol-host-port 
         type: [default, str, http://localhost:11100]
     args: 
-      id: app-api
+      id: api-pyton-graphql
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./code/app-api }
+      code: { type: host, path: ./code/api-python-graphql }
       cmd: ./bin/run
       restart: { policy: on-failure }
       services: 
-      - { id: "app-api", ports: [{protocol: http, port: 4000}] }
+      - { id: "api", ports: [{protocol: http, port: 4000}] }
       env:
         - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
         - { name: COUCHBASE_USERNAME, value: admin }
         - { name: COUCHBASE_PASSWORD, value: password }
         - { name: HTTP_PORT, value: 4000 } 
-        - { name: APP_PROTOCOL_HOST_PORT, value: "#pt-param app-api-protocol-host-port" }
+        - { name: APP_PROTOCOL_HOST_PORT, value: "#pt-param api-protocol-host-port" }
         - { name: HTTP_DEBUG, value: false } 
         - { name: HTTP_AUTORELOAD, value: true } 
         - { name: HTTP_GRAPHQL_UI, value: false } 
@@ -253,13 +251,13 @@ modules:
       - { id: jwt-oidc-audience, type: [default, str, http://localhost/api] }
       - { id: jwt-oidc-jwks-url, type: [default, str, http://curity:8443/oauth/v2/oauth-anonymous/jwks] }
     args: 
-      id: app-api
+      id: api-python-rest
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./code/api-python-rest }
       cmd: ./bin/run
       restart: { policy: on-failure }
       services: 
-      - { id: "app-api", ports: [{protocol: http, port: "#pt-param api-port"}] }
+      - { id: "api", ports: [{protocol: http, port: "#pt-param api-port"}] }
       env:
         - { name: COUCHBASE_PROTOCOL, value: "#pt-param couchbase-protocol" }
         - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
@@ -300,22 +298,48 @@ modules:
           path: ./cillers/jupyter/work
           type: host
 
-  - id: web-app
+  - id: web-app-react-graphql
     info: The Web App
     module: polytope/node
     params:
-      - id: app-api-protocol-host-port 
+      - id: api-protocol-host-port 
         type: [default, str, http://localhost:11100]
     args:
-      id: web-app 
+      id: web-app-react-graphql 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: { type: host, path: ./code/web-app }
+      code: { type: host, path: ./code/web-app-react-graphql }
       cmd: ./bin/run
       env:
         - { name: PORT, value: 11000 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/api/graphql'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/oauth-agent-web-app'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
+      restart:
+        policy: on-failure
+      services:
+        - id: web-app 
+          ports: [{protocol: http, port: 11000}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
+
+  - id: web-app-react-rest
+    info: The Web App
+    module: polytope/node
+    params:
+      - id: api-protocol-host-port 
+        type: [default, str, http://localhost:11100]
+    args:
+      id: web-app-react-rest 
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./code/web-app-react-rest }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11000 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
       restart:
         policy: on-failure
       services:
@@ -330,7 +354,7 @@ modules:
     info: An API Client
     module: polytope/node
     params:
-      - id: app-api-protocol-host-port
+      - id: api-protocol-host-port
         type: [default, str, http://localhost:11100]
     args:
       id: api-client-graphql
@@ -340,8 +364,8 @@ modules:
       env:
         - { name: PORT, value: 11001 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/api/graphql'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/oauth-agent-api-client-graphql'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-api-client-graphql'" }
       restart:
         policy: on-failure
       services:
@@ -356,7 +380,7 @@ modules:
     info: An API Client For REST
     module: polytope/node
     params:
-      - id: app-api-protocol-host-port
+      - id: api-protocol-host-port
         type: [default, str, http://localhost:11100]
     args:
       id: api-client-rest
@@ -366,8 +390,8 @@ modules:
       env:
         - { name: PORT, value: 11002 } 
         - { name: HOST, value: 0.0.0.0 } 
-        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/api'" }
-        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['appApiProtocolHostPort'] + '/oauth-agent-api-client-rest'" }
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-api-client-rest'" }
       restart:
         policy: on-failure
       services:

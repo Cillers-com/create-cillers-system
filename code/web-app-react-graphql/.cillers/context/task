@@ -1,0 +1,19 @@
+<task>
+    Improve error info so it is easier to debug errors like the following: 
+
+    Error: Error fetching items: Unexpected response format
+
+    Do not implement retries on failures. 
+
+</task>
+<restrictions>
+    <restriction>
+        
+    </restriction>
+    <restriction>
+        Do not make any changes that are not necessary for accomplishing the tasks.
+    </restriction>
+    <restriction>
+        Do not change indentation. 
+    </restriction>
+</restrictions>

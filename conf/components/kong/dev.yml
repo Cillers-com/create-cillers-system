@@ -81,10 +81,10 @@ services:
       credentials: true
       preflight_continue: false
     
-- name: app-api
-  url: http://app-api:4000
+- name: api
+  url: http://api:4000
   routes:
-  - name: app-api-route
+  - name: api-route
     strip_path: false
     paths:
     - /api
