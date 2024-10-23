@@ -22,9 +22,9 @@ templates:
   - couchbase
   - couchbase-init
   - redpanda
+  - redpanda-init
   - redpanda-console
-  - kafka-connect
-  - create-connectors
+  - redpanda-connect
   - curity-db
   - curity
   - kong
