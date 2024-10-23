@@ -4,9 +4,9 @@ templates:
   - couchbase
   - couchbase-init
   - redpanda
+  - redpanda-init
   - redpanda-console
-  - kafka-connect
-  - create-connectors
+  - redpanda-connect
   - curity-db
   - curity
   - kong
@@ -40,20 +40,18 @@ templates:
   - couchbase
   - couchbase-init
   - redpanda
+  - redpanda-init
   - redpanda-console
-  - kafka-connect
-  - create-connectors
+  - redpanda-connect
   - curity-db
   - curity
   - kong
-  - web-app-reach-graphql
+  - web-app-react-graphql
   - oauth-agent-web-app
   - api-python-graphql
   - jupyter
   - api-client-graphql
-  - api-client-rest
   - oauth-agent-api-client-graphql
-  - oauth-agent-api-client-rest
 
 - id: stack-vm
   params:
@@ -634,8 +632,9 @@ modules:
     module: polytope/python
     args:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./cillers/init-couchbase }
+      code: { type: host, path: ./cillers/couchbase-init }
       cmd: ./bin/run
+      restart: { policy: on-failure }
       env:
         - { name: COUCHBASE_HOST, value: "couchbase" }
         - { name: COUCHBASE_TLS, value: false }
@@ -720,7 +719,7 @@ modules:
       - path: /etc/redpanda-console-config.yaml
         source:
           type: host
-          path: ./conf/components/redpanda/console.yml 
+          path: ./conf/components/redpanda/console.yaml 
       restart: '#pt-clj (:restart params)'
       services:
       - id: redpanda-console
@@ -772,4 +771,59 @@ modules:
             key.converter:                  org.apache.kafka.connect.storage.StringConverter
             value.converter:                org.apache.kafka.connect.json.JsonConverter
             value.converter.schemas.enable: 'false'
+
+  - id: polytope-redpanda-connect
+    info: Runs Redpanda connect.
+    params:
+      - id: image
+        info: The image to use.
+        name: Image
+        type: [default, str, docker.redpanda.com/redpandadata/connect]
+      - id: container-id
+        info: The ID to give the spawned container.
+        name: Container ID
+        type: [default, str, redpanda-connect]
+      - {id: config-file, info: Redpanda connect config file., name: Config file, type: mount-source}
+      - id: restart
+        info: Restart policy for the container.
+        name: Restart policy
+        type:
+        - default
+        - policy: [enum, always, on-failure]
+          max-restarts: [maybe, int]
+        - {policy: always, max-restarts: null}
+      - id: port
+        info: The console HTTP port.
+        name: HTTP Port
+        type: [default, int, 4195]
+    module: polytope/container
+    args:
+      image: '#pt-param image'
+      id: '#pt-param container-id'
+      mounts:
+        - {path: /connect.yaml, source: '#pt-param config-file'}
+      restart: '#pt-param restart'
+      services:
+        - id: redpanda-connect
+          ports:
+            - {port: '#pt-param port', protocol: http}
+
+  - id: redpanda-connect
+    info: Runs Redpanda Connect
+    module: polytope-redpanda-connect
+    args:
+      config-file: { type: host, path: ./conf/components/redpanda/connect.yaml }
+
+  - id: redpanda-init
+    module: polytope/python
+    args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./cillers/redpanda-init }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      env:
+        - { name: REDPANDA_BOOTSTRAP_SERVERS, value: "redpanda:9092" }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf/components/redpanda }}
 

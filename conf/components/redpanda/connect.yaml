@@ -1,0 +1,51 @@
+input:
+  label: "redpanda"
+  kafka_franz:
+    seed_brokers: 
+      - redpanda:9092 
+    topics: 
+      - 'items'
+    regexp_topics: false
+    consumer_group: "connect"
+    client_id: benthos
+    rack_id: ""
+    checkpoint_limit: 1024
+    auto_replay_nacks: true
+    commit_period: 5s
+    start_from_oldest: true
+    tls:
+      enabled: false
+      skip_cert_verify: false
+      enable_renegotiation: false
+      root_cas: ""
+      root_cas_file: ""
+      client_certs: []
+    sasl: []
+    multi_header: false
+    batching:
+      count: 0
+      byte_size: 0
+      period: ""
+      check: ""
+      processors: []
+    metadata_max_age: 5m
+
+output:
+  label: "couchbase"
+  couchbase:
+    url: couchbase://couchbase
+    username: admin 
+    password: password 
+    bucket: main 
+    collection: items
+    operation: 'insert'
+    content: 'root = this'
+    id: '${! uuid_v4() }'
+
+logger:
+  level: DEBUG 
+  format: logfmt
+  add_timestamp: false
+  static_fields:
+    '@service': redpanda-connect
+
