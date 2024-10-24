@@ -1,4 +1,27 @@
 templates:
+- id: cillers-sinch
+  run:
+  - couchbase
+  - couchbase-init
+  - redpanda
+  - redpanda-init
+  - redpanda-console
+  - redpanda-connect
+  - curity-db
+  - curity
+  - kong
+  - web-app-react-graphql
+  - oauth-agent-web-app
+  - api-python-graphql
+  - ingest-api-python
+  - jupyter
+  - api-client-graphql
+  - ingest-api-client
+  - oauth-agent-api-client-graphql
+  - module: ingest-api-ngrok
+    args: 
+      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
+
 - id: cillers 
   run:
   - couchbase
@@ -13,8 +36,10 @@ templates:
   - web-app-react-graphql
   - oauth-agent-web-app
   - api-python-graphql
+  - ingest-api-python
   - jupyter
   - api-client-graphql
+  - ingest-api-client
   - oauth-agent-api-client-graphql
 
 - id: cillers-rest 
@@ -271,6 +296,43 @@ modules:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf }}
 
+  - id: ingest-api-python
+    module: polytope/python
+    params:
+      - { id: api-port, type: [default, int, 4001] }
+      - { id: api-reload, type: [default, str, 'true'] }
+      - { id: api-url-for-apps, type: [default, str, http://localhost:4001] }
+    args: 
+      id: ingest-api-python
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./code/ingest-api-python }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      services: 
+      - { id: "ingest-api", ports: [{protocol: http, port: "#pt-param api-port"}] }
+      env:
+        - { name: API_PORT, value: "#pt-param api-port" }
+        - { name: API_RELOAD, value: "#pt-param api-reload" }
+        - { name: API_URL_FOR_APPS, value: "#pt-param api-url-for-apps" }
+        - { name: REDPANDA_BOOTSTRAP_SERVERS, value: "redpanda:9092" }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf }}
+
+  - id: ingest-api-ngrok
+    params:
+      - { id: authtoken, type: str }
+    module: polytope/container
+    args:
+      image: ngrok/ngrok:3-alpine
+      cmd: '#pt-clj (str "http --log stdout --authtoken=" (:authtoken params) " ingest-api:4001")'
+      id: ingest-api-ngrok
+      env: 
+      - name: NGROK_API_KEY
+        value: "#pt-param api-key"
+      services: 
+      - { id: "ingest-api-ngrok", ports: [{protocol: http, port: 4002}] }
+
   - id: jupyter
     info: "Runs a Jupyter notebook hooked up to the Cillers stack."
     module: polytope/jupyter
@@ -399,6 +461,31 @@ modules:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-rest }}
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client-rest }} 
         - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client-rest }}
+
+  - id: ingest-api-client
+    info: An Ingest API Client
+    module: polytope/node
+    params:
+      - id: api-protocol-host-port
+        type: [default, str, http://localhost:4001]
+    args:
+      id: ingest-api-client
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./cillers/ingest-api-client }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11003 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
+      restart:
+        policy: on-failure
+      services:
+        - id: ingest-api-client 
+          ports: [{protocol: http, port: 11003}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-ingest-api-client}}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-ingest-api-client}} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-ingest-api-client}}
 
   - id: oauth-agent-web-app
     module: polytope/container
