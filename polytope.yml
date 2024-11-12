@@ -279,7 +279,7 @@ modules:
       - id: api-protocol-host-port 
         type: [default, str, http://localhost:11100]
     args: 
-      id: api-pyton-graphql
+      id: api-python-graphql
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./code/api-python-graphql }
       cmd: ./bin/run
