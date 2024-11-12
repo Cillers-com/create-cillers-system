@@ -283,7 +283,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./code/api-python-graphql }
       cmd: ./bin/run
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: "api", ports: [{protocol: http, port: 4000}] }
       env:
@@ -413,7 +413,7 @@ modules:
         - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api/graphql'" }
         - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
       restart:
-        policy: on-failure
+        policy: always
       services:
         - id: web-app 
           ports: [{protocol: http, port: 11000}]
@@ -633,6 +633,7 @@ modules:
         - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
       config-file: { type: host, path: ./conf/components/kong/dev.yml }
       autoreload: true
+      restart: { policy: always}
       services:
       - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100}]}
 
@@ -702,9 +703,10 @@ modules:
       info: What policy to apply on restarting containers that fail.
       name: Restart policy
       type:
-      - maybe
+      - default
       - policy: [enum, always, on-failure]
         max-restarts: [maybe, int]
+      - { policy: always }
     - id: log-level
       info: The log level for the ID server.
       name: Log level
@@ -745,7 +747,7 @@ modules:
         - { name: POSTGRES_DB, value: idsvr }
       scripts:
         - { type: host, path: ./conf/components/curity/db.sql }
-      restart: { policy: on-failure }
+      restart: { policy: always }
 
   - id: couchbase
     module: polytope/couchbase
