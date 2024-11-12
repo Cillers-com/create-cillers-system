@@ -739,6 +739,7 @@ modules:
   - id: curity-db
     module: polytope/postgres
     args:
+      container-id: curity-db
       image: gcr.io/arched-inkwell-420116/postgres:16.2
       data-volume: { type: volume, scope: project, id: curity-db-data }
       service-id: curity-db
