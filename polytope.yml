@@ -195,7 +195,81 @@ templates:
         after: cb-init 
     - module: oauth-agent-api-client-rest
       run-when:
-        after: cb-init 
+        after: cb-init
+
+- id: stack-cloud
+  params:
+    - id: kong-domain
+      type: [maybe, str]
+    - id: web-app-domain
+      type: [maybe, str]
+    - id: curity-domain
+      type: [maybe, str]
+    - id: api-client-domain
+      type: [maybe, str]
+  run:
+    - id: create-web-app-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: web-app
+        gateway-id: web-app-gateway
+        domain: "#pt-param web-app-domain"
+    - id: create-kong-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: kong
+        gateway-id: kong-gateway
+        domain: "#pt-param kong-domain"
+    - id: create-curity-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: curity
+        service-port: 8443
+        gateway-id: curity-gateway
+        domain: "#pt-param curity-domain"
+    - id: create-api-client-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: api-client
+        gateway-id: api-client-gateway
+        domain: "#pt-param api-client-domain"
+    - couchbase
+    - couchbase-init
+    - redpanda
+    - redpanda-init
+    - redpanda-console
+    - redpanda-connect
+    - curity-db
+    - id: curity
+      module: curity
+      args:
+        web-app-url: "#pt-output create-kong-route domains[0].domain"
+        api-client-graphql-url: "#pt-output create-api-client-route domains[0].domain"
+        curity-base-url: "#pt-output create-curity-route domains[0].domain"
+    - kong
+    - id: web-app-react-graphql
+      module: web-app-react-graphql
+      args:
+        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+    - id: oauth-agent-web-app
+      module: oauth-agent-web-app
+      args:
+        web-app-url: "#pt-output create-web-app-route domains[0].domain"
+        curity-base-url: "#pt-output create-curity-route domains[0].domain"
+    - id: api-python-graphql
+      module: api-python-graphql
+      args:
+        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+    - jupyter
+    - id: api-client-graphql
+      module: api-client-graphql
+      args:
+        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+    - id: oauth-agent-api-client-graphql
+      module: oauth-agent-api-client-graphql
+      args:
+        api-client-graphql-url: "#pt-output create-api-client-route domains[0].domain"
+        curity-base-url: "#pt-output create-curity-route domains[0].domain"
 
 modules:
   - id: api-python-graphql
