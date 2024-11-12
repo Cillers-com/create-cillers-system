@@ -1,28 +1,5 @@
 templates:
-- id: cillers-sinch
-  run:
-  - couchbase
-  - couchbase-init
-  - redpanda
-  - redpanda-init
-  - redpanda-console
-  - redpanda-connect
-  - curity-db
-  - curity
-  - kong
-  - web-app-react-graphql
-  - oauth-agent-web-app
-  - api-python-graphql
-  - ingest-api-python
-  - jupyter
-  - api-client-graphql
-  - ingest-api-client
-  - oauth-agent-api-client-graphql
-  - module: ingest-api-ngrok
-    args: 
-      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
-
-- id: cillers-rest-sinch
+- id: cillers-stack-local 
   run:
   - couchbase
   - couchbase-init
@@ -41,11 +18,11 @@ templates:
   - api-client-rest
   - ingest-api-client
   - oauth-agent-api-client-rest
-  - module: ingest-api-ngrok
-    args: 
-      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
+#  - module: ingest-api-ngrok
+#    args: 
+#      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
 
-- id: cillers 
+- id: cillers-stack-local-graphql 
   run:
   - couchbase
   - couchbase-init
@@ -64,44 +41,11 @@ templates:
   - api-client-graphql
   - ingest-api-client
   - oauth-agent-api-client-graphql
+#  - module: ingest-api-ngrok
+#    args: 
+#      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
 
-- id: cillers-rest 
-  run:
-  - couchbase
-  - couchbase-init
-  - redpanda
-  - redpanda-init
-  - redpanda-console
-  - redpanda-connect
-  - curity-db
-  - curity
-  - kong
-  - web-app-react-rest 
-  - oauth-agent-web-app
-  - api-python-rest
-  - jupyter
-  - api-client-rest
-  - oauth-agent-api-client-rest
-
-- id: stack
-  run:
-  - couchbase
-  - couchbase-init
-  - redpanda
-  - redpanda-init
-  - redpanda-console
-  - redpanda-connect
-  - curity-db
-  - curity
-  - kong
-  - web-app-react-graphql
-  - oauth-agent-web-app
-  - api-python-graphql
-  - jupyter
-  - api-client-graphql
-  - oauth-agent-api-client-graphql
-
-- id: stack-vm
+- id: cillers-stack-vm
   params:
     - id: web-app-url
       type: [default, str, http://localhost:8080]
@@ -169,7 +113,7 @@ templates:
     - id: jupyter
       module: jupyter
 
-- id: stack-low-memory
+- id: cillers-stack-local-low-memory
   run:
     - couchbase
     - id: cb-init 
@@ -203,23 +147,23 @@ templates:
     - module: kong
       run-when:
         after: create-connectors 
-    - module: web-app-react-graphql 
+    - module: web-app-react-rest 
       run-when:
         after: create-connectors 
-    - module: api-python-graphql
+    - module: api-python-rest
       run-when:
         after: create-connectors 
     - module: jupyter
       run-when:
         after: create-connectors 
-    - module: api-client-graphql
+    - module: api-client-rest
       run-when:
         after: create-connectors 
-    - module: oauth-agent-api-client-graphql
+    - module: oauth-agent-api-client-rest
       run-when:
         after: create-connectors 
 
-- id: stack-without-redpanda
+- id: cillers-stack-local-without-redpanda
   run:
     - couchbase
     - id: cb-init 
@@ -237,19 +181,19 @@ templates:
     - module: kong
       run-when:
         after: cb-init 
-    - module: web-app-react-graphql
+    - module: web-app-react-rest
       run-when:
         after: cb-init 
-    - module: api-python-graphql
+    - module: api-python-rest
       run-when:
         after: cb-init 
     - module: jupyter
       run-when:
         after: cb-init 
-    - module: api-client-graphql
+    - module: api-client-rest
       run-when:
         after: cb-init 
-    - module: oauth-agent-api-client-graphql
+    - module: oauth-agent-api-client-rest
       run-when:
         after: cb-init 
 
@@ -350,9 +294,6 @@ modules:
       image: ngrok/ngrok:3-alpine
       cmd: '#pt-clj (str "http --log stdout --authtoken=" (:authtoken params) " ingest-api:4001")'
       id: ingest-api-ngrok
-      env: 
-      - name: NGROK_API_KEY
-        value: "#pt-param api-key"
       services: 
       - { id: "ingest-api-ngrok", ports: [{protocol: http, port: 4002}] }
 

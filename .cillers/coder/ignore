@@ -1,9 +1,8 @@
-
 **/__pycache__
 **/node_modules
 .devcontainer
 .git
 build
+.build
 .cillers
 tmp
-coder/templates

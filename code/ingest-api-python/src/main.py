@@ -4,6 +4,8 @@ from fastapi import FastAPI, Depends, APIRouter
 from fastapi.openapi.utils import get_openapi
 from routes import router
 import sys
+import http.client
+import json
 
 # Environment variable validation
 api_url_for_apps = os.getenv("API_URL_FOR_APPS")

@@ -1,28 +1,27 @@
+<policy id="go-policies">
+    Go code must comply with the guidelines specified in the policies that contain the tag 'go' in the scope attribute.
+</policy>
 
-<directive>
-    Go code must comply with the guidelines specified in the following 'go-directive' elements. 
-</directive>
-
-<go-directive id="main-function" tags="go">
+<policy id="main-function" scope="go">
     The main Function must:
     * The entry point in the should be the main function in the main.go file.
     * The main function should call another function called 'app' that returns an error if unsuccessful.
     * The main function should exit with a non-zero error if the 'app' function returns an error. 
-</directive>
+</policy>
 
-<go-directive id="concise-functions">
+<policy id="concise-functions" scope="go">
     All functions should be as short as possible. Move as much logic as possible out from the function to helper functions.
-</go-directive>
+</policy>
 
-<go-directive id="naming-convention">
+<policy id="naming-convention" scope="go">
     Follow Go naming convention. 
-</go-directive>
+</policy>
 
-<go-directive id="only-non-deprecated-packages">
+<policy id="only-non-deprecated-packages" scope="go">
     The following Go packages are deprecated and must not be used: 
     * io/ioutil
-</go-directive>
+</policy>
 
-<go-directive id="limited-glob-functionality">
+<policy id="limited-glob-functionality" scope="go">
     Go doesn't support ** in its glob functionality.
-</go-directive>
+</policy>

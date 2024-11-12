@@ -1,5 +1,6 @@
 <task>
-    
+    In the main.py file call ngrok REST API to create a tunnel for the the API served by FastAPI.    
+    Use the standard library http libraries to call the ngrok REST API
 </task>
 <restrictions>
     <restriction>

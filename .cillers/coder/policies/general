@@ -1,0 +1,82 @@
+<policy id="self-documenting-names">
+    Use self-documenting variable, function, class and file names. Functions should be named to reflect the output they are expected to produce. Files should be named with the category of functions that it contains. 
+</policy>
+
+<policy id="scoped-policies">
+    Policies with a 'scope' attribute only apply in accordance with the following directives: 
+    - 'go': All code that is written in Go. 
+</policy>
+
+<policy id="import-organization">
+    Import Organization:
+    Group imports as follows:
+    * Standard library imports
+    * Third-party library imports
+    * Local application imports
+    Within each group, sort imports alphabetically
+</policy>
+
+<policy id="package-dependencies">
+    Package Dependencies
+    Never use deprecated packages
+    Prefer standard library packages over third-party alternatives when possible.
+</policy>
+
+<policy id="single-responsibility-files">
+    Each file must only have one type of function, e.g. getting the current user or defining API endpoints, to improve the organization and maintainability of the code. 
+</policy>
+
+<policy id="short-functions">
+    Functions MUST be short. Separate concerns by delegating logic to helper functions. 
+</policy>
+
+<policy id="consistent-indentation">
+    Use consistent indentation with 4 spaces per level. Do not use tabs for indentation.
+</policy>
+
+<policy id="error-handling">
+    Errors should never be masked. If an error occurs, it must be handled properly, with for example a retry, or the code should fail with a good error message. 
+</policy>
+
+<policy id="minimal-variable-mutation">
+    Never change a variable, except if there is only one variable in a function and the purpose of that function is to generate the object that is held in the variable. 
+</policy>
+
+<policy id="immutable-params">
+    Never change a param. Treat all params as frozen objects. 
+</policy>
+
+<policy id="no-trivial-comments">
+    Never include trivial comments in the code. 
+</policy>
+
+<policy id="ensure-functionality">
+    Make sure the code works.
+</policy>
+
+<policy id="non-zero-exit-on-failure">
+    The process must exit with a non-zero code if it was not successful. 
+</policy>
+
+<policy id="max-100-characters-per-line">
+    Max 100 characters per line.
+</policy>
+
+<policy id="anthropic-api">
+    Any code using the Anthropic Claude Sonnet REST API should be based on the following template which includes the current latest version numbers:
+
+    curl https://api.anthropic.com/v1/messages \
+         --header "x-api-key: $ANTHROPIC_API_KEY" \
+         --header "anthropic-version: 2023-06-01" \
+         --header "content-type: application/json" \
+         --data \
+    '{
+        "model": "claude-3-5-sonnet-20241022",
+        "max_tokens": 1,
+        "messages": [
+            {"role": "user", "content": "What is latin for Ant? (A) Apoidea, (B) Rhopalocera, (C) Formicidae"},
+            {"role": "assistant", "content": "The answer is ("}
+        ]
+    }'
+</policy>
+
