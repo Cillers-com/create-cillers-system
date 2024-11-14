@@ -762,6 +762,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./cillers/couchbase-init }
       cmd: ./bin/run
+      id: couchbase-init
       restart: { policy: on-failure }
       env:
         - { name: COUCHBASE_HOST, value: "couchbase" }
@@ -948,6 +949,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./cillers/redpanda-init }
       cmd: ./bin/run
+      id: redpanda-init
       restart: { policy: on-failure }
       env:
         - { name: REDPANDA_BOOTSTRAP_SERVERS, value: "redpanda:9092" }
