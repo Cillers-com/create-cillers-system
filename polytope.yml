@@ -205,7 +205,9 @@ templates:
       type: [maybe, str]
     - id: curity-domain
       type: [maybe, str]
-    - id: api-client-domain
+    - id: api-client-graphql-domain
+      type: [maybe, str]
+    - id: api-client-rest-domain
       type: [maybe, str]
   run:
     - id: create-web-app-route
@@ -227,12 +229,18 @@ templates:
         service-port: 8443
         gateway-id: curity-gateway
         domain: "#pt-param curity-domain"
-    - id: create-api-client-route
+    - id: create-api-client-graphql-route
       module: polytope/create-gateway-route
       args:
-        service-id: api-client
-        gateway-id: api-client-gateway
-        domain: "#pt-param api-client-domain"
+        service-id: api-client-graphql
+        gateway-id: api-client-graphql-gateway
+        domain: "#pt-param api-client-graphql-domain"
+    - id: create-api-client-rest-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: api-client-rest
+        gateway-id: api-client-rest-gateway
+        domain: "#pt-param api-client-rest-domain"
     - couchbase
     - couchbase-init
     - redpanda
@@ -244,7 +252,8 @@ templates:
       module: curity
       args:
         web-app-url: "#pt-output create-kong-route domains[0].domain"
-        api-client-graphql-url: "#pt-output create-api-client-route domains[0].domain"
+        api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
+        api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
         curity-base-url: "#pt-output create-curity-route domains[0].domain"
     - kong
     - id: web-app-react-graphql
@@ -261,6 +270,15 @@ templates:
       args:
         api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
     - jupyter
+    - id: api-client-rest
+      module: api-client-rest
+      args:
+        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+    - id: oauth-agent-api-client-rest
+      module: oauth-agent-api-client-rest
+      args:
+        api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
+        curity-base-url: "#pt-output create-curity-route domains[0].domain"
     - id: api-client-graphql
       module: api-client-graphql
       args:
@@ -268,7 +286,7 @@ templates:
     - id: oauth-agent-api-client-graphql
       module: oauth-agent-api-client-graphql
       args:
-        api-client-graphql-url: "#pt-output create-api-client-route domains[0].domain"
+        api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
         curity-base-url: "#pt-output create-curity-route domains[0].domain"
 
 modules:
