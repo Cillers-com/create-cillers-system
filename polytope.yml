@@ -255,7 +255,12 @@ templates:
         api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
         api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
         curity-base-url: "#pt-output create-curity-route domains[0].domain"
-    - kong
+    - id: kong
+      module: kong
+      args:
+        web-app-url: "#pt-output create-kong-route domains[0].domain"
+        api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
+        api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
     - id: web-app-react-graphql
       module: web-app-react-graphql
       args:
@@ -641,19 +646,29 @@ modules:
 
   - id: kong
     module: polytope/kong!simple
+    params:
+    - id: web-app-url
+      type: [default, str, http://localhost:11000]
+    - id: api-client-graphql-url
+      type: [default, str, http://localhost:11001]
+    - id: api-client-rest-url
+      type: [default, str, http://localhost:11002]
     args:
       image: gcr.io/arched-inkwell-420116/kong:3.6.1
       port: 3000
-      env: 
+      env:
         - { name: KONG_NGINX_HTTP_LUA_SHARED_DICT, value: 'phantom-token 10m' }
-      plugins: 
+        - { name: CILLERS_WEB_APP_URL, value: '#pt-clj (clojure.string/replace (:web-app-url params) #"^(?!https?://)" "http://")' }
+        - { name: CILLERS_API_CLIENT_GRAPHQL_URL, value: '#pt-clj (clojure.string/replace (:api-client-graphql-url params) #"^(?!https?://)" "http://")' }
+        - { name: CILLERS_API_CLIENT_REST_URL, value: '#pt-clj (clojure.string/replace (:api-client-rest-url params) #"^(?!https?://)" "http://")' }
+      plugins:
         - { name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0 }
         - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
+      restart: { policy: always }
       config-file: { type: host, path: ./conf/components/kong/dev.yml }
       autoreload: true
-      restart: { policy: always}
       services:
-      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100}]}
+      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100 }]}
 
   - id: curity
     params:
