@@ -836,7 +836,7 @@ modules:
       - default
       - policy: [enum, always, on-failure]
         max-restarts: [maybe, int]
-      - {policy: always, max-restarts: null}
+      - {policy: always}
     module: polytope/container
     args:
       image: '#pt-clj (:image params)'
@@ -919,7 +919,7 @@ modules:
         - default
         - policy: [enum, always, on-failure]
           max-restarts: [maybe, int]
-        - {policy: always, max-restarts: null}
+        - {policy: always}
       - id: port
         info: The console HTTP port.
         name: HTTP Port
