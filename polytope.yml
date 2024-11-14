@@ -655,10 +655,10 @@ modules:
       restart: { policy: always }
       env:
         - { name: ADMIN, value: true }
-        - { name: CURITY_BASE_URL, value: "#pt-param curity-base-url" }
-        - { name: WEB_APP_URL, value: "#pt-param web-app-url" }
-        - { name: API_CLIENT_GRAPHQL_URL, value: "#pt-param api-client-graphql-url" }
-        - { name: API_CLIENT_REST_URL, value: "#pt-param api-client-rest-url" }
+        - { name: CURITY_BASE_URL, value: '#pt-clj (clojure.string/replace (:curity-base-url params) #"^(?!https?://)" "http://")' }
+        - { name: WEB_APP_URL, value: '#pt-clj (clojure.string/replace (:web-app-url params) #"^(?!https?://)" "http://")' }
+        - { name: API_CLIENT_GRAPHQL_URL, value: '#pt-clj (clojure.string/replace (:api-client-graphql-url params) #"^(?!https?://)" "http://")' }
+        - { name: API_CLIENT_REST_URL, value: '#pt-clj (clojure.string/replace (:api-client-rest-url params) #"^(?!https?://)" "http://")' }
       mounts:
         - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./cillers/curity/post-commit-cli-scripts }}
         - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/components/curity/users.xml }}
