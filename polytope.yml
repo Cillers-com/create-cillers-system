@@ -1,5 +1,5 @@
 templates:
-- id: cillers-stack-local 
+- id: stack-rest-local 
   run:
   - couchbase
   - couchbase-init
@@ -22,7 +22,7 @@ templates:
 #    args: 
 #      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
 
-- id: cillers-stack-local-graphql 
+- id: stack-graphql-local
   run:
   - couchbase
   - couchbase-init
@@ -45,7 +45,7 @@ templates:
 #    args: 
 #      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
 
-- id: cillers-stack-vm
+- id: stack-graphql-vm
   params:
     - id: web-app-url
       type: [default, str, http://localhost:8080]
@@ -113,7 +113,7 @@ templates:
     - id: jupyter
       module: jupyter
 
-- id: cillers-stack-local-low-memory
+- id: stack-local-low-memory
   run:
     - couchbase
     - id: cb-init 
@@ -163,7 +163,7 @@ templates:
       run-when:
         after: create-connectors 
 
-- id: cillers-stack-local-without-redpanda
+- id: stack-local-without-redpanda
   run:
     - couchbase
     - id: cb-init 
