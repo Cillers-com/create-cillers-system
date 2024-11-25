@@ -516,7 +516,7 @@ modules:
       restart:
         policy: always
       services:
-        - id: api-client 
+        - id: api-client-rest
           ports: [{protocol: http, port: 11002}]
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-rest }}
