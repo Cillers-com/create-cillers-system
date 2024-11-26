@@ -214,32 +214,32 @@ templates:
       module: polytope/create-gateway-route
       args:
         service-id: web-app
-        gateway-id: web-app-gateway
+        gateway-id: web-app
         domain: "#pt-param web-app-domain"
     - id: create-kong-route
       module: polytope/create-gateway-route
       args:
         service-id: kong
-        gateway-id: kong-gateway
+        gateway-id: kong
         domain: "#pt-param kong-domain"
     - id: create-curity-route
       module: polytope/create-gateway-route
       args:
         service-id: curity
         service-port: 8443
-        gateway-id: curity-gateway
+        gateway-id: curity
         domain: "#pt-param curity-domain"
     - id: create-api-client-graphql-route
       module: polytope/create-gateway-route
       args:
         service-id: api-client-graphql
-        gateway-id: api-client-graphql-gateway
+        gateway-id: api-client-graphql
         domain: "#pt-param api-client-graphql-domain"
     - id: create-api-client-rest-route
       module: polytope/create-gateway-route
       args:
         service-id: api-client-rest
-        gateway-id: api-client-rest-gateway
+        gateway-id: api-client-rest
         domain: "#pt-param api-client-rest-domain"
     - couchbase
     - couchbase-init
