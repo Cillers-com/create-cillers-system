@@ -17,6 +17,10 @@ def get_current_user(request: Request, context: RestContext = Depends(get_rest_c
         raise HTTPException(status_code=401, detail="Unauthorized")
     return {"id": "123", "name": "John Doe"}
 
+@router.get("/", description="Returns the API status.")
+async def api_status() -> dict:
+    return {"status": "ok"}
+
 @router.get("/hello", response_model=HelloResponse, description="Returns a greeting message for the authenticated user.")
 async def hello(user: dict = Depends(get_current_user)) -> HelloResponse:
     return HelloResponse(message=f"Hello, {user.get('name', 'User')}!")
