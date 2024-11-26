@@ -764,6 +764,7 @@ modules:
       services:
       - id: curity
         ports:
+        - {port: 4465, protocol: http, label: health-check}
         - {port: 6749, protocol: http, label: admin}
         - {port: 8443, protocol: http, label: api}
       restart: '#pt-clj (:restart params)'
