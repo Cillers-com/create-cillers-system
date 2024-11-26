@@ -4,7 +4,7 @@ _transform: true
 # NOTE: for health checks
 routes:
   - name: root-route
-    paths: [/]
+    paths: [/$]
     methods: [GET]
     service: null
 
