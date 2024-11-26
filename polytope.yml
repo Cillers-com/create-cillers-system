@@ -251,48 +251,48 @@ templates:
     - id: curity
       module: curity
       args:
-        web-app-url: "#pt-output create-kong-route domains[0].domain"
-        api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
-        api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
-        curity-base-url: "#pt-output create-curity-route domains[0].domain"
+        web-app-url: "#pt-output create-kong-route base-url"
+        api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
+        api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
+        curity-base-url: "#pt-output create-curity-route base-url"
     - id: kong
       module: kong
       args:
-        web-app-url: "#pt-output create-kong-route domains[0].domain"
-        api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
-        api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
+        web-app-url: "#pt-output create-kong-route base-url"
+        api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
+        api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
     - id: web-app-react-graphql
       module: web-app-react-graphql
       args:
-        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+        api-protocol-host-port: "#pt-output create-kong-route base-url"
     - id: oauth-agent-web-app
       module: oauth-agent-web-app
       args:
-        web-app-url: "#pt-output create-web-app-route domains[0].domain"
-        curity-base-url: "#pt-output create-curity-route domains[0].domain"
+        web-app-url: "#pt-output create-web-app-route base-url"
+        curity-base-url: "#pt-output create-curity-route base-url"
     - id: api-python-graphql
       module: api-python-graphql
       args:
-        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+        api-protocol-host-port: "#pt-output create-kong-route base-url"
     - jupyter
     - id: api-client-rest
       module: api-client-rest
       args:
-        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+        api-protocol-host-port: "#pt-output create-kong-route base-url"
     - id: oauth-agent-api-client-rest
       module: oauth-agent-api-client-rest
       args:
-        api-client-rest-url: "#pt-output create-api-client-rest-route domains[0].domain"
-        curity-base-url: "#pt-output create-curity-route domains[0].domain"
+        api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
+        curity-base-url: "#pt-output create-curity-route base-url"
     - id: api-client-graphql
       module: api-client-graphql
       args:
-        api-protocol-host-port: "#pt-output create-kong-route domains[0].domain"
+        api-protocol-host-port: "#pt-output create-kong-route base-url"
     - id: oauth-agent-api-client-graphql
       module: oauth-agent-api-client-graphql
       args:
-        api-client-graphql-url: "#pt-output create-api-client-graphql-route domains[0].domain"
-        curity-base-url: "#pt-output create-curity-route domains[0].domain"
+        api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
+        curity-base-url: "#pt-output create-curity-route base-url"
 
 modules:
   - id: api-python-graphql
@@ -658,9 +658,9 @@ modules:
       port: 3000
       env:
         - { name: KONG_NGINX_HTTP_LUA_SHARED_DICT, value: 'phantom-token 10m' }
-        - { name: CILLERS_WEB_APP_URL, value: '#pt-clj (clojure.string/replace (:web-app-url params) #"^(?!https?://)" "http://")' }
-        - { name: CILLERS_API_CLIENT_GRAPHQL_URL, value: '#pt-clj (clojure.string/replace (:api-client-graphql-url params) #"^(?!https?://)" "http://")' }
-        - { name: CILLERS_API_CLIENT_REST_URL, value: '#pt-clj (clojure.string/replace (:api-client-rest-url params) #"^(?!https?://)" "http://")' }
+        - { name: CILLERS_WEB_APP_URL, value: '#pt-param web-app-url' }
+        - { name: CILLERS_API_CLIENT_GRAPHQL_URL, value: '#pt-param api-client-graphql-url' }
+        - { name: CILLERS_API_CLIENT_REST_URL, value: '#pt-param api-client-rest-url' }
       plugins:
         - { name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0 }
         - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
@@ -688,10 +688,10 @@ modules:
       restart: { policy: always }
       env:
         - { name: ADMIN, value: true }
-        - { name: CURITY_BASE_URL, value: '#pt-clj (clojure.string/replace (:curity-base-url params) #"^(?!https?://)" "http://")' }
-        - { name: WEB_APP_URL, value: '#pt-clj (clojure.string/replace (:web-app-url params) #"^(?!https?://)" "http://")' }
-        - { name: API_CLIENT_GRAPHQL_URL, value: '#pt-clj (clojure.string/replace (:api-client-graphql-url params) #"^(?!https?://)" "http://")' }
-        - { name: API_CLIENT_REST_URL, value: '#pt-clj (clojure.string/replace (:api-client-rest-url params) #"^(?!https?://)" "http://")' }
+        - { name: CURITY_BASE_URL, value: '#pt-param curity-base-url' }
+        - { name: WEB_APP_URL, value: '#pt-param web-app-url' }
+        - { name: API_CLIENT_GRAPHQL_URL, value: '#pt-param api-client-graphql-url' }
+        - { name: API_CLIENT_REST_URL, value: '#pt-param api-client-rest-url' }
       mounts:
         - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./cillers/curity/post-commit-cli-scripts }}
         - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/components/curity/users.xml }}
@@ -746,8 +746,8 @@ modules:
       type: [default, str, INFO]
     module: polytope/container
     args:
-      image: '#pt-clj (:image params)'
-      id: '#pt-clj (:id params)'
+      image: '#pt-param image'
+      id: '#pt-param id'
       env: |-
         #pt-clj (concat
          [(when (:log-level params)
@@ -767,8 +767,8 @@ modules:
         - {port: 4465, protocol: http, label: health-check}
         - {port: 6749, protocol: http, label: admin}
         - {port: 8443, protocol: http, label: api}
-      restart: '#pt-clj (:restart params)'
-      cmd: '#pt-clj (:cmd params)'
+      restart: '#pt-param restart'
+      cmd: '#pt-param cmd'
 
   - id: curity-db
     module: polytope/postgres
@@ -874,8 +874,8 @@ modules:
       - {policy: always}
     module: polytope/container
     args:
-      image: '#pt-clj (:image params)'
-      id: '#pt-clj (:container-id params)'
+      image: '#pt-param image'
+      id: '#pt-param container-id'
       env:
       - {name: CONFIG_FILEPATH, value: /etc/redpanda-console-config.yaml}
       mounts:
@@ -883,11 +883,11 @@ modules:
         source:
           type: host
           path: ./conf/components/redpanda/console.yaml 
-      restart: '#pt-clj (:restart params)'
+      restart: '#pt-param restart'
       services:
       - id: redpanda-console
         ports:
-        - {port: '#pt-clj (:port params)', protocol: http}
+        - {port: '#pt-param port', protocol: http}
 
   - id: kafka-connect
     info: Runs the Kafka connect service
