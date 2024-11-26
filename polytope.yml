@@ -251,14 +251,14 @@ templates:
     - id: curity
       module: curity
       args:
-        web-app-url: "#pt-output create-kong-route base-url"
+        web-app-url: "#pt-output create-web-app-route base-url"
         api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
         api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
         curity-base-url: "#pt-output create-curity-route base-url"
     - id: kong
       module: kong
       args:
-        web-app-url: "#pt-output create-kong-route base-url"
+        web-app-url: "#pt-output create-web-app-route base-url"
         api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
         api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
     - id: web-app-react-graphql
