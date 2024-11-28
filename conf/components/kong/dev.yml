@@ -1,20 +1,14 @@
 _format_version: '2.1'
 _transform: true
 
-# NOTE: for health checks
-routes:
-  - name: root-route
-    paths: [/$]
-    methods: [GET]
-    service: null
-
-plugins:
-  - name: request-termination
-    route: root-route
-    config:
-      status_code: 200
-
 services:
+- name: web-app
+  url: http://web-app-react-graphql:11000
+  routes:
+  - name: web-app-route
+    paths:
+      - /
+
 - name: oauth-agent-web-app
   url: http://oauth-agent-web-app:3001/oauth-agent
   routes:

@@ -198,49 +198,18 @@ templates:
         after: cb-init
 
 - id: stack-cloud
-  params:
-    - id: kong-domain
-      type: [maybe, str]
-    - id: web-app-domain
-      type: [maybe, str]
-    - id: curity-domain
-      type: [maybe, str]
-    - id: api-client-graphql-domain
-      type: [maybe, str]
-    - id: api-client-rest-domain
-      type: [maybe, str]
   run:
-    - id: create-web-app-route
-      module: polytope/create-gateway-route
-      args:
-        service-id: web-app
-        gateway-id: web-app
-        domain: "#pt-param web-app-domain"
-    - id: create-kong-route
+    - id: create-app-route
       module: polytope/create-gateway-route
       args:
         service-id: kong
-        gateway-id: kong
-        domain: "#pt-param kong-domain"
-    - id: create-curity-route
+        gateway-id: app
+    - id: create-login-route
       module: polytope/create-gateway-route
       args:
         service-id: curity
         service-port: 8443
-        gateway-id: curity
-        domain: "#pt-param curity-domain"
-    - id: create-api-client-graphql-route
-      module: polytope/create-gateway-route
-      args:
-        service-id: api-client-graphql
-        gateway-id: api-client-graphql
-        domain: "#pt-param api-client-graphql-domain"
-    - id: create-api-client-rest-route
-      module: polytope/create-gateway-route
-      args:
-        service-id: api-client-rest
-        gateway-id: api-client-rest
-        domain: "#pt-param api-client-rest-domain"
+        gateway-id: login
     - couchbase
     - couchbase-init
     - redpanda
@@ -251,48 +220,25 @@ templates:
     - id: curity
       module: curity
       args:
-        web-app-url: "#pt-output create-web-app-route base-url"
-        api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
-        api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
-        curity-base-url: "#pt-output create-curity-route base-url"
+        web-app-url: "#pt-output create-app-route base-url"
+        curity-base-url: "#pt-output create-login-route base-url"
     - id: kong
       module: kong
       args:
-        web-app-url: "#pt-output create-web-app-route base-url"
-        api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
-        api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
+        web-app-url: "#pt-output create-app-route base-url"
     - id: web-app-react-graphql
       module: web-app-react-graphql
       args:
-        api-protocol-host-port: "#pt-output create-kong-route base-url"
+        api-protocol-host-port: "#pt-output create-app-route base-url"
     - id: oauth-agent-web-app
       module: oauth-agent-web-app
       args:
-        web-app-url: "#pt-output create-web-app-route base-url"
-        curity-base-url: "#pt-output create-curity-route base-url"
+        web-app-url: "#pt-output create-app-route base-url"
+        curity-base-url: "#pt-output create-login-route base-url"
     - id: api-python-graphql
       module: api-python-graphql
       args:
-        api-protocol-host-port: "#pt-output create-kong-route base-url"
-    - jupyter
-    - id: api-client-rest
-      module: api-client-rest
-      args:
-        api-protocol-host-port: "#pt-output create-kong-route base-url"
-    - id: oauth-agent-api-client-rest
-      module: oauth-agent-api-client-rest
-      args:
-        api-client-rest-url: "#pt-output create-api-client-rest-route base-url"
-        curity-base-url: "#pt-output create-curity-route base-url"
-    - id: api-client-graphql
-      module: api-client-graphql
-      args:
-        api-protocol-host-port: "#pt-output create-kong-route base-url"
-    - id: oauth-agent-api-client-graphql
-      module: oauth-agent-api-client-graphql
-      args:
-        api-client-graphql-url: "#pt-output create-api-client-graphql-route base-url"
-        curity-base-url: "#pt-output create-curity-route base-url"
+        api-protocol-host-port: "#pt-output create-app-route base-url"
 
 modules:
   - id: api-python-graphql
@@ -438,7 +384,7 @@ modules:
       restart:
         policy: always
       services:
-        - id: web-app 
+        - id: web-app-react-graphql
           ports: [{protocol: http, port: 11000}]
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
@@ -571,7 +517,7 @@ modules:
         - { name: REDIRECT_URI, value: "#pt-js params['webAppUrl'] + '/auth/callback'" }
         - { name: POST_LOGOUT_REDIRECT_URI, value: "#pt-param web-app-url" }
         - { name: SCOPE, value: 'openid profile' }
-        - { name: COOKIE_DOMAIN, value: 'localhost' }
+        - { name: COOKIE_DOMAIN, value: '#pt-clj  (clojure.string/replace (:web-app-url params) #"(?:.*/)?([^:]*).*" "$1")' }
         - { name: COOKIE_NAME_PREFIX, value: 'curity' }
         - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
         - { name: CORS_ENABLED, value: 'false' }
@@ -990,4 +936,3 @@ modules:
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf/components/redpanda }}
-
