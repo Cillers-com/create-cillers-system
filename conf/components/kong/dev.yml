@@ -2,6 +2,12 @@ _format_version: '2.1'
 _transform: true
 
 services:
+- name: web-app
+  url: http://web-app-react-graphql:11000
+  routes:
+  - name: web-app-route
+    paths:
+      - /
 
 - name: oauth-agent-web-app
   url: http://oauth-agent-web-app:3001/oauth-agent
@@ -9,12 +15,12 @@ services:
   - name: oauth-agent-web-app-route
     paths:
     - /oauth-agent-web-app
- 
+
   plugins:
   - name: cors
     config:
       origins:
-      - http://localhost:11000
+      - $CILLERS_WEB_APP_URL
       methods:
       - GET
       - POST
@@ -40,7 +46,7 @@ services:
   - name: cors
     config:
       origins:
-      - http://localhost:11001
+      - $CILLERS_API_CLIENT_GRAPHQL_URL
       methods:
       - GET
       - POST
@@ -66,7 +72,7 @@ services:
   - name: cors
     config:
       origins:
-      - http://localhost:11002
+      - $CILLERS_API_CLIENT_REST_URL
       methods:
       - GET
       - POST
@@ -95,9 +101,9 @@ services:
         cookie_name_prefix: curity
         encryption_key: fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe
         trusted_web_origins:
-        - http://localhost:11000
-        - http://localhost:11001
-        - http://localhost:11002
+        - $CILLERS_WEB_APP_URL
+        - $CILLERS_API_CLIENT_GRAPHQL_URL
+        - $CILLERS_API_CLIENT_REST_URL
         cors_enabled: true 
         allow_tokens: true
 
@@ -112,9 +118,9 @@ services:
     - name: cors
       config:
         origins:
-        - http://localhost:11000
-        - http://localhost:11001
-        - http://localhost:11002
+        - $CILLERS_WEB_APP_URL
+        - $CILLERS_API_CLIENT_GRAPHQL_URL
+        - $CILLERS_API_CLIENT_REST_URL
         methods:
         - GET
         - POST

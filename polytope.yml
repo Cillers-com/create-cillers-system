@@ -195,7 +195,50 @@ templates:
         after: cb-init 
     - module: oauth-agent-api-client-rest
       run-when:
-        after: cb-init 
+        after: cb-init
+
+- id: stack-cloud
+  run:
+    - id: create-app-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: kong
+        gateway-id: app
+    - id: create-login-route
+      module: polytope/create-gateway-route
+      args:
+        service-id: curity
+        service-port: 8443
+        gateway-id: login
+    - couchbase
+    - couchbase-init
+    - redpanda
+    - redpanda-init
+    - redpanda-console
+    - redpanda-connect
+    - curity-db
+    - id: curity
+      module: curity
+      args:
+        web-app-url: "#pt-output create-app-route base-url"
+        curity-base-url: "#pt-output create-login-route base-url"
+    - id: kong
+      module: kong
+      args:
+        web-app-url: "#pt-output create-app-route base-url"
+    - id: web-app-react-graphql
+      module: web-app-react-graphql
+      args:
+        api-protocol-host-port: "#pt-output create-app-route base-url"
+    - id: oauth-agent-web-app
+      module: oauth-agent-web-app
+      args:
+        web-app-url: "#pt-output create-app-route base-url"
+        curity-base-url: "#pt-output create-login-route base-url"
+    - id: api-python-graphql
+      module: api-python-graphql
+      args:
+        api-protocol-host-port: "#pt-output create-app-route base-url"
 
 modules:
   - id: api-python-graphql
@@ -205,11 +248,11 @@ modules:
       - id: api-protocol-host-port 
         type: [default, str, http://localhost:11100]
     args: 
-      id: api-pyton-graphql
+      id: api-python-graphql
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./code/api-python-graphql }
       cmd: ./bin/run
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: "api", ports: [{protocol: http, port: 4000}] }
       env:
@@ -245,7 +288,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./code/api-python-rest }
       cmd: ./bin/run
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: "api", ports: [{protocol: http, port: "#pt-param api-port"}] }
       env:
@@ -274,7 +317,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./code/ingest-api-python }
       cmd: ./bin/run
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: "ingest-api", ports: [{protocol: http, port: "#pt-param api-port"}] }
       env:
@@ -339,9 +382,9 @@ modules:
         - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api/graphql'" }
         - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
       restart:
-        policy: on-failure
+        policy: always
       services:
-        - id: web-app 
+        - id: web-app-react-graphql
           ports: [{protocol: http, port: 11000}]
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
@@ -365,7 +408,7 @@ modules:
         - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
         - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
       restart:
-        policy: on-failure
+        policy: always
       services:
         - id: web-app 
           ports: [{protocol: http, port: 11000}]
@@ -391,7 +434,7 @@ modules:
         - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api/graphql'" }
         - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-api-client-graphql'" }
       restart:
-        policy: on-failure
+        policy: always
       services:
         - id: api-client-graphql
           ports: [{protocol: http, port: 11001}]
@@ -417,9 +460,9 @@ modules:
         - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
         - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-api-client-rest'" }
       restart:
-        policy: on-failure
+        policy: always
       services:
-        - id: api-client 
+        - id: api-client-rest
           ports: [{protocol: http, port: 11002}]
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-rest }}
@@ -442,7 +485,7 @@ modules:
         - { name: HOST, value: 0.0.0.0 } 
         - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
       restart:
-        policy: on-failure
+        policy: always
       services:
         - id: ingest-api-client 
           ports: [{protocol: http, port: 11003}]
@@ -474,12 +517,12 @@ modules:
         - { name: REDIRECT_URI, value: "#pt-js params['webAppUrl'] + '/auth/callback'" }
         - { name: POST_LOGOUT_REDIRECT_URI, value: "#pt-param web-app-url" }
         - { name: SCOPE, value: 'openid profile' }
-        - { name: COOKIE_DOMAIN, value: 'localhost' }
+        - { name: COOKIE_DOMAIN, value: '#pt-clj  (clojure.string/replace (:web-app-url params) #"(?:.*/)?([^:]*).*" "$1")' }
         - { name: COOKIE_NAME_PREFIX, value: 'curity' }
         - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
         - { name: CORS_ENABLED, value: 'false' }
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: oauth-agent-web-app, ports: [{protocol: http, port: 3001}]}
 
@@ -511,7 +554,7 @@ modules:
         - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
         - { name: CORS_ENABLED, value: 'true' }
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: oauth-agent-api-client-graphql, ports: [{protocol: http, port: 3002}]}
 
@@ -543,24 +586,35 @@ modules:
         - { name: COOKIE_ENCRYPTION_KEY, value: 'fda91643fce9af565bdc34cd965b48da75d1f5bd8846bf0910dd6d7b10f06dfe' }
         - { name: CORS_ENABLED, value: 'true' }
         - { name: NODE_TLS_REJECT_UNAUTHORIZED, value: '0' }
-      restart: { policy: on-failure }
+      restart: { policy: always }
       services: 
       - { id: oauth-agent-api-client-rest, ports: [{protocol: http, port: 3003}]}
 
   - id: kong
     module: polytope/kong!simple
+    params:
+    - id: web-app-url
+      type: [default, str, http://localhost:11000]
+    - id: api-client-graphql-url
+      type: [default, str, http://localhost:11001]
+    - id: api-client-rest-url
+      type: [default, str, http://localhost:11002]
     args:
       image: gcr.io/arched-inkwell-420116/kong:3.6.1
       port: 3000
-      env: 
+      env:
         - { name: KONG_NGINX_HTTP_LUA_SHARED_DICT, value: 'phantom-token 10m' }
-      plugins: 
+        - { name: CILLERS_WEB_APP_URL, value: '#pt-param web-app-url' }
+        - { name: CILLERS_API_CLIENT_GRAPHQL_URL, value: '#pt-param api-client-graphql-url' }
+        - { name: CILLERS_API_CLIENT_REST_URL, value: '#pt-param api-client-rest-url' }
+      plugins:
         - { name: oauth-proxy, package: kong-oauth-proxy, version: 1.3.0 }
         - { name: phantom-token, package: kong-phantom-token, version: 2.0.0 }
+      restart: { policy: always }
       config-file: { type: host, path: ./conf/components/kong/dev.yml }
       autoreload: true
       services:
-      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100}]}
+      - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100 }]}
 
   - id: curity
     params:
@@ -580,10 +634,10 @@ modules:
       restart: { policy: always }
       env:
         - { name: ADMIN, value: true }
-        - { name: CURITY_BASE_URL, value: "#pt-param curity-base-url" }
-        - { name: WEB_APP_URL, value: "#pt-param web-app-url" }
-        - { name: API_CLIENT_GRAPHQL_URL, value: "#pt-param api-client-graphql-url" }
-        - { name: API_CLIENT_REST_URL, value: "#pt-param api-client-rest-url" }
+        - { name: CURITY_BASE_URL, value: '#pt-param curity-base-url' }
+        - { name: WEB_APP_URL, value: '#pt-param web-app-url' }
+        - { name: API_CLIENT_GRAPHQL_URL, value: '#pt-param api-client-graphql-url' }
+        - { name: API_CLIENT_REST_URL, value: '#pt-param api-client-rest-url' }
       mounts:
         - { path: /opt/idsvr/usr/bin/post-commit-cli-scripts, source: { type: host, path: ./cillers/curity/post-commit-cli-scripts }}
         - { path: /opt/idsvr/etc/init/curity-users.xml, source: { type: host, path: ./conf/components/curity/users.xml }}
@@ -628,17 +682,18 @@ modules:
       info: What policy to apply on restarting containers that fail.
       name: Restart policy
       type:
-      - maybe
+      - default
       - policy: [enum, always, on-failure]
         max-restarts: [maybe, int]
+      - { policy: always }
     - id: log-level
       info: The log level for the ID server.
       name: Log level
       type: [default, str, INFO]
     module: polytope/container
     args:
-      image: '#pt-clj (:image params)'
-      id: '#pt-clj (:id params)'
+      image: '#pt-param image'
+      id: '#pt-param id'
       env: |-
         #pt-clj (concat
          [(when (:log-level params)
@@ -655,14 +710,16 @@ modules:
       services:
       - id: curity
         ports:
+        - {port: 4465, protocol: http, label: health-check}
         - {port: 6749, protocol: http, label: admin}
         - {port: 8443, protocol: http, label: api}
-      restart: '#pt-clj (:restart params)'
-      cmd: '#pt-clj (:cmd params)'
+      restart: '#pt-param restart'
+      cmd: '#pt-param cmd'
 
   - id: curity-db
     module: polytope/postgres
     args:
+      container-id: curity-db
       image: gcr.io/arched-inkwell-420116/postgres:16.2
       data-volume: { type: volume, scope: project, id: curity-db-data }
       service-id: curity-db
@@ -671,7 +728,7 @@ modules:
         - { name: POSTGRES_DB, value: idsvr }
       scripts:
         - { type: host, path: ./conf/components/curity/db.sql }
-      restart: { policy: on-failure }
+      restart: { policy: always }
 
   - id: couchbase
     module: polytope/couchbase
@@ -685,6 +742,7 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./cillers/couchbase-init }
       cmd: ./bin/run
+      id: couchbase-init
       restart: { policy: on-failure }
       env:
         - { name: COUCHBASE_HOST, value: "couchbase" }
@@ -759,11 +817,11 @@ modules:
       - default
       - policy: [enum, always, on-failure]
         max-restarts: [maybe, int]
-      - {policy: always, max-restarts: null}
+      - {policy: always}
     module: polytope/container
     args:
-      image: '#pt-clj (:image params)'
-      id: '#pt-clj (:container-id params)'
+      image: '#pt-param image'
+      id: '#pt-param container-id'
       env:
       - {name: CONFIG_FILEPATH, value: /etc/redpanda-console-config.yaml}
       mounts:
@@ -771,11 +829,11 @@ modules:
         source:
           type: host
           path: ./conf/components/redpanda/console.yaml 
-      restart: '#pt-clj (:restart params)'
+      restart: '#pt-param restart'
       services:
       - id: redpanda-console
         ports:
-        - {port: '#pt-clj (:port params)', protocol: http}
+        - {port: '#pt-param port', protocol: http}
 
   - id: kafka-connect
     info: Runs the Kafka connect service
@@ -842,7 +900,7 @@ modules:
         - default
         - policy: [enum, always, on-failure]
           max-restarts: [maybe, int]
-        - {policy: always, max-restarts: null}
+        - {policy: always}
       - id: port
         info: The console HTTP port.
         name: HTTP Port
@@ -871,10 +929,10 @@ modules:
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
       code: { type: host, path: ./cillers/redpanda-init }
       cmd: ./bin/run
+      id: redpanda-init
       restart: { policy: on-failure }
       env:
         - { name: REDPANDA_BOOTSTRAP_SERVERS, value: "redpanda:9092" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf/components/redpanda }}
-

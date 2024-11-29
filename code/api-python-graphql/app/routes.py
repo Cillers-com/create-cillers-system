@@ -41,6 +41,10 @@ async def reinit():
 app.include_router(graphql.get_app(), prefix="/api/graphql")
 app.include_router(rest.get_app(), prefix="/api")
 
+@app.get("/", description="Returns the API status.")
+async def api_status() -> dict:
+    return {"status": "ok"}
+
 @app.get("/api/openapi.json")
 def get_openapi_endpoint():
     """
