@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
-from . import init, graphql, rest
+from . import init, graphql
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
