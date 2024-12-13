@@ -1,8 +1,0 @@
-<task>
-    Change the main function to create the topics in the data_structure_spec
-</task>
-<restrictions>
-    <restriction>
-        Do not change indentation. 
-    </restriction>
-</restrictions>
