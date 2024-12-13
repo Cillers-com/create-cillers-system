@@ -1,56 +1,110 @@
-from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 from datetime import datetime
+from pydantic import BaseModel, Field
 
-from ..utils.http_client import AsyncClient
+from utils.http_client import AsyncClient
 
-@dataclass
-class FilterValue:
+class FilterValue(BaseModel):
+    """Represents a single filter option with its count.
+
+    Attributes:
+        name: The display name of the filter value
+        count: Number of items matching this filter value
+        id: Optional unique identifier for the filter value
+    """
     name: str
     count: int
     id: Optional[str] = None
 
-@dataclass
-class FilterGroup:
+class FilterGroup(BaseModel):
+    """A group of related filter values with total count.
+
+    Attributes:
+        total: Total number of items in this filter group
+        values: List of individual filter values and their counts
+    """
     total: int
     values: List[FilterValue]
 
-@dataclass
-class AvailableFilters:
-    total_items: int
+class AvailableFilters(BaseModel):
+    """Contains all available filter options for inventory search.
+
+    Attributes:
+        total_items: Total number of items matching the current filters
+        merchants: Filter group for available merchants
+        vendors: Filter group for available vendors
+        departments: Filter group for available departments
+        product_groups: Filter group for available product groups
+        product_types: Filter group for available product types
+    """
+    total_items: int = Field(alias="totalItems")
     merchants: FilterGroup
     vendors: FilterGroup
     departments: FilterGroup
-    product_groups: FilterGroup
-    product_types: FilterGroup
+    product_groups: FilterGroup = Field(alias="productGroups")
+    product_types: FilterGroup = Field(alias="productTypes")
 
-@dataclass
-class InventoryItem:
-    merchant_id: str
-    variant_id: str
-    product_name: str
+class InventoryItem(BaseModel):
+    """Represents a single inventory item with its details.
+
+    Attributes:
+        merchant_id: Unique identifier of the merchant
+        variant_id: Unique identifier of the product variant
+        product_name: Name of the product
+        quantity: Available quantity in stock
+        supplier_model_number: Optional supplier's model number
+        ean: Optional list of EAN codes
+        size: Optional size information
+        price: Optional price information
+        product_description: Optional product description
+        vendor: Optional vendor name
+        product_type: Optional list of product types
+        product_group: Optional list of product groups
+        department: Optional list of departments
+        image_url: Optional URL to product image
+        created: Optional creation timestamp
+        updated: Optional last update timestamp
+    """
+    merchant_id: str = Field(alias="merchantId")
+    variant_id: str = Field(alias="variantId")
+    product_name: str = Field(alias="productName")
     quantity: int
-    supplier_model_number: Optional[str] = None
+    supplier_model_number: Optional[str] = Field(None, alias="supplierModelNumber")
     ean: Optional[List[str]] = None
     size: Optional[str] = None
     price: Optional[str] = None
     product_description: Optional[str] = None
     vendor: Optional[str] = None
-    product_type: Optional[List[str]] = None
-    product_group: Optional[List[str]] = None
+    product_type: Optional[List[str]] = Field(None, alias="productType")
+    product_group: Optional[List[str]] = Field(None, alias="productGroup")
     department: Optional[List[str]] = None
     image_url: Optional[str] = None
     created: Optional[datetime] = None
     updated: Optional[datetime] = None
 
-@dataclass
-class PaginatedInventoryResponse:
+class PaginatedInventoryResponse(BaseModel):
+    """Response model for paginated inventory search results.
+
+    Attributes:
+        items: List of inventory items for the current page
+        total_items: Total number of items matching the search criteria
+        current_page: Current page number
+        total_pages: Total number of available pages
+    """
     items: List[InventoryItem]
-    total_items: int
-    current_page: int
-    total_pages: int
+    total_items: int = Field(alias="totalItems")
+    current_page: int = Field(alias="currentPage")
+    total_pages: int = Field(alias="totalPages")
 
 class FootwayClient:
+    """Client for interacting with the Footway API.
+
+    Provides methods to search inventory and retrieve available filters.
+
+    Args:
+        api_key: Authentication key for the Footway API
+        base_url: Optional base URL for the API (defaults to production URL)
+    """
     def __init__(self, api_key: str, base_url: str = "https://api.footwayplus.com"):
         self.base_url = base_url
         self.headers = {"X-API-KEY": api_key}
@@ -60,7 +114,14 @@ class FootwayClient:
         await self.client.aclose()
 
     def _build_array_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Convert array parameters to multi-format query parameters."""
+        """Convert array parameters to multi-format query parameters.
+        
+        Args:
+            params: Dictionary of parameter names and their values
+
+        Returns:
+            Dictionary with array parameters formatted for the API
+        """
         result = {}
         for key, value in params.items():
             if isinstance(value, list):
@@ -78,7 +139,21 @@ class FootwayClient:
         product_group: Optional[List[str]] = None,
         product_type: Optional[List[str]] = None,
     ) -> AvailableFilters:
-        """Get available filter options for inventory search."""
+        """Get available filter options for inventory search.
+        
+        Args:
+            merchant_id: Optional list of merchant IDs to filter by
+            vendor: Optional list of vendor names to filter by
+            department: Optional list of departments to filter by
+            product_group: Optional list of product groups to filter by
+            product_type: Optional list of product types to filter by
+
+        Returns:
+            AvailableFilters object containing all available filter options
+
+        Raises:
+            HTTPError: If the API request fails
+        """
         params = self._build_array_params({
             "merchantId": merchant_id,
             "vendor": vendor,
@@ -92,16 +167,7 @@ class FootwayClient:
             params=params
         )
         response.raise_for_status()
-        data = response.json()
-
-        return AvailableFilters(
-            total_items=data["totalItems"],
-            merchants=FilterGroup(**data["merchants"]),
-            vendors=FilterGroup(**data["vendors"]),
-            departments=FilterGroup(**data["departments"]),
-            product_groups=FilterGroup(**data["productGroups"]),
-            product_types=FilterGroup(**data["productTypes"])
-        )
+        return AvailableFilters.model_validate(response.json())
 
     async def search_inventory(
         self,
@@ -118,7 +184,28 @@ class FootwayClient:
         sort_by: Optional[str] = None,
         sort_direction: str = "asc",
     ) -> PaginatedInventoryResponse:
-        """Search inventory items with various filters."""
+        """Search inventory items with various filters.
+        
+        Args:
+            merchant_id: Optional list of merchant IDs to filter by
+            product_name: Optional product name to search for
+            vendor: Optional list of vendor names to filter by
+            department: Optional list of departments to filter by
+            product_group: Optional list of product groups to filter by
+            product_type: Optional list of product types to filter by
+            variant_ids: Optional list of specific variant IDs to retrieve
+            search_text: Optional general search text
+            page: Page number for pagination (default: 1)
+            page_size: Number of items per page (default: 20)
+            sort_by: Optional field to sort results by
+            sort_direction: Sort direction, either "asc" or "desc" (default: "asc")
+
+        Returns:
+            PaginatedInventoryResponse containing the search results
+
+        Raises:
+            HTTPError: If the API request fails
+        """
         params = self._build_array_params({
             "merchantId": merchant_id,
             "productName": product_name,
@@ -139,30 +226,4 @@ class FootwayClient:
             params=params
         )
         response.raise_for_status()
-        data = response.json()
-
-        items = [InventoryItem(
-            merchant_id=item["merchantId"],
-            variant_id=item["variantId"],
-            product_name=item["productName"],
-            quantity=item["quantity"],
-            supplier_model_number=item.get("supplierModelNumber"),
-            ean=item.get("ean"),
-            size=item.get("size"),
-            price=item.get("price"),
-            product_description=item.get("product_description"),
-            vendor=item.get("vendor"),
-            product_type=item.get("productType"),
-            product_group=item.get("productGroup"),
-            department=item.get("department"),
-            image_url=item.get("image_url"),
-            created=datetime.fromisoformat(item["created"]) if item.get("created") else None,
-            updated=datetime.fromisoformat(item["updated"]) if item.get("updated") else None,
-        ) for item in data["items"]]
-
-        return PaginatedInventoryResponse(
-            items=items,
-            total_items=data["totalItems"],
-            current_page=data["currentPage"],
-            total_pages=data["totalPages"]
-        )
+        return PaginatedInventoryResponse.model_validate(response.json())

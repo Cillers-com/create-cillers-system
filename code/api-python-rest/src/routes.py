@@ -1,8 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from openai import OpenAI
 from anthropic import Anthropic
 import os
+from typing import List, Optional
+from clients.footway import FootwayClient, InventoryItem
 
 from utils import http_client, log
 
@@ -24,6 +26,12 @@ class QueryResponse(BaseModel):
 
 class CatFactResponse(BaseModel):
     fact: str
+
+class InventorySearchResponse(BaseModel):
+    items: List[InventoryItem]
+    total_items: int
+    current_page: int
+    total_pages: int
 
 @router.get("/hello",
             response_model=HelloResponse,
@@ -71,3 +79,26 @@ async def get_cat_fact() -> CatFactResponse:
             response.raise_for_status()
             data = response.json()
     return CatFactResponse(fact=data["fact"])
+
+@router.get("/test/footway",
+            response_model=InventorySearchResponse,
+            description="Search Footway inventory")
+async def search_footway_inventory(
+    merchant_id: Optional[List[str]] = Query(None),
+    product_name: Optional[str] = None,
+    vendor: Optional[List[str]] = Query(None),
+    page: int = 1,
+    page_size: int = 20
+) -> InventorySearchResponse:
+    footway_client = FootwayClient(api_key=os.getenv("FOOTWAY_API_KEY"))
+    try:
+        response = await footway_client.search_inventory(
+            merchant_id=merchant_id,
+            product_name=product_name,
+            vendor=vendor,
+            page=page,
+            page_size=page_size
+        )
+        return response
+    finally:
+        await footway_client.close()

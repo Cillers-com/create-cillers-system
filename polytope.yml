@@ -41,6 +41,7 @@ modules:
         - { name: LOG_LEVEL, value: INFO }
         - { name: OPENAI_API_KEY, value: "#pt-secret openai-api-key" }
         - { name: ANTHROPIC_API_KEY, value: "#pt-secret anthropic-api-key" }
+        - { name: FOOTWAY_API_KEY, value: "#pt-secret footway-api-key" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache } }
         - { path: /root/conf/, source: { type: host, path: ./conf } }
