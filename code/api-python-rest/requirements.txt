@@ -3,3 +3,5 @@ fastapi==0.115.1
 uvicorn==0.31.1
 PyJWT==2.9.0
 cryptography==43.0.1
+openai==1.57.4
+anthropic==0.40.0

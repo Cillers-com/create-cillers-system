@@ -1,10 +1,11 @@
 import os
 import uvicorn
-from fastapi import FastAPI, Depends, APIRouter
+from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-from context import get_rest_context, RestContext
 from routes import router
-import sys
+
+from utils import log
+log.init(os.getenv("LOG_LEVEL", "INFO"))
 
 # Environment variable validation
 api_url_for_apps = os.getenv("API_URL_FOR_APPS")
@@ -40,17 +41,17 @@ def custom_openapi():
     )
     # Ensure the servers information is retained
     openapi_schema["servers"] = [{"url": api_url_for_apps, "description": "API Gateway"}]
-    
+
     # Remove the security schemes and global security requirement
     if "components" in openapi_schema:
         openapi_schema["components"].pop("securitySchemes", None)
     openapi_schema.pop("security", None)
-    
+
     # Remove security requirements from all endpoints
     for path in openapi_schema["paths"].values():
         for operation in path.values():
             operation.pop("security", None)
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
