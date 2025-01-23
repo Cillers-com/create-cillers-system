@@ -1,0 +1,49 @@
+- id: stack-local-low-memory
+  run:
+    - couchbase
+    - id: cb-init 
+      module: couchbase-init
+
+    - module: redpanda
+      run-when:
+        after: cb-init
+    - id: redpanda-console
+      module: redpanda-console
+      run-when:
+        after: cb-init
+    - id: kafka-connect
+      module: kafka-connect
+      run-when:
+        after: cb-init
+    - id: create-connectors
+      module: create-connectors
+      run-when:
+        after: cb-init
+
+    - module: curity-db
+      run-when:
+        after: create-connectors 
+    - module: oauth-agent-web-app
+      run-when:
+        after: create-connectors 
+    - module: curity
+      run-when:
+        after: create-connectors 
+    - module: kong
+      run-when:
+        after: create-connectors 
+    - module: web-app-react-rest 
+      run-when:
+        after: create-connectors 
+    - module: api-python-rest
+      run-when:
+        after: create-connectors 
+    - module: jupyter
+      run-when:
+        after: create-connectors 
+    - module: api-client-rest
+      run-when:
+        after: create-connectors 
+    - module: oauth-agent-api-client-rest
+      run-when:
+        after: create-connectors 

@@ -1,0 +1,11 @@
+*/__pycache__
+*/*/__pycache__
+*/*/*/__pycache__
+*/*/*/*/__pycache__
+.devcontainer
+.DS_Store
+.git
+build
+.cillers
+tmp
+coder/templates

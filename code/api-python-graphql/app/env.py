@@ -46,10 +46,13 @@ def get_http_conf() -> http_server.ServerConf:
 ## Couchbase ##
 
 def get_couchbase_bucket() -> str:
-    return os.environ.get('COUCHBASE_BUCKET', 'main')
+    return os.environ.get('COUCHBASE_MAIN_BUCKET_NAME', 'main')
 
 def get_couchbase_url() -> str:
-    return os.environ.get('COUCHBASE_URL', 'couchbase://couchbase')
+    tls = os.environ.get('COUCHBASE_TLS', 'false') == 'true'
+    protocol = "couchbases" if tls else "couchbase"
+    host = os.environ.get('COUCHBASE_HOST', 'couchbase')
+    return f"{protocol}://{host}"
 
 def get_couchbase_username() -> str | None:
     return os.environ.get('COUCHBASE_USERNAME')
@@ -61,7 +64,8 @@ def get_couchbase_conf() -> couchbase.ConnectionConf:
     return couchbase.ConnectionConf(
         url=get_couchbase_url(),
         username=get_couchbase_username(),
-        password=get_couchbase_password()
+        password=get_couchbase_password(),
+        tls=os.environ.get('COUCHBASE_TLS', 'false') == 'true'
     )
 
 ## Validation

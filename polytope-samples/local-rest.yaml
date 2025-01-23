@@ -1,0 +1,23 @@
+- id: stack-rest-local
+  run:
+  - couchbase
+  - couchbase-init
+  - redpanda
+  - redpanda-init
+  - redpanda-console
+  - redpanda-connect
+  - curity-db
+  - curity
+  - kong
+  - web-app-react-rest
+  - oauth-agent-web-app
+  - api-python-rest
+  - ingest-api-python
+  - jupyter
+  - api-client-rest
+  - ingest-api-client
+  - oauth-agent-api-client-rest
+#  - module: ingest-api-ngrok
+#    args: 
+#      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
+

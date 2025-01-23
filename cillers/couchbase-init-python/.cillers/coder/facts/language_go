@@ -1,0 +1,22 @@
+
+<fact-group id="go" Title="Go">
+    <scope>
+        All Go code.
+    </scope>
+    <fact id="only-non-deprecated-packages" title="Deprecated Package Restrictions">
+       <specification>
+           The following Go packages are deprecated and must not be used:
+           * io/ioutil
+       </specification>
+    </fact>
+    <fact id="limited-glob-functionality" title="Glob Pattern Limitations">
+       <specification>
+           Go doesn't support ** in its glob functionality.
+       </specification>
+    </fact>
+    <fact id="no-unused-packages" title="Package Import Requirements">
+       <specification>
+           Go files must not contain imports of unused packages.
+       </specification>
+    </fact>
+</fact-group>

@@ -1,0 +1,34 @@
+- id: stack-local-without-redpanda
+  run:
+    - couchbase
+    - id: cb-init 
+      module: couchbase-init
+
+    - module: curity-db
+      run-when:
+        after: cb-init 
+    - module: oauth-agent-web-app
+      run-when:
+        after: cb-init 
+    - module: curity
+      run-when:
+        after: cb-init 
+    - module: kong
+      run-when:
+        after: cb-init 
+    - module: web-app-react-rest
+      run-when:
+        after: cb-init 
+    - module: api-python-rest
+      run-when:
+        after: cb-init 
+    - module: jupyter
+      run-when:
+        after: cb-init 
+    - module: api-client-rest
+      run-when:
+        after: cb-init 
+    - module: oauth-agent-api-client-rest
+      run-when:
+        after: cb-init 
+

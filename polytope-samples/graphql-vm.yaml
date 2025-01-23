@@ -1,0 +1,69 @@
+
+- id: stack-graphql-vm
+  params:
+    - id: web-app-url
+      type: [default, str, http://localhost:8080]
+    - id: api-client-graphql-url
+      type: [default, str, http://localhost:11001]
+    - id: api-client-rest-url
+      type: [default, str, http://localhost:11002]
+    - id: api-protocol-host-port
+      type: [default, str, http://localhost:8080]
+    - id: curity-base-url
+      type: [default, str, http://localhost:8443]
+  run:
+    - id: couchbase
+      module: couchbase
+    - id: couchbase-init
+      module: couchbase-init
+    - id: redpanda
+      module: redpanda
+    - id: redpanda-console
+      module: redpanda-console
+    - id: kafka-connect
+      module: kafka-connect
+    - id: create-connectors
+      module: create-connectors
+    - id: curity-db
+      module: curity-db
+    - id: curity
+      module: curity
+      args:
+        web-app-url: "#pt-param web-app-url"
+        api-client-graphql-url: "#pt-param api-client-graphql-url"
+        api-client-rest-url: "#pt-param api-client-rest-url"
+        curity-base-url: "#pt-param curity-base-url"
+    - id: kong
+      module: kong
+    - id: web-app-graphql 
+      module: web-app-graphql 
+      args:
+        api-protocol-host-port: "#pt-param api-protocol-host-port"
+    - id: api-client-graphql
+      module: api-client-graphql
+      args:
+        api-protocol-host-port: "#pt-param api-protocol-host-port"
+    - id: api-client-rest
+      module: api-client-rest
+      args:
+        api-protocol-host-port: "#pt-param api-protocol-host-port"
+    - id: oauth-agent-web-app
+      module: oauth-agent-web-app
+      args:
+        web-app-url: "#pt-param web-app-url"
+        curity-base-url: "#pt-param curity-base-url"
+    - id: oauth-agent-api-client-graphql
+      module: oauth-agent-api-client-graphql
+      args:
+        api-client-graphql-url: "#pt-param api-client-graphql-url" 
+        curity-base-url: "#pt-param curity-base-url" 
+    - id: oauth-agent-api-client-rest
+      module: oauth-agent-api-client-rest
+      args:
+        api-client-rest-url: "#pt-param api-client-rest-url" 
+        curity-base-url: "#pt-param curity-base-rest-url" 
+    - id: api-python-graphql
+      module: api-python-graphql
+    - id: jupyter
+      module: jupyter
+

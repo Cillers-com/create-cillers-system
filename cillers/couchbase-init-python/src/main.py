@@ -15,15 +15,17 @@ COUCHBASE_PASSWORD = get_env_var('COUCHBASE_PASSWORD')
 COUCHBASE_HOST = get_env_var('COUCHBASE_HOST')
 COUCHBASE_TLS = get_env_var('COUCHBASE_TLS').lower() == 'true'
 COUCHBASE_MAIN_BUCKET_NAME = get_env_var('COUCHBASE_MAIN_BUCKET_NAME')
+COUCHBASE_TYPE = get_env_var('COUCHBASE_TYPE')
 
 data_structure_spec = {"_default": ["items"]}
 
 def main():
-    controller_cluster = ControllerCluster(COUCHBASE_HOST, COUCHBASE_USERNAME, COUCHBASE_PASSWORD, COUCHBASE_TLS)
-    controller_cluster.ensure_initialized()
+    controller_cluster = ControllerCluster(COUCHBASE_HOST, COUCHBASE_USERNAME, COUCHBASE_PASSWORD, COUCHBASE_TLS, COUCHBASE_TYPE)
+    if COUCHBASE_TYPE == 'server':
+        controller_cluster.ensure_initialized()
     cluster = controller_cluster.connect_with_retry()
     try:
-        controller_bucket = ControllerBucket(cluster)
+        controller_bucket = ControllerBucket(controller_cluster, cluster)
         bucket = controller_bucket.ensure_created(COUCHBASE_MAIN_BUCKET_NAME)
         
         controller_data_structure = ControllerDataStructure(bucket)

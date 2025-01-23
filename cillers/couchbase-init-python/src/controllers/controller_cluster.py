@@ -10,11 +10,12 @@ from couchbase.exceptions import RequestCanceledException, AuthenticationExcepti
 from couchbase.diagnostics import ServiceType
 
 class ControllerCluster:
-    def __init__(self, host, username, password, tls):
+    def __init__(self, host, username, password, tls, type):
         self.host = host
         self.username = username
         self.password = password
         self.tls = tls
+        self.type = type
 
     def get_connection_string(self):
         protocol = "couchbases" if self.tls else "couchbase"
@@ -67,11 +68,15 @@ class ControllerCluster:
 
     def connect(self):
         auth = PasswordAuthenticator(self.username, self.password)
-        cluster = Cluster(self.get_connection_string(), ClusterOptions(auth))
-        cluster.wait_until_ready(
-            timedelta(seconds=300),
-            WaitUntilReadyOptions(service_types=[ServiceType.KeyValue, ServiceType.Query, ServiceType.Management])
-        )
+        cluster_options = ClusterOptions(auth)
+        if self.tls:
+            cluster_options.verify_credentials = True
+        cluster = Cluster(self.get_connection_string(), cluster_options)
+        wait_options = WaitUntilReadyOptions(
+                service_types=[ServiceType.KeyValue,
+                               ServiceType.Query, 
+                               ServiceType.Management])
+        cluster.wait_until_ready(timedelta(seconds=300), wait_options)
         return cluster
 
     def connect_with_retry(self, max_retries=30, retry_interval=1):

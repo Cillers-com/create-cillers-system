@@ -1,0 +1,24 @@
+
+<policy-group id="go" title="Go">
+    <scope>
+        All Go code
+    </scope>
+    <policy id="go-project-structure" title="Go Project Structure">
+       <specification>
+           * A project should have a mod.go file. 
+           * main.go should be the only file in the main package. All other files should be in sub packages. 
+           * The entry point to the application should be the main function in the main.go file.
+           * The main function should call another function called 'app' that returns an error if unsuccessful.
+           * The main function should exit with a non-zero error if the 'app' function returns an error.
+           * The main and app functions should be the only functions in the main.go file. All other functions
+           should be in other files. 
+           * If the project is small with less than 8 files, new go files should be created in the lib package unless
+           otherwise specified. 
+       </specification>
+    </policy>
+    <policy id="naming-convention" title="Go Naming Standards">
+       <specification>
+           Follow Go naming convention.
+       </specification>
+    </policy>
+</policy-group>

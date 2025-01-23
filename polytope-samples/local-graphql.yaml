@@ -1,0 +1,24 @@
+- id: stack-graphql-local
+  run:
+  - couchbase
+  - couchbase-init
+  - redpanda
+  - redpanda-init
+  - redpanda-console
+  - redpanda-connect
+  - curity-db
+  - curity
+  - kong
+  - web-app-react-graphql
+  - oauth-agent-web-app
+  - api-python-graphql
+  - ingest-api-python
+  - jupyter
+  - api-client-graphql
+  - ingest-api-client
+  - oauth-agent-api-client-graphql
+#  - module: ingest-api-ngrok
+#    args: 
+#      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
+
+

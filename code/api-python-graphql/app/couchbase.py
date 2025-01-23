@@ -25,6 +25,7 @@ class ConnectionConf(BaseModel):
     url: CouchbaseUrl
     username: Username
     password: str
+    tls: bool 
 
 class DocRef(BaseModel):
     bucket: str
@@ -47,7 +48,10 @@ def get_authenticator(conf: ConnectionConf) -> PasswordAuthenticator:
 
 @validate_arguments
 def get_cluster(conf: ConnectionConf, timeout_s=5) -> Cluster:
-    cluster = Cluster(str(conf.url), ClusterOptions(get_authenticator(conf)))
+    cluster_options = ClusterOptions(get_authenticator(conf))
+    if conf.tls:
+        cluster_options.verify_credentials = True
+    cluster = Cluster(str(conf.url), cluster_options)
     cluster.wait_until_ready(timedelta(seconds=5))
     return cluster
 

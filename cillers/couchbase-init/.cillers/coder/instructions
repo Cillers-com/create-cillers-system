@@ -1,0 +1,1 @@
+Move all getEnvVar calls in app function to a separate function 'loadConfig'. loadConfig should return config struct with the variables. 

@@ -1,209 +1,119 @@
 templates:
-- id: stack-rest-local 
-  run:
-  - couchbase
-  - couchbase-init
-  - redpanda
-  - redpanda-init
-  - redpanda-console
-  - redpanda-connect
-  - curity-db
-  - curity
-  - kong
-  - web-app-react-rest
-  - oauth-agent-web-app
-  - api-python-rest
-  - ingest-api-python
-  - jupyter
-  - api-client-rest
-  - ingest-api-client
-  - oauth-agent-api-client-rest
-#  - module: ingest-api-ngrok
-#    args: 
-#      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
 
-- id: stack-graphql-local
+#################################
+# ENVIRONMWENTS                 #
+#################################
+
+- id: dev
   run:
-  - couchbase
-  - couchbase-init
-  - redpanda
-  - redpanda-init
-  - redpanda-console
-  - redpanda-connect
-  - curity-db
-  - curity
-  - kong
+  - template: stack
+    args:
+      couchbase-host: cb.qdwkspgkf0h5rpzo.cloud.couchbase.com
+      couchbase-username: "#pt-secret couchbase-username-dev"
+      couchbase-password: "#pt-secret couchbase-password-dev"
+  - dev-tools
+
+##################################
+# STACK VARIANTS                 #
+##################################
+
+- id: stack
+  params: 
+  - { id: couchbase-host, type: str }
+  - { id: couchbase-username, type: str }
+  - { id: couchbase-password, type: str }
+  run:
+  - template: couchbase-capella
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+  - kong-curity
+  - web-app-react-graphql
+  - template: api-python-graphql-capella
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+
+###################################
+# STACK COMPONENTS                #
+###################################
+
+- id: dev-tools
+  run:
+  - api-client-graphql-curity
+  - jupyter
+
+- id: web-app-react-graphql-curity
+  run:
   - web-app-react-graphql
   - oauth-agent-web-app
-  - api-python-graphql
-  - ingest-api-python
-  - jupyter
+
+- id: api-client-graphql-curity
+  run:
   - api-client-graphql
-  - ingest-api-client
   - oauth-agent-api-client-graphql
-#  - module: ingest-api-ngrok
-#    args: 
-#      authtoken:  # Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken 
 
-- id: stack-graphql-vm
+- id: kong-curity
+  run:
+  - kong
+  - curity-db
+  - curity-service
+
+- id: couchbase-capella
   params:
-    - id: web-app-url
-      type: [default, str, http://localhost:8080]
-    - id: api-client-graphql-url
-      type: [default, str, http://localhost:11001]
-    - id: api-client-rest-url
-      type: [default, str, http://localhost:11002]
-    - id: api-protocol-host-port
-      type: [default, str, http://localhost:8080]
-    - id: curity-base-url
-      type: [default, str, http://localhost:8443]
+  - { id: couchbase-host, type: str }
+  - { id: couchbase-username, type: str }
+  - { id: couchbase-password, type: str }
   run:
-    - id: couchbase
-      module: couchbase
-    - id: couchbase-init
-      module: couchbase-init
-    - id: redpanda
-      module: redpanda
-    - id: redpanda-console
-      module: redpanda-console
-    - id: kafka-connect
-      module: kafka-connect
-    - id: create-connectors
-      module: create-connectors
-    - id: curity-db
-      module: curity-db
-    - id: curity
-      module: curity
-      args:
-        web-app-url: "#pt-param web-app-url"
-        api-client-graphql-url: "#pt-param api-client-graphql-url"
-        api-client-rest-url: "#pt-param api-client-rest-url"
-        curity-base-url: "#pt-param curity-base-url"
-    - id: kong
-      module: kong
-    - id: web-app-graphql 
-      module: web-app-graphql 
-      args:
-        api-protocol-host-port: "#pt-param api-protocol-host-port"
-    - id: api-client-graphql
-      module: api-client-graphql
-      args:
-        api-protocol-host-port: "#pt-param api-protocol-host-port"
-    - id: api-client-rest
-      module: api-client-rest
-      args:
-        api-protocol-host-port: "#pt-param api-protocol-host-port"
-    - id: oauth-agent-web-app
-      module: oauth-agent-web-app
-      args:
-        web-app-url: "#pt-param web-app-url"
-        curity-base-url: "#pt-param curity-base-url"
-    - id: oauth-agent-api-client-graphql
-      module: oauth-agent-api-client-graphql
-      args:
-        api-client-graphql-url: "#pt-param api-client-graphql-url" 
-        curity-base-url: "#pt-param curity-base-url" 
-    - id: oauth-agent-api-client-rest
-      module: oauth-agent-api-client-rest
-      args:
-        api-client-rest-url: "#pt-param api-client-rest-url" 
-        curity-base-url: "#pt-param curity-base-rest-url" 
-    - id: api-python-graphql
-      module: api-python-graphql
-    - id: jupyter
-      module: jupyter
+  - module: couchbase-init-python
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+      couchbase-tls: 'true'
+      couchbase-type: capella
 
-- id: stack-local-low-memory
+- id: api-python-graphql-capella
+  params:
+  - id: couchbase-host
+    info: The Couchbase host
+    name: Couchbase host
+    type: str
   run:
-    - couchbase
-    - id: cb-init 
-      module: couchbase-init
+  - module: api-python-graphql
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-tls: 'true'
+      couchbase-type: capella
 
-    - module: redpanda
-      run-when:
-        after: cb-init
-    - id: redpanda-console
-      module: redpanda-console
-      run-when:
-        after: cb-init
-    - id: kafka-connect
-      module: kafka-connect
-      run-when:
-        after: cb-init
-    - id: create-connectors
-      module: create-connectors
-      run-when:
-        after: cb-init
 
-    - module: curity-db
-      run-when:
-        after: create-connectors 
-    - module: oauth-agent-web-app
-      run-when:
-        after: create-connectors 
-    - module: curity
-      run-when:
-        after: create-connectors 
-    - module: kong
-      run-when:
-        after: create-connectors 
-    - module: web-app-react-rest 
-      run-when:
-        after: create-connectors 
-    - module: api-python-rest
-      run-when:
-        after: create-connectors 
-    - module: jupyter
-      run-when:
-        after: create-connectors 
-    - module: api-client-rest
-      run-when:
-        after: create-connectors 
-    - module: oauth-agent-api-client-rest
-      run-when:
-        after: create-connectors 
-
-- id: stack-local-without-redpanda
-  run:
-    - couchbase
-    - id: cb-init 
-      module: couchbase-init
-
-    - module: curity-db
-      run-when:
-        after: cb-init 
-    - module: oauth-agent-web-app
-      run-when:
-        after: cb-init 
-    - module: curity
-      run-when:
-        after: cb-init 
-    - module: kong
-      run-when:
-        after: cb-init 
-    - module: web-app-react-rest
-      run-when:
-        after: cb-init 
-    - module: api-python-rest
-      run-when:
-        after: cb-init 
-    - module: jupyter
-      run-when:
-        after: cb-init 
-    - module: api-client-rest
-      run-when:
-        after: cb-init 
-    - module: oauth-agent-api-client-rest
-      run-when:
-        after: cb-init 
+#####################################
+# MODULES                           #
+#####################################
 
 modules:
   - id: api-python-graphql
     info: The App API
     module: polytope/python
     params:
-      - id: api-protocol-host-port 
-        type: [default, str, http://localhost:11100]
+    - id: api-protocol-host-port 
+      type: [default, str, http://localhost:11100]
+    - id: couchbase-host 
+      info: The Couchbase host 
+      name: Couchbase host
+      type: str
+    - id: couchbase-tls
+      info: Boolean that specifies if the Couchbase connections runs over TLS
+      name: Couchbase TLS
+      type: [default, str, 'false']
+    - id: couchbase-main-bucket-name
+      info: The name of the main bucket
+      name: Main Couchbase bucket
+      type: [default, str, 'main']
+    - id: couchbase-type
+      info: Couchbase type
+      name: Couchbase type
+      type: [default, str, 'server']
     args: 
       id: api-pyton-graphql
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
@@ -213,9 +123,12 @@ modules:
       services: 
       - { id: "api", ports: [{protocol: http, port: 4000}] }
       env:
-        - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
-        - { name: COUCHBASE_USERNAME, value: admin }
-        - { name: COUCHBASE_PASSWORD, value: password }
+        - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
+        - { name: COUCHBASE_TLS, value: "#pt-param couchbase-tls" }
+        - { name: COUCHBASE_USERNAME, value: "#pt-secret couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-secret couchbase-password" }
+        - { name: COUCHBASE_MAIN_BUCKET_NAME, value: "#pt-param couchbase-main-bucket-name" }
+        - { name: COUCHBASE_TYPE, value: "#pt-param couchbase-type" }
         - { name: HTTP_PORT, value: 4000 } 
         - { name: APP_PROTOCOL_HOST_PORT, value: "#pt-param api-protocol-host-port" }
         - { name: HTTP_DEBUG, value: false } 
@@ -562,7 +475,7 @@ modules:
       services:
       - { id: kong, ports: [{ port: 3000, protocol: http, expose-as: 11100}]}
 
-  - id: curity
+  - id: curity-service
     params:
     - id: curity-base-url
       type: [default, str, http://localhost:8443]
@@ -680,18 +593,51 @@ modules:
       data-volume: { type: volume, scope: project, id: couchbase-data }
 
   - id: couchbase-init
-    module: polytope/python
+    params:
+    - id: { couchbase-host, type: [default, str, 'couchbase'] }
+    - id: { couchbase-username, type: str }
+    - id: { couchbase-password, type: str }
+    - id: { couchbase-tls, type: [default, str, 'false'] }
+    - id: { couchbase-main-bucket-name, type: [default, str, 'main'] }
+    - id: { couchbase-type, type: [default, str, 'server'] }
+    module: polytope/go
     args:
-      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      image: gcr.io/arched-inkwell-420116/golang:1.23-alpine3.21
       code: { type: host, path: ./cillers/couchbase-init }
       cmd: ./bin/run
       restart: { policy: on-failure }
       env:
-        - { name: COUCHBASE_HOST, value: "couchbase" }
-        - { name: COUCHBASE_TLS, value: false }
-        - { name: COUCHBASE_USERNAME, value: admin }
-        - { name: COUCHBASE_PASSWORD, value: password }
-        - { name: COUCHBASE_MAIN_BUCKET_NAME, value: main }
+        - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
+        - { name: COUCHBASE_TLS, value: "#pt-param couchbase-tls" }
+        - { name: COUCHBASE_USERNAME, value: "#pt-param couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-param couchbase-password" }
+        - { name: COUCHBASE_MAIN_BUCKET_NAME, value: "#pt-param couchbase-main-bucket-name" }
+        - { name: COUCHBASE_TYPE, value: "#pt-param couchbase-type" }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf/components/couchbase }}
+
+  - id: couchbase-init-python
+    params:
+    - id: { couchbase-host, type: [default, str, 'couchbase'] }
+    - id: { couchbase-username, type: str }
+    - id: { couchbase-password, type: str }
+    - id: { couchbase-tls, type: [default, str, 'false'] }
+    - id: { couchbase-main-bucket-name, type: [default, str, 'main'] }
+    - id: { couchbase-type, type: [default, str, 'server'] }
+    module: polytope/python
+    args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./cillers/couchbase-init-python }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      env:
+        - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
+        - { name: COUCHBASE_TLS, value: "#pt-param couchbase-tls" }
+        - { name: COUCHBASE_USERNAME, value: "#pt-param couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-param couchbase-password" }
+        - { name: COUCHBASE_MAIN_BUCKET_NAME, value: "#pt-param couchbase-main-bucket-name" }
+        - { name: COUCHBASE_TYPE, value: "#pt-param couchbase-type" }
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf/components/couchbase }}
@@ -877,4 +823,77 @@ modules:
       mounts:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf/components/redpanda }}
+
+  - id: couchbase-capella-init
+    module: polytope/python
+    args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./cillers/couchbase-init }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      env:
+        - { name: COUCHBASE_HOST, value: "cb.qdwkspgkf0h5rpzo.cloud.couchbase.com" }
+        - { name: COUCHBASE_TLS, value: true }
+        - { name: COUCHBASE_USERNAME, value: "#pt-secret couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-secret couchbase-password" }
+        - { name: COUCHBASE_MAIN_BUCKET_NAME, value: main }
+        - { name: COUCHBASE_TYPE, value: capella }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf/components/couchbase }}
+
+  - id: web-app-react-graphql-basic
+    info: The Web App
+    module: polytope/node
+    params:
+      - id: api-protocol-host-port 
+        type: [default, str, http://localhost:11100]
+    args:
+      id: web-app-react-graphql 
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./code/web-app-react-graphql }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11000 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api/graphql'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
+      restart:
+        policy: on-failure
+      services:
+        - id: web-app 
+          ports: [{protocol: http, port: 11000}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
+
+  - id: api-python-graphql-basic
+    info: The App API
+    module: polytope/python
+    params:
+      - id: api-protocol-host-port 
+        type: [default, str, http://localhost:11100]
+    args: 
+      id: api-pyton-graphql
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./code/api-python-graphql }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      services: 
+      - { id: "api", ports: [{protocol: http, port: 4000}] }
+      env:
+        - { name: COUCHBASE_URL, value: "couchbase://couchbase" }
+        - { name: COUCHBASE_USERNAME, value: admin }
+        - { name: COUCHBASE_PASSWORD, value: password }
+        - { name: HTTP_PORT, value: 4000 } 
+        - { name: APP_PROTOCOL_HOST_PORT, value: "#pt-param api-protocol-host-port" }
+        - { name: HTTP_DEBUG, value: false } 
+        - { name: HTTP_AUTORELOAD, value: true } 
+        - { name: HTTP_GRAPHQL_UI, value: false } 
+        - { name: AUTH_OIDC_AUDIENCE, value: http://localhost/api }
+        - { name: AUTH_OIDC_JWK_URL, value: http://curity:8443/oauth/v2/oauth-anonymous/jwks }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf }}
 
