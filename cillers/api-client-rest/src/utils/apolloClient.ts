@@ -14,7 +14,6 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import config from '../config';
-import { refresh_token } from './oauthAgentClient'; 
 
 function replace_http_with_ws (url: string) : string {
     console.log(url.replace('http', 'ws'));
@@ -30,7 +29,7 @@ function create_http_link(): HttpLink {
     });
 }
 
-function create_ws_link (csrf: string): GraphQLWsLink {
+function create_ws_link (): GraphQLWsLink {
     return new GraphQLWsLink(createClient({
         url: replace_http_with_ws(config.api_base_url),
         retryAttempts: Infinity,
@@ -51,22 +50,11 @@ function create_ws_link (csrf: string): GraphQLWsLink {
     }));
 };
 
-function create_csrf_link (csrf: string): ApolloLink {
-    return setContext(async (_, { headers }) => {
-        return {
-            headers: {
-                ...headers, 
-                "x-curity-csrf": csrf,
-            } 
-        };
-    });
-} 
-
 interface ServerError { 
     statusCode: number
 } 
 
-function create_error_link (csrf: string, on_error: Function) : ApolloLink { 
+function create_error_link (on_error: Function) : ApolloLink { 
     return onError(({ graphQLErrors, networkError, operation, forward }) => {
         if (networkError) {
             if (networkError.name === "ServerError" && (networkError as ServerError).statusCode === 401) {
