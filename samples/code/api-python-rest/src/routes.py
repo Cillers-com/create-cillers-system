@@ -12,11 +12,6 @@ class HelloResponse(BaseModel):
 class ItemCreateInput(BaseModel):
     name: str
 
-def get_current_user(request: Request, context: RestContext = Depends(get_rest_context)):
-    if "Authorization" not in request.headers:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return {"id": "123", "name": "John Doe"}
-
 @router.get("/hello", response_model=HelloResponse, description="Returns a greeting message.")
 async def hello() -> HelloResponse:
     return HelloResponse(message=f"Hello and welcome to Cillers!")

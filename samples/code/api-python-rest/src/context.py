@@ -3,7 +3,6 @@ from functools import cached_property
 from fastapi import Request
 import jwt_utils
 
-# REST Context
 class RestContext:
     def __init__(self, request: Request):
         self.request = request
@@ -22,6 +21,5 @@ def get_current_user(request: Request) -> Optional[dict]:
             return jwt_utils.verify_and_decode_jwt(token)
     return None
 
-# For REST
 def get_rest_context(request: Request) -> RestContext:
     return RestContext(request)

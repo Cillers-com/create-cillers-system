@@ -24,13 +24,14 @@ app = FastAPI(
     description="Your API Description",
     version="1.0.0",
     servers=[
-        {"url": api_url_for_apps, "description": "API Gateway"}
-    ]
+        {"url": api_url_for_apps, "description": "API"}
+        ]
 )
 app.include_router(router, prefix="/api")
 
 origins = [
     "http://localhost:11000",
+    "http://localhost:11001",
 ]
 
 app.add_middleware(

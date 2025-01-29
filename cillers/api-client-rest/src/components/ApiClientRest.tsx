@@ -3,7 +3,7 @@ import SwaggerUI from 'swagger-ui-react';
 import SwaggerUIStandalonePreset from 'swagger-ui-dist/swagger-ui-standalone-preset';
 import 'swagger-ui-react/swagger-ui.css';
 
-const ApiClientRest: React.FC<ApiClientRestProps> = ({ spec, csrf }) => {
+const ApiClientRest: React.FC<ApiClientRestProps> = ({ spec }) => {
 
   const defaultQueries: DefaultQuery[] = [
     {
@@ -44,9 +44,6 @@ const ApiClientRest: React.FC<ApiClientRestProps> = ({ spec, csrf }) => {
   ];
 
   const requestInterceptor = (req: any) => {
-    if (!req.headers['x-curity-csrf']) {
-      req.headers['x-curity-csrf'] = csrf;
-    }
     return req;
   };
 

@@ -1,34 +1,38 @@
-import React from 'react';
-import useAuth, { login, logout } from '../utils/useAuth';
-import Authenticated from './Authenticated';
-import Anonymous from './Anonymous';
+import React, { useState, useEffect } from 'react';
+import ApiClientRest from './ApiClientRest';
 
-const LoadingLoginState = () => (
-    <div>Waiting for login state info ...</div>
-);
-
-const LoadingUserInfo = () => (
-    <div>Waiting for user info ...</div>
-);
-
-const LoggingOut = () => (
-    <div>Logging out ...</div>
-);
 
 const Main: React.FC = () => {
-    const { getLoginStateComplete, isLoggedIn, csrf, userInfo, isLoggingOut } = useAuth();
+  const [spec, setSpec] = useState<object | null>(null);
 
-    const component: React.ReactElement = (() => { 
-        if (isLoggingOut) return <LoggingOut />;
-        if (!getLoginStateComplete) return <LoadingLoginState />;
-        if (!isLoggedIn) return <Anonymous login={login} />;
-        if (!userInfo) return <LoadingUserInfo />;
+  useEffect(() => {
+    const fetchSpec = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/openapi.json`, {});
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setSpec(data);
+      } catch (error) {
+        console.error('Error fetching OpenAPI spec:', error);
+      }
+    };
 
-        if (!csrf) throw new Error("No csrf!"); 
-        return <Authenticated logout={logout} userInfo={userInfo} csrf={csrf} />;
-    })();  
+    fetchSpec();
+  }, []);
 
-    return component;     
+  return (
+    <>
+      {spec ? (
+        <ApiClientRest
+          spec={spec}
+        />
+      ) : (
+        <div>Loading API specification...</div>
+      )}
+    </>
+  );
 }
 
 export default Main;

@@ -97,7 +97,8 @@ modules:
     args:
       id: web-app-react-graphql 
       image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
-      code: { type: host, path: ./code/web-app }
+      # code: { type: host, path: ./code/web-app }
+      code: { type: host, path: ./samples/code/web-app-react-graphql }
       cmd: ./bin/run
       env:
         - { name: PORT, value: 11000 } 
@@ -126,7 +127,8 @@ modules:
     args: 
       id: api-pyton-graphql
       image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
-      code: { type: host, path: ./code/api }
+      # code: { type: host, path: ./code/api }
+      code: { type: host, path: ./samples/code/api-python-graphql }
       cmd: ./bin/run
       restart: { policy: on-failure }
       services: 

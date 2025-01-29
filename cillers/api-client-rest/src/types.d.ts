@@ -21,5 +21,4 @@ interface DefaultQuery {
 
 interface ApiClientRestProps {
   spec: object;
-  csrf: string;
 }
