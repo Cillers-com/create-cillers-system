@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+POETRY_ARGS=--with=dev . "$(dirname "$0")/init"
+
+exec poetry run ipython "$@"

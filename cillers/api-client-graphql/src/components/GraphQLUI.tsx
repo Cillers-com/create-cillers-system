@@ -4,15 +4,13 @@ import GraphiQL from "graphiql";
 
 const url = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
-const createFetcher = (csrf: string) => createGraphiQLFetcher({
+const createFetcher = () => createGraphiQLFetcher({
   url,
   fetch: async (input, init = {}) => {
     return fetch(input, {
       ...init,
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        "x-curity-csrf": csrf,
         ...init.headers,
       },
     });
@@ -21,13 +19,6 @@ const createFetcher = (csrf: string) => createGraphiQLFetcher({
 
 const helloQuery = `query Hello {
   hello {
-    message
-  }
-}
-`;
-
-const helloAdminQuery = `query HelloAdmin {
-  helloAdmin {
     message
   }
 }
@@ -59,9 +50,6 @@ const tabs = [
     query: helloQuery
   },
   {
-    query: helloAdminQuery
-  },
-  {
     query: itemsQuery
   },
   {
@@ -72,8 +60,8 @@ const tabs = [
   }
 ]
 
-const GraphQLUI: React.FC<{ csrf: string }> = ({ csrf }) => {
-  const fetcher = React.useMemo(() => createFetcher(csrf), [csrf]);
+const GraphQLUI: React.FC = () => {
+  const fetcher = React.useMemo(() => createFetcher(), []);
 
   return (
     <div style={{ height: '90vh', width: '100%' }}>

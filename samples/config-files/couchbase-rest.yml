@@ -1,0 +1,240 @@
+templates:
+
+#################################
+# ENVIRONMWENTS                 #
+#################################
+
+- id: dev
+  run:
+  - template: stack
+    args:
+      couchbase-host: cb.qdwkspgkf0h5rpzo.cloud.couchbase.com
+      couchbase-username: "#pt-secret couchbase-username-dev"
+      couchbase-password: "#pt-secret couchbase-password-dev"
+  - dev-tools
+
+##################################
+# STACK VARIANTS                 #
+##################################
+
+- id: stack
+  params: 
+  - { id: couchbase-host, type: str }
+  - { id: couchbase-username, type: str }
+  - { id: couchbase-password, type: str }
+  run:
+  - template: couchbase-capella
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+  - web-app
+  - template: api
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+
+- id: stack-rest
+  params: 
+  - { id: couchbase-host, type: str }
+  - { id: couchbase-username, type: str }
+  - { id: couchbase-password, type: str }
+  run:
+  - template: couchbase-capella
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+  - web-app-react-rest
+  - template: api-python-rest-capella
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+
+##################################
+# TOOL VARIANTS                  #
+##################################
+
+- id: dev-tools
+  run: 
+  - api-client-rest
+  - jupyter
+
+###################################
+# STACK COMPONENTS                #
+###################################
+
+- id: couchbase-capella
+  params:
+  - { id: couchbase-host, type: str }
+  - { id: couchbase-username, type: str }
+  - { id: couchbase-password, type: str }
+  run:
+  - module: couchbase-init-python
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+      couchbase-tls: 'true'
+      couchbase-type: capella
+
+- id: web-app
+  run:
+    - web-app-react-rest
+
+- id: api
+  params:
+  - { id: couchbase-host, type: str }
+  - { id: couchbase-username, type: str }
+  - { id: couchbase-password, type: str }
+  run:
+  - module: api-python-rest
+    args:
+      couchbase-host: "#pt-param couchbase-host"
+      couchbase-username: "#pt-param couchbase-username"
+      couchbase-password: "#pt-param couchbase-password"
+      couchbase-protocol: 'couchbases'
+
+
+#####################################
+# MODULES                           #
+#####################################
+
+modules:
+  - id: web-app-react-rest
+    info: The Web App
+    module: polytope/node
+    params:
+      - id: api-protocol-host-port 
+        type: [default, str, http://localhost:4000]
+    args:
+      id: web-app-react-rest 
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./code/web-app-react-rest }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11000 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
+        - { name: REACT_APP_OAUTH_AGENT_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/oauth-agent-web-app'" }
+      restart:
+        policy: on-failure
+      services:
+        - id: web-app 
+          ports: [{protocol: http, port: 11000}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules }}
+
+  - id: api-python-rest
+    module: polytope/python
+    params:
+      - { id: couchbase-protocol, type: [default, str, couchbase] }
+      - { id: couchbase-host, type: [default, str, couchbase] }
+      - { id: couchbase-username, type: [default, str, admin] }
+      - { id: couchbase-password, type: [default, str, password] }
+      - { id: couchbase-default-bucket-name, type: [default, str, main] }
+      - { id: api-port, type: [default, int, 4000] }
+      - { id: api-reload, type: [default, str, 'true'] }
+      - { id: api-url-for-apps, type: [default, str, http://localhost:11100] }
+    args: 
+      id: api-python-rest
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      code: { type: host, path: ./code/api-python-rest }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      services: 
+      - { id: "api", ports: [{protocol: http, port: "#pt-param api-port"}] }
+      env:
+        - { name: COUCHBASE_PROTOCOL, value: "#pt-param couchbase-protocol" }
+        - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
+        - { name: COUCHBASE_USERNAME, value: "#pt-param couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-param couchbase-password" }
+        - { name: COUCHBASE_DEFAULT_BUCKET_NAME, value: "#pt-param couchbase-default-bucket-name" }
+        - { name: API_PORT, value: "#pt-param api-port" }
+        - { name: API_RELOAD, value: "#pt-param api-reload" }
+        - { name: API_URL_FOR_APPS, value: "#pt-param api-url-for-apps" }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf }}
+
+  - id: jupyter
+    info: "Runs a Jupyter notebook hooked up to the Cillers stack."
+    module: polytope/jupyter
+    args:
+      services: 
+      - { id: "jupyter", ports: [{protocol: http, port: 8888, expose-as: 11002}] }
+      mounts:
+      - path: /home/jovyan/.cache/
+        source:
+          type: volume
+          scope: project
+          id: dependency-cache
+      - path: /home/jovyan/config
+        source:
+          path: ./conf/components/jupyter
+          type: host
+      - path: /home/jovyan/tutorials
+        source:
+          path: ./cillers/jupyter/tutorials
+          type: host
+      - path: /home/jovyan/work
+        source:
+          path: ./cillers/jupyter/work
+          type: host
+
+  - id: api-client-rest
+    info: An API Client For REST
+    module: polytope/node
+    params:
+      - id: api-protocol-host-port
+        type: [default, str, http://localhost:4000]
+    args:
+      id: api-client-rest
+      image: gcr.io/arched-inkwell-420116/node:21.7.0-slim
+      code: { type: host, path: ./cillers/api-client-rest }
+      cmd: ./bin/run
+      env:
+        - { name: PORT, value: 11002 } 
+        - { name: HOST, value: 0.0.0.0 } 
+        - { name: REACT_APP_API_BASE_URL, value: "#pt-js params['apiProtocolHostPort'] + '/api'" }
+      restart:
+        policy: on-failure
+      services:
+        - id: api-client 
+          ports: [{protocol: http, port: 11002}]
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-rest }}
+        - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client-rest }} 
+        - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client-rest }}
+
+  - id: couchbase-init-python
+    params:
+    - { id: couchbase-host, type: [default, str, 'couchbase'] }
+    - { id: couchbase-username, type: str }
+    - { id: couchbase-password, type: str }
+    - { id: couchbase-tls, type: [default, str, 'false'] }
+    - { id: couchbase-main-bucket-name, type: [default, str, 'main'] }
+    - { id: couchbase-type, type: [default, str, 'server'] }
+    module: polytope/python
+    args:
+      image: gcr.io/arched-inkwell-420116/python:3.11.8-slim-bookworm
+      container-id: couchbase-init-python
+      code: { type: host, path: ./cillers/couchbase-init-python }
+      cmd: ./bin/run
+      restart: { policy: on-failure }
+      env:
+        - { name: COUCHBASE_HOST, value: "#pt-param couchbase-host" }
+        - { name: COUCHBASE_TLS, value: "#pt-param couchbase-tls" }
+        - { name: COUCHBASE_USERNAME, value: "#pt-param couchbase-username" }
+        - { name: COUCHBASE_PASSWORD, value: "#pt-param couchbase-password" }
+        - { name: COUCHBASE_MAIN_BUCKET_NAME, value: "#pt-param couchbase-main-bucket-name" }
+        - { name: COUCHBASE_TYPE, value: "#pt-param couchbase-type" }
+      mounts:
+        - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
+        - { path: /root/conf/, source: { type: host, path: ./conf/components/couchbase }}
+
+
