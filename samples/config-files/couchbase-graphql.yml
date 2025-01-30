@@ -44,7 +44,6 @@ templates:
 - id: dev-tools
   run: 
   - api-client-graphql
-  - jupyter
 
 
 ###################################
@@ -149,31 +148,6 @@ modules:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf }}
 
-  - id: jupyter
-    info: "Runs a Jupyter notebook hooked up to the Cillers stack."
-    module: polytope/jupyter
-    args:
-      services: 
-      - { id: "jupyter", ports: [{protocol: http, port: 8888, expose-as: 11002}] }
-      mounts:
-      - path: /home/jovyan/.cache/
-        source:
-          type: volume
-          scope: project
-          id: dependency-cache
-      - path: /home/jovyan/config
-        source:
-          path: ./conf/components/jupyter
-          type: host
-      - path: /home/jovyan/tutorials
-        source:
-          path: ./cillers/jupyter/tutorials
-          type: host
-      - path: /home/jovyan/work
-        source:
-          path: ./cillers/jupyter/work
-          type: host
-
   - id: api-client-graphql
     info: An API Client
     module: polytope/node
@@ -198,12 +172,6 @@ modules:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache-api-client-graphql}}
         - { path: /root/.npm/, source: { type: volume, scope: project, id: npm-cache-api-client-graphql }} 
         - { path: /app/node_modules/, source: { type: volume, scope: project, id: npm-modules-api-client-graphql }}
-
-  - id: couchbase
-    module: polytope/couchbase
-    args:
-      image: gcr.io/arched-inkwell-420116/couchbase:enterprise-7.6.1
-      data-volume: { type: volume, scope: project, id: couchbase-data }
 
   - id: couchbase-init-python
     params:

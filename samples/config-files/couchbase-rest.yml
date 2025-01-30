@@ -60,7 +60,6 @@ templates:
 - id: dev-tools
   run: 
   - api-client-rest
-  - jupyter
 
 ###################################
 # STACK COMPONENTS                #
@@ -162,32 +161,7 @@ modules:
         - { path: /root/.cache/, source: { type: volume, scope: project, id: dependency-cache }}
         - { path: /root/conf/, source: { type: host, path: ./conf }}
 
-  - id: jupyter
-    info: "Runs a Jupyter notebook hooked up to the Cillers stack."
-    module: polytope/jupyter
-    args:
-      services: 
-      - { id: "jupyter", ports: [{protocol: http, port: 8888, expose-as: 11002}] }
-      mounts:
-      - path: /home/jovyan/.cache/
-        source:
-          type: volume
-          scope: project
-          id: dependency-cache
-      - path: /home/jovyan/config
-        source:
-          path: ./conf/components/jupyter
-          type: host
-      - path: /home/jovyan/tutorials
-        source:
-          path: ./cillers/jupyter/tutorials
-          type: host
-      - path: /home/jovyan/work
-        source:
-          path: ./cillers/jupyter/work
-          type: host
-
-  - id: api-client-rest
+    - id: api-client-rest
     info: An API Client For REST
     module: polytope/node
     params:
